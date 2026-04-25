@@ -1,70 +1,281 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="antialiased">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>B2B Micro SaaS Dashboard</title>
+    <title>Omni Business Portal</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Supabase & Tailwind -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tailwind Config for System Dark Mode -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Poppins', 'sans-serif'] },
+                    colors: {
+                        brand: { 50: '#eef2ff', 500: '#6366f1', 600: '#4f46e5', 900: '#312e81' }
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f9; padding: 20px; }
-        .box { background: white; padding: 20px; border-radius: 8px; max-width: 400px; margin: auto; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        input, button { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; box-sizing: border-box; }
-        button { background: #007BFF; color: white; border: none; cursor: pointer; font-weight: bold; }
-        .hidden { display: none; }
+        /* Smooth glass effect for both Light and Dark modes */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        @media (prefers-color-scheme: dark) {
+            .glass-card {
+                background: rgba(30, 41, 59, 0.8);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+        }
+        /* Hide element class */
+        .hidden-view { display: none !important; }
     </style>
 </head>
-<body>
 
-    <div id="authBox" class="box">
-        <h2>Client Portal Access</h2>
-        <input type="text" id="fullName" placeholder="Company / Full Name">
-        <input type="email" id="email" placeholder="Business Email">
-        <input type="password" id="password" placeholder="Password">
-        
-        <button onclick="signUp()">Create Account</button>
-        <button onclick="logIn()" style="background: #28a745;">Log In</button>
-        <p id="authMessage" style="color: red; font-size: 14px;"></p>
+<body class="min-h-screen bg-gradient-to-br from-brand-50 to-purple-100 dark:from-slate-900 dark:to-brand-900 text-slate-800 dark:text-slate-100 flex items-center justify-center p-4 transition-colors duration-300">
+
+    <!-- ========================================== -->
+    <!-- 1. AUTHENTICATION VIEW (LOGIN / SIGN UP)   -->
+    <!-- ========================================== -->
+    <div id="authView" class="glass-card w-full max-w-md rounded-3xl shadow-2xl p-8 transform transition-all">
+        <div class="text-center mb-8">
+            <div class="bg-brand-500 text-white w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-500/50">
+                <i data-lucide="sparkles" class="w-8 h-8"></i>
+            </div>
+            <h2 class="text-2xl font-bold">Welcome to Omni</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Sign in to your business portal</p>
+        </div>
+
+        <div class="space-y-4">
+            <!-- Full Name (Only needed for signup, but kept here for simplicity) -->
+            <div class="relative">
+                <i data-lucide="building" class="absolute left-3 top-3.5 w-5 h-5 text-slate-400"></i>
+                <input type="text" id="fullName" placeholder="Company Name" class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 focus:ring-2 focus:ring-brand-500 outline-none transition-all dark:placeholder-slate-500">
+            </div>
+
+            <!-- Email -->
+            <div class="relative">
+                <i data-lucide="mail" class="absolute left-3 top-3.5 w-5 h-5 text-slate-400"></i>
+                <input type="email" id="email" placeholder="Business Email" class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 focus:ring-2 focus:ring-brand-500 outline-none transition-all dark:placeholder-slate-500">
+            </div>
+
+            <!-- Password -->
+            <div class="relative">
+                <i data-lucide="lock" class="absolute left-3 top-3.5 w-5 h-5 text-slate-400"></i>
+                <input type="password" id="password" placeholder="Password" class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 focus:ring-2 focus:ring-brand-500 outline-none transition-all dark:placeholder-slate-500">
+            </div>
+
+            <!-- Error/Success Message -->
+            <p id="authMessage" class="text-sm font-medium text-center hidden"></p>
+
+            <!-- Buttons -->
+            <div class="flex gap-3 pt-2">
+                <button onclick="signUp()" class="w-full py-3 rounded-xl font-semibold text-brand-600 bg-brand-50 dark:bg-slate-800 hover:bg-brand-100 dark:hover:bg-slate-700 transition-colors border border-brand-200 dark:border-slate-700">
+                    Sign Up
+                </button>
+                <button onclick="logIn()" class="w-full py-3 rounded-xl font-semibold text-white bg-brand-600 hover:bg-brand-500 shadow-lg shadow-brand-500/30 transition-colors">
+                    Log In <i data-lucide="arrow-right" class="inline w-4 h-4 ml-1"></i>
+                </button>
+            </div>
+        </div>
     </div>
 
-    <div id="dashboardBox" class="box hidden">
-        <h2 id="welcomeText">Welcome!</h2>
-        <div style="background: #e9ecef; padding: 15px; border-radius: 5px;">
-            <p><strong>Current Plan:</strong> <span id="planName" style="color: #007BFF; font-weight: bold;">Loading...</span></p>
-            <p><strong>Status:</strong> <span id="planStatus">...</span></p>
-        </div>
-        <button onclick="logOut()" style="background: #dc3545; margin-top: 20px;">Secure Logout</button>
+
+    <!-- ========================================== -->
+    <!-- 2. DASHBOARD VIEW (HIDDEN INITIALLY)       -->
+    <!-- ========================================== -->
+    <div id="dashboardView" class="w-full max-w-4xl hidden-view">
         
-        <div id="moduleContainer" style="margin-top: 20px; text-align: center; color: gray;">
-            [ Interactive Tool Module will load here ]
+        <!-- Top Navigation -->
+        <nav class="glass-card rounded-2xl p-4 flex justify-between items-center mb-6 shadow-lg">
+            <div class="flex items-center gap-3">
+                <div class="bg-brand-500 text-white p-2 rounded-lg"><i data-lucide="layout-dashboard" class="w-5 h-5"></i></div>
+                <h1 class="text-xl font-bold">Omni Engine</h1>
+            </div>
+            <button onclick="logOut()" class="flex items-center gap-2 text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 px-4 py-2 rounded-lg transition-colors">
+                <i data-lucide="log-out" class="w-4 h-4"></i> Logout
+            </button>
+        </nav>
+
+        <div class="grid md:grid-cols-3 gap-6">
+            <!-- Left Sidebar: Profile & Subscription -->
+            <div class="space-y-6">
+                <!-- Welcome Card -->
+                <div class="glass-card rounded-3xl p-6 shadow-xl text-center">
+                    <div class="w-20 h-20 bg-gradient-to-tr from-brand-400 to-purple-500 rounded-full mx-auto mb-4 border-4 border-white dark:border-slate-800 shadow-lg"></div>
+                    <h2 id="welcomeName" class="text-xl font-bold">Company Name</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Admin Dashboard</p>
+                </div>
+
+                <!-- Subscription Status Card -->
+                <div class="glass-card rounded-3xl p-6 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10"><i data-lucide="award" class="w-16 h-16"></i></div>
+                    <h3 class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Current Plan</h3>
+                    
+                    <div class="flex items-center gap-3 mb-1">
+                        <span id="planBadge" class="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400 text-xs font-bold rounded-full border border-green-200 dark:border-green-500/30">
+                            Loading...
+                        </span>
+                    </div>
+                    <p class="text-2xl font-bold" id="planName">Checking...</p>
+                    
+                    <button class="w-full mt-6 py-2.5 rounded-xl text-sm font-semibold text-brand-600 bg-brand-50 dark:bg-brand-500/10 border border-brand-200 dark:border-brand-500/30 hover:bg-brand-100 transition-colors">
+                        Upgrade Plan
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Area: AI Campaign Strategist -->
+            <div class="md:col-span-2 glass-card rounded-3xl p-8 shadow-xl flex flex-col h-full border border-slate-200 dark:border-slate-700">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="bg-gradient-to-r from-brand-500 to-purple-500 text-white p-3 rounded-xl shadow-lg">
+                        <i data-lucide="brain-circuit" class="w-6 h-6"></i>
+                    </div>
+                    <div class="text-left">
+                        <h3 class="text-xl font-bold">AI Campaign Strategist</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Generate high-converting scripts & visual concepts instantly.</p>
+                    </div>
+                </div>
+
+                <textarea id="aiPrompt" placeholder="What are we promoting today? (e.g., A luxury apartment complex in Jubilee Hills)" class="w-full p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 focus:ring-2 focus:ring-brand-500 outline-none transition-all resize-none h-24 mb-4 dark:placeholder-slate-500 shadow-inner"></textarea>
+
+                <button onclick="generateCampaign()" id="generateBtn" class="flex items-center justify-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors w-full sm:w-auto self-end">
+                    ✨ Generate Strategy
+                </button>
+
+                <div id="aiOutput" class="mt-6 p-6 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-left overflow-y-auto hidden text-sm leading-relaxed prose dark:prose-invert max-w-none shadow-inner max-h-64">
+                    <!-- AI Output goes here -->
+                </div>
+            </div>
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- SUPABASE LOGIC & SCRIPTS                   -->
+    <!-- ========================================== -->
     <script>
-        // --- SETUP SUPABASE ---
-        // REPLACE THESE WITH YOUR ACTUAL URL AND KEY FROM STEP 1
-        const SUPABASE_URL = 'https://mcp.supabase.com/mcp?project_ref=puvdfqnjzliiuupchppj';
+        // Initialize Icons
+        lucide.createIcons();
+
+        // --- GEMINI API INTEGRATION ---
+        const apiKey = ""; // API Key is automatically provided by the runtime environment
+
+        async function fetchWithRetry(url, options, maxRetries = 5) {
+            const delays = [1000, 2000, 4000, 8000, 16000];
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    return await response.json();
+                } catch (e) {
+                    if (i === maxRetries - 1) throw e;
+                    await new Promise(resolve => setTimeout(resolve, delays[i]));
+                }
+            }
+        }
+
+        async function generateCampaign() {
+            const promptEl = document.getElementById('aiPrompt');
+            const outputEl = document.getElementById('aiOutput');
+            const btnEl = document.getElementById('generateBtn');
+            const promptText = promptEl.value.trim();
+
+            if (!promptText) {
+                promptEl.focus();
+                return;
+            }
+
+            // UI Loading State
+            btnEl.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Generating...';
+            btnEl.disabled = true;
+            outputEl.classList.remove('hidden-view', 'hidden');
+            outputEl.innerHTML = '<div class="flex flex-col items-center justify-center h-24 text-brand-500"><i data-lucide="sparkles" class="w-6 h-6 animate-pulse mb-2"></i><span class="font-medium">Crafting brilliance...</span></div>';
+            lucide.createIcons();
+
+            // Setup the AI Persona instruction
+            const systemPrompt = "You are an elite B2B marketing strategist charging $10k/month. The user will give you a product or service. Generate a concise, high-converting 3-part strategy: 1. The Hook (attention grabber), 2. Visual Concept (what to show on screen), 3. The CTA. Keep it punchy, professional, and use simple markdown formatting.";
+            
+            const payload = {
+                contents: [{ parts: [{ text: promptText }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] }
+            };
+
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                const data = await fetchWithRetry(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || "No strategy generated.";
+                
+                // Convert basic markdown to HTML for safe display
+                const formattedHtml = generatedText
+                    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-brand-600 dark:text-brand-400">$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/\n/g, '<br><div class="mb-2"></div>');
+
+                outputEl.innerHTML = formattedHtml;
+
+            } catch (error) {
+                console.error("Gemini API Error:", error);
+                outputEl.innerHTML = `<div class="text-red-500 font-medium">Failed to generate strategy. Please try again later.</div>`;
+            } finally {
+                // Restore Button State
+                btnEl.innerHTML = '✨ Generate Strategy';
+                btnEl.disabled = false;
+                lucide.createIcons();
+            }
+        }
+
+        // 🛑 PASTE YOUR EXACT URL AND KEY BELOW 🛑
+        // DO NOT LEAVE ANY EXTRA SPACES AT THE END OF THE QUOTES!
+        const SUPABASE_URL = 'https://mcp.supabase.com/mcp?project_ref=puvdfqnjzliiuupchppj'; 
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1dmRmcW5qemxpaXV1cGNocHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTExOTgsImV4cCI6MjA5MjU4NzE5OH0.hDK6fjZ2SesJ7qkeWVXxOoxW2Xmr7MDlKO-BFtJtDu0';
         
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // --- AUTHENTICATION LOGIC ---
+        // Helper function for showing messages
+        function showMsg(text, isError = false) {
+            const msgEl = document.getElementById('authMessage');
+            msgEl.textContent = text;
+            msgEl.className = `text-sm font-medium text-center block mt-4 ${isError ? 'text-red-500' : 'text-green-500'}`;
+        }
+
         async function signUp() {
             const name = document.getElementById('fullName').value;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
+            if(!name || !email || !password) return showMsg("Please fill all fields to sign up.", true);
+
+            showMsg("Creating account...", false);
+
             const { data, error } = await _supabase.auth.signUp({
                 email: email,
                 password: password,
-                options: {
-                    data: { full_name: name } // This triggers your SQL automation!
-                }
+                options: { data: { full_name: name } }
             });
 
-            if (error) document.getElementById('authMessage').innerText = error.message;
-            else {
-                document.getElementById('authMessage').innerText = "Account created! You can now log in.";
-                document.getElementById('authMessage').style.color = "green";
+            if (error) {
+                showMsg(error.message, true);
+            } else {
+                showMsg("Success! You can now Log In.", false);
             }
         }
 
@@ -72,33 +283,73 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
+            if(!email || !password) return showMsg("Please enter email and password.", true);
+
+            showMsg("Logging in...", false);
+
             const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
 
-            if (error) document.getElementById('authMessage').innerText = error.message;
-            else checkUserAndLoadDashboard();
+            if (error) {
+                showMsg(error.message, true);
+            } else {
+                checkSession();
+            }
         }
 
         async function logOut() {
             await _supabase.auth.signOut();
-            document.getElementById('dashboardBox').classList.add('hidden');
-            document.getElementById('authBox').classList.remove('hidden');
+            document.getElementById('dashboardView').classList.add('hidden-view');
+            document.getElementById('authView').classList.remove('hidden-view');
+            
+            // Clear inputs securely
+            document.getElementById('password').value = '';
+            showMsg("", false);
         }
 
-        // --- DASHBOARD LOGIC (The Non-Hackable Check) ---
-        async function checkUserAndLoadDashboard() {
+        async function checkSession() {
             const { data: { user } } = await _supabase.auth.getUser();
             
             if (user) {
-                document.getElementById('authBox').classList.add('hidden');
-                document.getElementById('dashboardBox').classList.remove('hidden');
-                document.getElementById('welcomeText').innerText = `Welcome, ${user.user_metadata.full_name}`;
+                // Hide Login, Show Dashboard
+                document.getElementById('authView').classList.add('hidden-view');
+                document.getElementById('dashboardView').classList.remove('hidden-view');
+                
+                // Set User Name
+                const companyName = user.user_metadata.full_name || "Valued Client";
+                document.getElementById('welcomeName').innerText = companyName;
 
-                // Fetch their subscription safely!
+                // Safely Fetch Subscription Data (RLS Protected)
                 const { data: subData, error } = await _supabase
                     .from('subscriptions')
                     .select('plan_tier, status')
                     .single();
 
+                if (subData) {
+                    // Update UI with database info
+                    const formattedPlan = subData.plan_tier.replace('_', ' ');
+                    document.getElementById('planName').innerText = formattedPlan;
+                    
+                    const badge = document.getElementById('planBadge');
+                    badge.innerText = subData.status.toUpperCase();
+                    
+                    // Change color based on status
+                    if(subData.status === 'active') {
+                        badge.className = "px-3 py-1 bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400 text-xs font-bold rounded-full border border-green-200 dark:border-green-500/30";
+                    } else {
+                        badge.className = "px-3 py-1 bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400 text-xs font-bold rounded-full border border-red-200 dark:border-red-500/30";
+                    }
+                } else {
+                    document.getElementById('planName').innerText = "No Plan Found";
+                    document.getElementById('planBadge').innerText = "ERROR";
+                }
+            }
+        }
+
+        // Auto-check on page load
+        checkSession();
+    </script>
+</body>
+</html>
                 if (subData) {
                     document.getElementById('planName').innerText = subData.plan_tier.replace('_', ' ');
                     document.getElementById('planStatus').innerText = subData.status.toUpperCase();
