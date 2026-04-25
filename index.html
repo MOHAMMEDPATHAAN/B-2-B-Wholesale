@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B2B Micro SaaS Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f9; padding: 20px; }
+        .box { background: white; padding: 20px; border-radius: 8px; max-width: 400px; margin: auto; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        input, button { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; box-sizing: border-box; }
+        button { background: #007BFF; color: white; border: none; cursor: pointer; font-weight: bold; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="authBox" class="box">
+        <h2>Client Portal Access</h2>
+        <input type="text" id="fullName" placeholder="Company / Full Name">
+        <input type="email" id="email" placeholder="Business Email">
+        <input type="password" id="password" placeholder="Password">
+        
+        <button onclick="signUp()">Create Account</button>
+        <button onclick="logIn()" style="background: #28a745;">Log In</button>
+        <p id="authMessage" style="color: red; font-size: 14px;"></p>
+    </div>
+
+    <div id="dashboardBox" class="box hidden">
+        <h2 id="welcomeText">Welcome!</h2>
+        <div style="background: #e9ecef; padding: 15px; border-radius: 5px;">
+            <p><strong>Current Plan:</strong> <span id="planName" style="color: #007BFF; font-weight: bold;">Loading...</span></p>
+            <p><strong>Status:</strong> <span id="planStatus">...</span></p>
+        </div>
+        <button onclick="logOut()" style="background: #dc3545; margin-top: 20px;">Secure Logout</button>
+        
+        <div id="moduleContainer" style="margin-top: 20px; text-align: center; color: gray;">
+            [ Interactive Tool Module will load here ]
+        </div>
+    </div>
+
+    <script>
+        // --- SETUP SUPABASE ---
+        // REPLACE THESE WITH YOUR ACTUAL URL AND KEY FROM STEP 1
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL_HERE';
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY_HERE';
+        
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // --- AUTHENTICATION LOGIC ---
+        async function signUp() {
+            const name = document.getElementById('fullName').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const { data, error } = await _supabase.auth.signUp({
+                email: email,
+                password: password,
+                options: {
+                    data: { full_name: name } // This triggers your SQL automation!
+                }
+            });
+
+            if (error) document.getElementById('authMessage').innerText = error.message;
+            else {
+                document.getElementById('authMessage').innerText = "Account created! You can now log in.";
+                document.getElementById('authMessage').style.color = "green";
+            }
+        }
+
+        async function logIn() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+
+            if (error) document.getElementById('authMessage').innerText = error.message;
+            else checkUserAndLoadDashboard();
+        }
+
+        async function logOut() {
+            await _supabase.auth.signOut();
+            document.getElementById('dashboardBox').classList.add('hidden');
+            document.getElementById('authBox').classList.remove('hidden');
+        }
+
+        // --- DASHBOARD LOGIC (The Non-Hackable Check) ---
+        async function checkUserAndLoadDashboard() {
+            const { data: { user } } = await _supabase.auth.getUser();
+            
+            if (user) {
+                document.getElementById('authBox').classList.add('hidden');
+                document.getElementById('dashboardBox').classList.remove('hidden');
+                document.getElementById('welcomeText').innerText = `Welcome, ${user.user_metadata.full_name}`;
+
+                // Fetch their subscription safely!
+                const { data: subData, error } = await _supabase
+                    .from('subscriptions')
+                    .select('plan_tier, status')
+                    .single();
+
+                if (subData) {
+                    document.getElementById('planName').innerText = subData.plan_tier.replace('_', ' ');
+                    document.getElementById('planStatus').innerText = subData.status.toUpperCase();
+                }
+            }
+        }
+
+        // Check if user is already logged in when they open the app
+        checkUserAndLoadDashboard();
+    </script>
+</body>
+</html>
