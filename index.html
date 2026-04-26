@@ -266,16 +266,23 @@
 
             showMsg("Creating account...", false);
 
-            const { data, error } = await _supabase.auth.signUp({
-                email: email,
-                password: password,
-                options: { data: { full_name: name } }
-            });
+            try {
+                const { data, error } = await _supabase.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: { data: { full_name: name } }
+                });
 
-            if (error) {
-                showMsg(error.message, true);
-            } else {
-                showMsg("Success! You can now Log In.", false);
+                if (error) {
+                    showMsg(error.message, true);
+                    alert("SUPABASE ERROR: " + error.message); // Pops up on mobile
+                } else {
+                    showMsg("Success! You can now Log In.", false);
+                }
+            } catch (err) {
+                // THIS WILL CATCH THE "FAILED TO FETCH"
+                alert("NETWORK ERROR: " + err.message + "\n\nCheck if your SUPABASE_URL has spaces or if your browser is blocking it!");
+                showMsg("Network connection failed.", true);
             }
         }
 
