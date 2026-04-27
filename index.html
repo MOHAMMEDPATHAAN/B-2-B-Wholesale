@@ -15,9 +15,7 @@
             theme: {
                 extend: {
                     fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
-                    colors: { 
-                        gold: { 300: '#FDE047', 400: '#FACC15', 500: '#EAB308', 600: '#CA8A04', 700: '#A16207' }
-                    }
+                    colors: { gold: { 300: '#FDE047', 400: '#FACC15', 500: '#EAB308', 600: '#CA8A04', 700: '#A16207' } }
                 }
             }
         }
@@ -28,19 +26,15 @@
         .dark body { background: #0f172a; }
         .hidden-view { display: none !important; }
         
-        /* Premium Bottom Bar */
         .bottom-bar {
             position: fixed; bottom: 0; left: 0; right: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
             border-top: 1px solid rgba(0,0,0,0.05);
             display: flex; justify-content: space-around; align-items: center;
-            height: 70px; padding-bottom: env(safe-area-inset-bottom);
-            z-index: 50;
+            height: 70px; padding-bottom: env(safe-area-inset-bottom); z-index: 50;
         }
         .dark .bottom-bar { background: rgba(15, 23, 42, 0.95); border-top: 1px solid rgba(255,255,255,0.1); }
         
-        /* Floating Center Gold Button */
         .floating-add {
             transform: translateY(-20px);
             background: linear-gradient(135deg, #FACC15, #CA8A04);
@@ -51,22 +45,32 @@
         }
         .dark .floating-add { border-color: #0f172a; }
 
-        /* Animated Gold Text */
         .text-gold-animate {
             background: linear-gradient(to right, #CA8A04 20%, #FDE047 40%, #FDE047 60%, #CA8A04 80%);
-            background-size: 200% auto;
-            color: #000;
-            background-clip: text;
-            text-fill-color: transparent;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            background-size: 200% auto; color: #000;
+            background-clip: text; -webkit-background-clip: text;
+            text-fill-color: transparent; -webkit-text-fill-color: transparent;
             animation: shine 3s linear infinite;
         }
         @keyframes shine { to { background-position: 200% center; } }
 
+        /* Developer Logo Animation */
+        .dev-logo { position: absolute; bottom: 40px; font-size: 14px; font-weight: 800; color: #EAB308; letter-spacing: 2px; display: flex; align-items: center; justify-content: center; }
+        .text-tool { display: inline-block; overflow: hidden; animation: hideTool 4s ease-in-out infinite; white-space: nowrap; }
+        .text-apos { display: inline-block; overflow: hidden; max-width: 0; opacity: 0; animation: showApos 4s ease-in-out infinite; }
+        @keyframes hideTool {
+            0%, 20% { max-width: 50px; opacity: 1; padding-left: 6px; }
+            45%, 75% { max-width: 0px; opacity: 0; padding-left: 0px; }
+            100% { max-width: 50px; opacity: 1; padding-left: 6px; }
+        }
+        @keyframes showApos {
+            0%, 20% { max-width: 0; opacity: 0; }
+            45%, 75% { max-width: 10px; opacity: 1; }
+            100% { max-width: 0; opacity: 0; }
+        }
+
         #moduleFrame { width: 100%; height: calc(100vh - 70px); border: none; background: transparent; }
         .popup-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 100; display: flex; align-items: center; justify-content: center; }
-        
         .spinner { border: 4px solid rgba(234,179,8,0.2); width: 50px; height: 50px; border-radius: 50%; border-left-color: #EAB308; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
@@ -74,20 +78,25 @@
 <body class="text-slate-800 dark:text-slate-100">
 
     <!-- ========================================== -->
-    <!-- 0. SPLASH SCREEN (Memory Check)            -->
+    <!-- 0. SPLASH SCREEN (Memory Check & Anim)     -->
     <!-- ========================================== -->
     <div id="splashScreen" class="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-slate-900 absolute inset-0 z-[100]">
         <h1 class="text-4xl font-extrabold text-gold-animate mb-8 tracking-wider">GOLDEN'S</h1>
         <div class="spinner"></div>
+        
+        <!-- Animated Developer Footer -->
+        <div class="dev-logo">
+            <span>GOLDEN</span><span class="text-apos">'</span><span class="text-tool"> tool</span><span>S</span>
+        </div>
     </div>
 
     <!-- ========================================== -->
-    <!-- 1. AUTH & ONBOARDING (Strict Flow)         -->
+    <!-- 1. AUTH & STRICT ONBOARDING FLOW           -->
     <!-- ========================================== -->
     <div id="authContainer" class="min-h-screen flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-900 absolute inset-0 z-50 hidden-view">
         
         <!-- Step A: Login/Signup -->
-        <div id="stepAuth" class="w-full max-w-sm">
+        <div id="stepAuth" class="w-full max-w-sm hidden-view">
             <div class="text-center mb-8">
                 <i data-lucide="crown" class="w-12 h-12 text-gold-500 mx-auto mb-2"></i>
                 <h1 class="text-3xl font-extrabold text-gold-animate tracking-wide uppercase">Golden's</h1>
@@ -99,7 +108,6 @@
                 <button id="tabSignup" onclick="toggleAuthMode(false)" class="flex-1 py-2 text-sm font-bold rounded-lg text-slate-500">Sign Up</button>
             </div>
 
-            <!-- Accepts both Email or Phone -->
             <input type="text" id="emailOrPhone" placeholder="Email or Mobile Number" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none mb-3 focus:border-gold-500 focus:ring-1 focus:ring-gold-500">
             <input type="password" id="password" placeholder="Password" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none mb-2 focus:border-gold-500 focus:ring-1 focus:ring-gold-500">
             
@@ -143,33 +151,32 @@
             
             <div class="space-y-4 overflow-y-auto px-4 pb-24 flex-1">
                 <p class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest bg-gold-50 dark:bg-gold-900/20 py-1 px-2 rounded inline-block">1. Leadership</p>
-                <input type="text" id="compName" placeholder="Registered Company Name *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-gold-500 outline-none">
-                <input type="text" id="ceoName" placeholder="CEO / Manager Name *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-gold-500 outline-none">
-                <input type="tel" id="mobile" placeholder="Business Mobile Number *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-gold-500 outline-none">
+                <input type="text" id="compName" placeholder="Registered Company Name *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
+                <input type="text" id="ceoName" placeholder="CEO / Manager Name *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
+                <input type="tel" id="mobile" placeholder="Business Mobile Number *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
                 
                 <p class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest bg-gold-50 dark:bg-gold-900/20 py-1 px-2 rounded inline-block mt-4">2. Operations</p>
-                <select id="industry" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-gold-500 outline-none">
+                <select id="industry" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
                     <option value="">Select Industry *</option>
                     <option value="Manufacturing">Manufacturing</option>
                     <option value="Textiles">Textiles</option>
                     <option value="Electronics">Electronics</option>
-                    <option value="Software">Software/IT</option>
+                    <option value="Agriculture">Agriculture</option>
                 </select>
-                <input type="text" id="coreProduct" placeholder="Core Product Category *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-gold-500 outline-none">
-                <input type="text" id="production" placeholder="Daily Production Capacity *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-gold-500 outline-none">
+                <input type="text" id="coreProduct" placeholder="Core Product Category *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
+                <input type="text" id="production" placeholder="Daily Production Capacity *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
                 
                 <p class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest bg-gold-50 dark:bg-gold-900/20 py-1 px-2 rounded inline-block mt-4">3. Verification Data</p>
-                <input type="text" id="taxId" placeholder="GST Number / Tax ID *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-gold-500 outline-none">
-                <input type="text" id="address" placeholder="Headquarters Address *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-gold-500 outline-none">
+                <input type="text" id="taxId" placeholder="GST Number / Tax ID *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
+                <input type="text" id="address" placeholder="Headquarters Address *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
                 
                 <div class="flex gap-4">
-                    <input type="number" id="founded" placeholder="Year Founded *" class="w-1/2 p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-gold-500 outline-none">
-                    <select id="employees" class="w-1/2 p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-gold-500 outline-none">
+                    <input type="number" id="founded" placeholder="Year Founded *" class="w-1/2 p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
+                    <select id="employees" class="w-1/2 p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
                         <option value="">Employees *</option>
                         <option value="1-10">1 - 10</option>
                         <option value="11-50">11 - 50</option>
                         <option value="50-200">50 - 200</option>
-                        <option value="200+">200+</option>
                     </select>
                 </div>
             </div>
@@ -235,22 +242,20 @@
         let isLogin = true;
         let selectedFile = null;
 
-        // --- 1. STARTUP LOGIC (Memory Check) ---
+        // --- 1. STARTUP LOGIC (Flawless Memory Check) ---
         async function initApp() {
-            // Supabase automatically pulls the token from the device's LocalStorage
-            const { data: { session } } = await _supabase.auth.getSession();
-            
-            if (session) {
-                // Device remembers user. Check if they finished setup.
-                checkUserFlow();
-            } else {
-                // No memory. Show Auth screen.
-                document.getElementById('splashScreen').classList.add('hidden-view');
-                document.getElementById('authContainer').classList.remove('hidden-view');
-            }
+            setTimeout(async () => {
+                const { data: { session } } = await _supabase.auth.getSession();
+                if (session) {
+                    await checkUserFlow();
+                } else {
+                    document.getElementById('splashScreen').classList.add('hidden-view');
+                    document.getElementById('authContainer').classList.remove('hidden-view');
+                    document.getElementById('stepAuth').classList.remove('hidden-view');
+                }
+            }, 3000); // Wait 3 seconds to show off the beautiful Splash Animation
         }
 
-        // --- 2. AUTH LOGIC ---
         function toggleAuthMode(loginMode) {
             isLogin = loginMode;
             document.getElementById('authError').classList.add('hidden-view');
@@ -284,8 +289,6 @@
             if(!identifier || !password) return showError("Please enter login details");
 
             document.getElementById('authBtn').innerText = "Verifying...";
-
-            // Determine if input is email or phone number
             const isEmail = identifier.includes('@');
             const credentials = isEmail ? { email: identifier, password: password } : { phone: identifier, password: password };
 
@@ -294,62 +297,43 @@
                 if (error) {
                     showError("Incorrect login details.");
                     document.getElementById('authBtn').innerText = "Access Network";
-                } else {
-                    checkUserFlow();
-                }
+                } else await checkUserFlow();
             } else {
-                // If phone signup is used, ensure Supabase Phone Provider is enabled in dashboard
                 const { error } = await _supabase.auth.signUp(credentials);
                 if (error) {
                     showError(error.message);
                     document.getElementById('authBtn').innerText = "Create Business Account";
-                } else {
-                    checkUserFlow();
-                }
+                } else await checkUserFlow();
             }
         }
 
-        async function resetPassword() {
-            const identifier = document.getElementById('emailOrPhone').value.trim();
-            if(!identifier || !identifier.includes('@')) return showError("Enter your email address first to reset password.");
-            
-            const { error } = await _supabase.auth.resetPasswordForEmail(identifier, {
-                redirectTo: window.location.origin
-            });
-            
-            if (error) showError(error.message);
-            else showError("Password reset link sent to your email!", true);
-        }
-
-        // --- 3. STRICT ONBOARDING FLOW ---
+        // --- 3. STRICT ONE-TIME ONBOARDING FLOW ---
         async function checkUserFlow() {
             const { data: { user } } = await _supabase.auth.getUser();
             if (!user) return;
 
-            // Fetch profile data.
             const { data: profile } = await _supabase.from('profiles').select('*').eq('id', user.id).single();
             
             document.getElementById('splashScreen').classList.add('hidden-view');
             document.getElementById('authContainer').classList.remove('hidden-view');
             document.getElementById('stepAuth').classList.add('hidden-view');
             
-            // STRICT CHECK: Are documents missing?
+            // STRICT LOGIC: If document is missing, ALWAYS ask.
             if (!profile || !profile.document_path) {
                 document.getElementById('stepDocs').classList.remove('hidden-view');
                 document.getElementById('stepProfile').classList.add('hidden-view');
             } 
-            // STRICT CHECK: Is company name or tax ID missing?
-            else if (!profile.company_name || !profile.tax_id) {
+            // STRICT LOGIC: If Document exists but Name is missing, ALWAYS ask profile.
+            else if (!profile.company_name) {
                 document.getElementById('stepDocs').classList.add('hidden-view');
                 document.getElementById('stepProfile').classList.remove('hidden-view');
             } 
-            // IF EVERYTHING IS FILLED -> ENTER APP PERMANENTLY
+            // SUCCESS: Setup is complete. Never ask again.
             else {
-                launchApp();
+                launchApp(false); 
             }
         }
 
-        // Document Storage Logic
         function documentSelected() {
             const fileInput = document.getElementById('compDoc');
             if (fileInput.files.length > 0) {
@@ -368,33 +352,26 @@
             docBtn.disabled = true;
 
             const { data: { user } } = await _supabase.auth.getUser();
-            const fileExt = selectedFile.name.split('.').pop();
-            const filePath = `${user.id}/verification_doc.${fileExt}`;
+            const filePath = `${user.id}/verification_${Date.now()}.${selectedFile.name.split('.').pop()}`;
 
-            // Upload
             const { error: uploadError } = await _supabase.storage
                 .from('business_documents')
                 .upload(filePath, selectedFile, { upsert: true });
 
             if (uploadError) {
-                alert("Upload failed: " + uploadError.message);
+                alert("Upload failed. Make sure you ran the SQL policy fix!");
                 docBtn.innerText = "Upload & Continue";
                 docBtn.disabled = false;
                 return;
             }
 
-            // GUARANTEE the row exists by using UPSERT
-            await _supabase.from('profiles').upsert({ 
-                id: user.id, 
-                verification_status: 'reviewing',
-                document_path: filePath 
-            });
+            // Lock it into profile database permanently
+            await _supabase.from('profiles').upsert({ id: user.id, document_path: filePath });
             
             document.getElementById('stepDocs').classList.add('hidden-view');
             document.getElementById('stepProfile').classList.remove('hidden-view');
         }
 
-        // Expanded Compulsory Profile
         async function saveProfileAndEnter() {
             const btn = document.getElementById('finishBtn');
             
@@ -408,44 +385,40 @@
                 tax_id: document.getElementById('taxId').value,
                 company_address: document.getElementById('address').value,
                 year_founded: document.getElementById('founded').value,
-                employee_count: document.getElementById('employees').value
+                employee_count: document.getElementById('employees').value,
+                verification_status: 'reviewing'
             };
 
-            // STRICT VALIDATION
             for (const key in data) {
-                if (!data[key]) return alert("All fields are strictly required for verification.");
+                if (!data[key]) return alert("All fields are strictly required.");
             }
 
             btn.innerText = "Finalizing...";
             const { data: { user } } = await _supabase.auth.getUser();
 
-            // CRITICAL FIX: Use UPSERT instead of update to ensure data is written even if row was empty
-            const { error } = await _supabase.from('profiles').upsert({
-                id: user.id,
-                ...data
-            });
+            const { error } = await _supabase.from('profiles').upsert({ id: user.id, ...data });
 
             if(error) {
-                alert("Error saving: " + error.message);
+                alert("Error: " + error.message);
                 btn.innerText = "Complete Golden Setup";
                 return;
             }
 
-            // Success -> Enter App
-            document.getElementById('authContainer').classList.add('hidden-view');
-            document.getElementById('trialPopup').classList.remove('hidden-view');
-            launchApp();
+            launchApp(true); // true means it's their first time, so show popup!
         }
 
-        // --- 4. APP SHELL LOGIC ---
-        function closePopup() {
-            document.getElementById('trialPopup').classList.add('hidden-view');
-        }
-
-        function launchApp() {
+        function launchApp(isFirstTime) {
             document.getElementById('authContainer').classList.add('hidden-view');
             document.getElementById('appWorkspace').classList.remove('hidden-view');
+            
+            if(isFirstTime) {
+                document.getElementById('trialPopup').classList.remove('hidden-view');
+            }
             loadModule('home.html', document.querySelector('.nav-btn'));
+        }
+
+        function closePopup() {
+            document.getElementById('trialPopup').classList.add('hidden-view');
         }
 
         function loadModule(filename, element) {
@@ -467,7 +440,6 @@
             window.location.reload();
         }
 
-        // Start the App
         initApp();
     </script>
 </body>
