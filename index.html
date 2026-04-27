@@ -1,205 +1,280 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="antialiased">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Omni B2B Engine</title>
+    <title>Omni B2B Shell</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Supabase & Tailwind -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                    colors: { brand: { 500: '#4F46E5', 600: '#4338CA', 900: '#312E81' } }
+                }
+            }
+        }
+    </script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { -webkit-tap-highlight-color: transparent; overflow: hidden; background: #f8fafc; }
+        .dark body { background: #0f172a; }
         .hidden-view { display: none !important; }
-        .bottom-nav { 
+        
+        /* Premium Bottom Bar */
+        .bottom-bar {
             position: fixed; bottom: 0; left: 0; right: 0;
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
             border-top: 1px solid rgba(0,0,0,0.05);
-            padding-bottom: env(safe-area-inset-bottom);
+            display: flex; justify-content: space-around; align-items: center;
+            height: 70px; padding-bottom: env(safe-area-inset-bottom);
+            z-index: 50;
         }
-        @media (prefers-color-scheme: dark) {
-            .bottom-nav { background: rgba(15, 23, 42, 0.8); border-top: 1px solid rgba(255,255,255,0.1); }
+        .dark .bottom-bar {
+            background: rgba(15, 23, 42, 0.95);
+            border-top: 1px solid rgba(255,255,255,0.1);
         }
-        .step-card { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        /* Floating Center Button */
+        .floating-add {
+            transform: translateY(-20px);
+            background: linear-gradient(135deg, #4F46E5, #ec4899);
+            border-radius: 50%; width: 60px; height: 60px;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.4);
+            color: white; border: 4px solid #f8fafc;
+        }
+        .dark .floating-add { border-color: #0f172a; }
+
+        /* Module Iframe Container */
+        #moduleFrame {
+            width: 100%; height: calc(100vh - 70px);
+            border: none; background: transparent;
+        }
+        
+        /* Popups */
+        .popup-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
+            z-index: 100; display: flex; align-items: center; justify-content: center;
+        }
     </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen">
+<body class="text-slate-800 dark:text-slate-100">
 
-    <!-- 1. AUTHENTICATION (Glassmorphism UI) -->
-    <div id="authView" class="min-h-screen flex items-center justify-center p-6">
-        <div class="w-full max-w-sm bg-white dark:bg-slate-900 p-8 rounded-[2rem] shadow-2xl border border-slate-100 dark:border-slate-800">
-            <div class="flex flex-col items-center mb-8">
-                <div class="w-12 h-12 bg-indigo-600 rounded-2xl rotate-12 flex items-center justify-center mb-4 shadow-lg shadow-indigo-500/40">
-                    <i data-lucide="zap" class="text-white w-6 h-6 -rotate-12"></i>
-                </div>
-                <h1 class="text-2xl font-bold">Omni B2B</h1>
-                <p class="text-slate-400 text-sm">Scale your media engines</p>
+    <!-- ========================================== -->
+    <!-- 1. AUTH & ONBOARDING WIZARD                -->
+    <!-- ========================================== -->
+    <div id="authContainer" class="min-h-screen flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-900 absolute inset-0 z-50">
+        
+        <!-- Step A: Login/Signup -->
+        <div id="stepAuth" class="w-full max-w-sm">
+            <div class="text-center mb-8">
+                <i data-lucide="hexagon" class="w-12 h-12 text-brand-500 mx-auto mb-2"></i>
+                <h1 class="text-2xl font-bold">Omni Enterprise</h1>
+                <p class="text-slate-500 text-sm">Industrial B2B Network</p>
             </div>
-            
-            <div class="space-y-4">
-                <input type="email" id="email" placeholder="Business Email" class="w-full p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border-none outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
-                <input type="password" id="password" placeholder="Password" class="w-full p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border-none outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
-                <button onclick="handleAuth()" id="authBtn" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-xl shadow-indigo-500/30 active:scale-95 transition-all">
-                    Enter Workspace
-                </button>
-                <p id="authMsg" class="text-center text-xs font-medium text-slate-500 mt-4 cursor-pointer" onclick="toggleMode()">New here? Create Account</p>
-            </div>
+            <input type="email" id="email" placeholder="Business Email" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border outline-none mb-3">
+            <input type="password" id="password" placeholder="Password" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border outline-none mb-6">
+            <button onclick="handleAuth()" id="authBtn" class="w-full bg-brand-600 text-white font-bold py-4 rounded-xl">Enter Workspace</button>
         </div>
-    </div>
 
-    <!-- 2. INTERACTIVE ENTRANCE (ONBOARDING) -->
-    <div id="onboardingView" class="hidden-view min-h-screen flex items-center justify-center p-8">
-        <div class="step-card w-full max-w-md text-center">
-            <div class="mb-6 inline-flex p-4 bg-indigo-100 dark:bg-indigo-900/30 rounded-full text-indigo-600">
-                <i data-lucide="user-check" class="w-8 h-8"></i>
-            </div>
-            <h2 class="text-3xl font-bold mb-2">Final Step</h2>
-            <p class="text-slate-500 mb-8">Let's personalize your dashboard</p>
+        <!-- Step B: Document Upload & AI Review -->
+        <div id="stepDocs" class="w-full max-w-sm hidden-view text-center">
+            <i data-lucide="shield-check" class="w-16 h-16 text-green-500 mx-auto mb-4"></i>
+            <h2 class="text-2xl font-bold mb-2">Verify Business</h2>
+            <p class="text-slate-500 text-sm mb-6">Upload your company registration, GST, or tax document. Our AI will review this within 24 hours.</p>
             
-            <div class="text-left space-y-4 mb-8">
-                <label class="block text-xs font-bold text-slate-400 uppercase ml-2">Your Business Name</label>
-                <input type="text" id="setupCompanyName" placeholder="e.g. Skyline Media" class="w-full p-4 rounded-2xl bg-white dark:bg-slate-900 shadow-sm outline-none border border-slate-200 dark:border-slate-800 focus:border-indigo-500">
+            <div class="border-2 border-dashed border-brand-500 rounded-2xl p-8 mb-6 bg-brand-50 dark:bg-brand-900/20">
+                <i data-lucide="upload-cloud" class="w-8 h-8 text-brand-500 mx-auto mb-2"></i>
+                <span class="font-bold text-brand-600">Tap to Upload PDF/IMG</span>
             </div>
             
-            <button onclick="finishSetup()" class="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold py-4 rounded-2xl shadow-xl active:scale-95 transition-all">
-                Launch My Tools
+            <button onclick="nextStep('stepProfile')" class="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold py-4 rounded-xl">
+                Upload & Continue
+            </button>
+        </div>
+
+        <!-- Step C: Full Company Profile Setup -->
+        <div id="stepProfile" class="w-full max-w-md hidden-view">
+            <h2 class="text-2xl font-bold mb-6 text-center">Company Profile</h2>
+            <div class="space-y-4 max-h-[60vh] overflow-y-auto px-2 pb-4">
+                <input type="text" id="compName" placeholder="Company Name" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border">
+                <input type="text" id="ceoName" placeholder="CEO / Manager Name" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border">
+                <select id="industry" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border">
+                    <option value="">Select Industry...</option>
+                    <option value="Manufacturing">Manufacturing</option>
+                    <option value="Textiles">Textiles</option>
+                    <option value="Electronics">Electronics</option>
+                    <option value="Software">Software/IT</option>
+                </select>
+                <input type="text" id="production" placeholder="Daily Production Limit (e.g. 10,000 units)" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border">
+            </div>
+            <button onclick="saveProfileAndEnter()" class="w-full bg-brand-600 text-white font-bold py-4 rounded-xl mt-4 shadow-lg shadow-brand-500/30">
+                Complete Setup
             </button>
         </div>
     </div>
 
-    <!-- 3. MAIN DASHBOARD WITH BOTTOM BAR -->
-    <div id="mainView" class="hidden-view pb-24">
-        <header class="p-6 flex justify-between items-center">
-            <div>
-                <p class="text-xs font-bold text-indigo-600 uppercase tracking-widest">Enterprise</p>
-                <h1 id="displayCompanyName" class="text-2xl font-bold">Dashboard</h1>
+    <!-- ========================================== -->
+    <!-- 2. 3-DAY PREMIUM TRIAL POPUP               -->
+    <!-- ========================================== -->
+    <div id="trialPopup" class="popup-overlay hidden-view">
+        <div class="bg-white dark:bg-slate-900 p-8 rounded-3xl w-11/12 max-w-sm text-center shadow-2xl transform scale-105 transition-all">
+            <div class="bg-gradient-to-r from-yellow-400 to-yellow-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="crown" class="w-8 h-8 text-white"></i>
             </div>
-            <div class="w-12 h-12 bg-slate-200 dark:bg-slate-800 rounded-full flex items-center justify-center font-bold">
-                <i data-lucide="user" class="w-5 h-5"></i>
-            </div>
-        </header>
+            <h2 class="text-2xl font-bold mb-2">₹9,999 Elite Unlocked!</h2>
+            <p class="text-slate-500 text-sm mb-6">Welcome to Omni! You have been granted full Elite access for 3 days to experience the power of our B2B network.</p>
+            <button onclick="closePopup()" class="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold py-3 rounded-xl">
+                Start My Trial
+            </button>
+        </div>
+    </div>
 
-        <main class="px-6 space-y-6">
-            <!-- Stats Row -->
-            <div class="grid grid-cols-2 gap-4">
-                <div class="bg-indigo-600 p-6 rounded-[2rem] text-white">
-                    <p class="text-xs opacity-70">Plan</p>
-                    <h3 id="planDisplay" class="text-xl font-bold">...</h3>
-                </div>
-                <div class="bg-white dark:bg-slate-900 p-6 rounded-[2rem] shadow-sm border border-slate-100 dark:border-slate-800 text-center">
-                    <p class="text-xs text-slate-400">Status</p>
-                    <h3 class="text-xl font-bold text-green-500">Active</h3>
-                </div>
-            </div>
+    <!-- ========================================== -->
+    <!-- 3. MAIN APP & I-FRAME INJECTION            -->
+    <!-- ========================================== -->
+    <div id="appWorkspace" class="hidden-view">
+        <!-- Module Injection Area -->
+        <iframe id="moduleFrame" src=""></iframe>
 
-            <!-- Content Area (HTML Injection Target) -->
-            <div id="workspaceArea" class="bg-white dark:bg-slate-900 min-h-[400px] rounded-[2.5rem] border border-slate-100 dark:border-slate-800 p-6 flex flex-col items-center justify-center">
-                <div class="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center mb-4">
-                    <i data-lucide="layout-template" class="text-slate-400"></i>
-                </div>
-                <p class="text-slate-400 text-sm">Your module will load here</p>
-            </div>
-        </main>
-
-        <!-- BOTTOM NAV BAR -->
-        <nav class="bottom-nav h-20 flex justify-around items-center px-4">
-            <button class="text-indigo-600 flex flex-col items-center gap-1">
+        <!-- 5-Button Premium Bottom Navigation -->
+        <nav class="bottom-bar">
+            <!-- 1. Home -->
+            <button onclick="loadModule('home.html')" class="flex flex-col items-center gap-1 text-brand-600 w-16">
                 <i data-lucide="home" class="w-6 h-6"></i>
                 <span class="text-[10px] font-bold">Home</span>
             </button>
-            <button class="text-slate-400 flex flex-col items-center gap-1" onclick="alert('Loading Tools...')">
-                <i data-lucide="layers" class="w-6 h-6"></i>
-                <span class="text-[10px] font-bold">Tools</span>
+            
+            <!-- 2. Reels / Videos -->
+            <button onclick="loadModule('reels.html')" class="flex flex-col items-center gap-1 text-slate-400 hover:text-brand-500 w-16 transition-colors">
+                <i data-lucide="play-square" class="w-6 h-6"></i>
+                <span class="text-[10px] font-bold">Promote</span>
             </button>
-            <button class="text-slate-400 flex flex-col items-center gap-1" onclick="location.reload()">
-                <i data-lucide="refresh-cw" class="w-6 h-6"></i>
-                <span class="text-[10px] font-bold">Reload</span>
+            
+            <!-- 3. Center Floating Add (+) -->
+            <button onclick="loadModule('add.html')" class="floating-add">
+                <i data-lucide="plus" class="w-8 h-8"></i>
             </button>
-            <button class="text-slate-400 flex flex-col items-center gap-1" onclick="signOut()">
-                <i data-lucide="log-out" class="w-6 h-6"></i>
-                <span class="text-[10px] font-bold">Exit</span>
+            
+            <!-- 4. Plans / Upgrades -->
+            <button onclick="loadModule('plans.html')" class="flex flex-col items-center gap-1 text-slate-400 hover:text-brand-500 w-16 transition-colors">
+                <i data-lucide="zap" class="w-6 h-6"></i>
+                <span class="text-[10px] font-bold">Plans</span>
+            </button>
+            
+            <!-- 5. Profile / Settings -->
+            <button onclick="loadModule('profile.html')" class="flex flex-col items-center gap-1 text-slate-400 hover:text-brand-500 w-16 transition-colors">
+                <i data-lucide="user" class="w-6 h-6"></i>
+                <span class="text-[10px] font-bold">Profile</span>
             </button>
         </nav>
     </div>
 
+    <!-- ========================================== -->
+    <!-- SCRIPTS                                    -->
+    <!-- ========================================== -->
     <script>
         lucide.createIcons();
+        
+        // 🛑 REPLACE WITH YOUR SUPABASE URL & ANON KEY 🛑
         const SUPABASE_URL = 'https://puvdfqnjzliiuupchppj.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1dmRmcW5qemxpaXV1cGNocHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTExOTgsImV4cCI6MjA5MjU4NzE5OH0.hDK6fjZ2SesJ7qkeWVXxOoxW2Xmr7MDlKO-BFtJtDu0';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let isLogin = true;
-
-        function toggleMode() {
-            isLogin = !isLogin;
-            document.getElementById('authBtn').innerText = isLogin ? 'Enter Workspace' : 'Create My Account';
-            document.getElementById('authMsg').innerText = isLogin ? 'New here? Create Account' : 'Already a user? Log In';
-        }
-
+        // Core Shell Logic
         async function handleAuth() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const btn = document.getElementById('authBtn');
-            btn.innerText = "Connecting...";
-
-            const { data, error } = isLogin 
-                ? await _supabase.auth.signInWithPassword({ email, password })
-                : await _supabase.auth.signUp({ email, password });
-
+            
+            // Try login first, if fail, try signup
+            let { data, error } = await _supabase.auth.signInWithPassword({ email, password });
             if (error) {
-                alert(error.message);
-                btn.innerText = isLogin ? 'Enter Workspace' : 'Create My Account';
+                const signupRes = await _supabase.auth.signUp({ email, password });
+                if (signupRes.error) return alert(signupRes.error.message);
+            }
+            checkUserFlow();
+        }
+
+        async function checkUserFlow() {
+            const { data: { user } } = await _supabase.auth.getUser();
+            if (!user) return;
+
+            // Check profile
+            const { data: profile } = await _supabase.from('profiles').select('*').eq('id', user.id).single();
+            
+            if (!profile || !profile.company_name) {
+                // New User: Show Document Upload -> Profile Setup
+                document.getElementById('stepAuth').classList.add('hidden-view');
+                document.getElementById('stepDocs').classList.remove('hidden-view');
             } else {
-                checkUser();
+                // Existing User: Launch App
+                launchApp();
             }
         }
 
-        async function checkUser() {
-            const { data: { user } } = await _supabase.auth.getUser();
-            if (user) {
-                document.getElementById('authView').classList.add('hidden-view');
-                
-                // Check if profile exists
-                const { data: profile } = await _supabase.from('profiles').select('*').single();
-                
-                if (!profile || !profile.company_name) {
-                    document.getElementById('onboardingView').classList.remove('hidden-view');
-                } else {
-                    showDashboard(profile);
-                }
-            }
+        function nextStep(stepId) {
+            document.getElementById('stepDocs').classList.add('hidden-view');
+            document.getElementById(stepId).classList.remove('hidden-view');
         }
 
-        async function finishSetup() {
-            const company = document.getElementById('setupCompanyName').value;
-            if (!company) return alert("Please enter a name");
-            
+        async function saveProfileAndEnter() {
+            const compName = document.getElementById('compName').value;
+            const ceoName = document.getElementById('ceoName').value;
+            const industry = document.getElementById('industry').value;
             const { data: { user } } = await _supabase.auth.getUser();
-            
-            // This manually updates the profile table you created earlier
-            await _supabase.from('profiles').upsert({ id: user.id, company_name: company });
-            
-            document.getElementById('onboardingView').classList.add('hidden-view');
-            checkUser();
-        }
 
-        function showDashboard(profile) {
-            document.getElementById('mainView').classList.remove('hidden-view');
-            document.getElementById('displayCompanyName').innerText = profile.company_name;
-            
-            // Get sub status
-            _supabase.from('subscriptions').select('plan_tier').single().then(({data}) => {
-                if (data) document.getElementById('planDisplay').innerText = data.plan_tier.split('_')[0];
+            if(!compName || !ceoName) return alert("Fill required fields");
+
+            await _supabase.from('profiles').upsert({
+                id: user.id, company_name: compName, ceo_name: ceoName, industry_type: industry
             });
+
+            document.getElementById('authContainer').classList.add('hidden-view');
+            document.getElementById('trialPopup').classList.remove('hidden-view');
+            launchApp();
         }
 
-        async function signOut() {
-            await _supabase.auth.signOut();
-            location.reload();
+        function closePopup() {
+            document.getElementById('trialPopup').classList.add('hidden-view');
         }
 
-        checkUser();
+        function launchApp() {
+            document.getElementById('authContainer').classList.add('hidden-view');
+            document.getElementById('appWorkspace').classList.remove('hidden-view');
+            // Inject First Module
+            loadModule('home.html');
+        }
+
+        // The Iframe Injector
+        function loadModule(filename) {
+            document.getElementById('moduleFrame').src = filename;
+            
+            // UI Update for active bottom bar icons
+            const buttons = document.querySelectorAll('.bottom-bar button');
+            buttons.forEach(btn => {
+                if(!btn.classList.contains('floating-add')) {
+                    btn.classList.remove('text-brand-600');
+                    btn.classList.add('text-slate-400');
+                }
+            });
+            event.currentTarget.classList.remove('text-slate-400');
+            event.currentTarget.classList.add('text-brand-600');
+        }
+
+        // Run on start
+        _supabase.auth.getUser().then(({ data: { user } }) => {
+            if (user) checkUserFlow();
+        });
     </script>
 </body>
 </html>
