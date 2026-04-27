@@ -5,11 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Omni B2B Shell</title>
     
-    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <!-- Supabase & Tailwind -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -29,7 +26,6 @@
         .dark body { background: #0f172a; }
         .hidden-view { display: none !important; }
         
-        /* Premium Bottom Bar */
         .bottom-bar {
             position: fixed; bottom: 0; left: 0; right: 0;
             background: rgba(255, 255, 255, 0.95);
@@ -44,7 +40,6 @@
             border-top: 1px solid rgba(255,255,255,0.1);
         }
         
-        /* Floating Center Button */
         .floating-add {
             transform: translateY(-20px);
             background: linear-gradient(135deg, #4F46E5, #ec4899);
@@ -55,13 +50,11 @@
         }
         .dark .floating-add { border-color: #0f172a; }
 
-        /* Module Iframe Container */
         #moduleFrame {
             width: 100%; height: calc(100vh - 70px);
             border: none; background: transparent;
         }
         
-        /* Popups */
         .popup-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
             z-index: 100; display: flex; align-items: center; justify-content: center;
@@ -82,23 +75,35 @@
                 <h1 class="text-2xl font-bold">Omni Enterprise</h1>
                 <p class="text-slate-500 text-sm">Industrial B2B Network</p>
             </div>
-            <input type="email" id="email" placeholder="Business Email" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border outline-none mb-3">
-            <input type="password" id="password" placeholder="Password" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border outline-none mb-6">
-            <button onclick="handleAuth()" id="authBtn" class="w-full bg-brand-600 text-white font-bold py-4 rounded-xl">Enter Workspace</button>
+
+            <!-- Login/Signup Toggle -->
+            <div class="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl mb-6">
+                <button id="tabLogin" onclick="toggleAuthMode(true)" class="flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-slate-700 shadow text-brand-600">Log In</button>
+                <button id="tabSignup" onclick="toggleAuthMode(false)" class="flex-1 py-2 text-sm font-bold rounded-lg text-slate-500">Sign Up</button>
+            </div>
+
+            <input type="email" id="email" placeholder="Business Email" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border outline-none mb-3 focus:border-brand-500">
+            <input type="password" id="password" placeholder="Password" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border outline-none mb-4 focus:border-brand-500">
+            
+            <p id="authError" class="text-red-500 text-sm text-center mb-4 hidden-view"></p>
+            
+            <button onclick="handleAuth()" id="authBtn" class="w-full bg-brand-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-brand-700 transition-colors">Secure Log In</button>
         </div>
 
-        <!-- Step B: Document Upload & AI Review -->
+        <!-- Step B: Compulsory Document Upload -->
         <div id="stepDocs" class="w-full max-w-sm hidden-view text-center">
-            <i data-lucide="shield-check" class="w-16 h-16 text-green-500 mx-auto mb-4"></i>
+            <i data-lucide="file-check-2" class="w-16 h-16 text-indigo-500 mx-auto mb-4"></i>
             <h2 class="text-2xl font-bold mb-2">Verify Business</h2>
-            <p class="text-slate-500 text-sm mb-6">Upload your company registration, GST, or tax document. Our AI will review this within 24 hours.</p>
+            <p class="text-slate-500 text-sm mb-6">A valid company registration, GST, or Tax document is compulsory to ensure a secure B2B network. This will be reviewed within 24 hours.</p>
             
-            <div class="border-2 border-dashed border-brand-500 rounded-2xl p-8 mb-6 bg-brand-50 dark:bg-brand-900/20">
+            <!-- In a real app, this would use Supabase Storage to upload the file -->
+            <input type="file" id="compDoc" accept=".pdf,image/*" class="hidden" onchange="documentSelected()">
+            <label for="compDoc" class="cursor-pointer border-2 border-dashed border-brand-500 rounded-2xl p-8 mb-6 bg-brand-50 dark:bg-brand-900/20 block hover:bg-brand-100 transition-colors">
                 <i data-lucide="upload-cloud" class="w-8 h-8 text-brand-500 mx-auto mb-2"></i>
-                <span class="font-bold text-brand-600">Tap to Upload PDF/IMG</span>
-            </div>
+                <span id="uploadText" class="font-bold text-brand-600">Tap to Select Document</span>
+            </label>
             
-            <button onclick="nextStep('stepProfile')" class="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold py-4 rounded-xl">
+            <button onclick="submitDocument()" id="docBtn" class="w-full bg-slate-300 text-slate-500 font-bold py-4 rounded-xl" disabled>
                 Upload & Continue
             </button>
         </div>
@@ -107,16 +112,16 @@
         <div id="stepProfile" class="w-full max-w-md hidden-view">
             <h2 class="text-2xl font-bold mb-6 text-center">Company Profile</h2>
             <div class="space-y-4 max-h-[60vh] overflow-y-auto px-2 pb-4">
-                <input type="text" id="compName" placeholder="Company Name" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border">
-                <input type="text" id="ceoName" placeholder="CEO / Manager Name" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border">
-                <select id="industry" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border">
+                <input type="text" id="compName" placeholder="Company Name" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-brand-500 outline-none">
+                <input type="text" id="ceoName" placeholder="CEO / Manager Name" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-brand-500 outline-none">
+                <select id="industry" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-brand-500 outline-none">
                     <option value="">Select Industry...</option>
                     <option value="Manufacturing">Manufacturing</option>
                     <option value="Textiles">Textiles</option>
                     <option value="Electronics">Electronics</option>
                     <option value="Software">Software/IT</option>
                 </select>
-                <input type="text" id="production" placeholder="Daily Production Limit (e.g. 10,000 units)" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border">
+                <input type="text" id="production" placeholder="Daily Production Limit (e.g. 10,000 units)" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-brand-500 outline-none">
             </div>
             <button onclick="saveProfileAndEnter()" class="w-full bg-brand-600 text-white font-bold py-4 rounded-xl mt-4 shadow-lg shadow-brand-500/30">
                 Complete Setup
@@ -144,36 +149,25 @@
     <!-- 3. MAIN APP & I-FRAME INJECTION            -->
     <!-- ========================================== -->
     <div id="appWorkspace" class="hidden-view">
-        <!-- Module Injection Area -->
         <iframe id="moduleFrame" src=""></iframe>
 
-        <!-- 5-Button Premium Bottom Navigation -->
         <nav class="bottom-bar">
-            <!-- 1. Home -->
-            <button onclick="loadModule('home.html')" class="flex flex-col items-center gap-1 text-brand-600 w-16">
+            <button onclick="loadModule('home.html', this)" class="nav-btn flex flex-col items-center gap-1 text-brand-600 w-16 transition-colors">
                 <i data-lucide="home" class="w-6 h-6"></i>
                 <span class="text-[10px] font-bold">Home</span>
             </button>
-            
-            <!-- 2. Reels / Videos -->
-            <button onclick="loadModule('reels.html')" class="flex flex-col items-center gap-1 text-slate-400 hover:text-brand-500 w-16 transition-colors">
+            <button onclick="loadModule('reels.html', this)" class="nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-brand-500 w-16 transition-colors">
                 <i data-lucide="play-square" class="w-6 h-6"></i>
                 <span class="text-[10px] font-bold">Promote</span>
             </button>
-            
-            <!-- 3. Center Floating Add (+) -->
-            <button onclick="loadModule('add.html')" class="floating-add">
+            <button onclick="loadModule('add.html', this)" class="floating-add">
                 <i data-lucide="plus" class="w-8 h-8"></i>
             </button>
-            
-            <!-- 4. Plans / Upgrades -->
-            <button onclick="loadModule('plans.html')" class="flex flex-col items-center gap-1 text-slate-400 hover:text-brand-500 w-16 transition-colors">
+            <button onclick="loadModule('plans.html', this)" class="nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-brand-500 w-16 transition-colors">
                 <i data-lucide="zap" class="w-6 h-6"></i>
                 <span class="text-[10px] font-bold">Plans</span>
             </button>
-            
-            <!-- 5. Profile / Settings -->
-            <button onclick="loadModule('profile.html')" class="flex flex-col items-center gap-1 text-slate-400 hover:text-brand-500 w-16 transition-colors">
+            <button onclick="loadModule('profile.html', this)" class="nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-brand-500 w-16 transition-colors">
                 <i data-lucide="user" class="w-6 h-6"></i>
                 <span class="text-[10px] font-bold">Profile</span>
             </button>
@@ -191,40 +185,102 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1dmRmcW5qemxpaXV1cGNocHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTExOTgsImV4cCI6MjA5MjU4NzE5OH0.hDK6fjZ2SesJ7qkeWVXxOoxW2Xmr7MDlKO-BFtJtDu0';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Core Shell Logic
+        let isLogin = true;
+
+        // Persist Session automatically using Supabase's built-in token management
+        _supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+                if (session) checkUserFlow();
+            }
+        });
+
+        function toggleAuthMode(loginMode) {
+            isLogin = loginMode;
+            document.getElementById('authError').classList.add('hidden-view');
+            
+            const btnLogin = document.getElementById('tabLogin');
+            const btnSignup = document.getElementById('tabSignup');
+            
+            if (isLogin) {
+                btnLogin.className = "flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-slate-700 shadow text-brand-600";
+                btnSignup.className = "flex-1 py-2 text-sm font-bold rounded-lg text-slate-500";
+                document.getElementById('authBtn').innerText = "Secure Log In";
+            } else {
+                btnSignup.className = "flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-slate-700 shadow text-brand-600";
+                btnLogin.className = "flex-1 py-2 text-sm font-bold rounded-lg text-slate-500";
+                document.getElementById('authBtn').innerText = "Create Business Account";
+            }
+        }
+
+        function showError(msg) {
+            const errEl = document.getElementById('authError');
+            errEl.innerText = msg;
+            errEl.classList.remove('hidden-view');
+        }
+
         async function handleAuth() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            document.getElementById('authError').classList.add('hidden-view');
             
-            // Try login first, if fail, try signup
-            let { data, error } = await _supabase.auth.signInWithPassword({ email, password });
-            if (error) {
-                const signupRes = await _supabase.auth.signUp({ email, password });
-                if (signupRes.error) return alert(signupRes.error.message);
+            if(!email || !password) return showError("Please enter email and password");
+
+            document.getElementById('authBtn').innerText = "Processing...";
+
+            if (isLogin) {
+                const { error } = await _supabase.auth.signInWithPassword({ email, password });
+                if (error) {
+                    showError(error.message); // Strict password checking happens here via Supabase
+                    document.getElementById('authBtn').innerText = "Secure Log In";
+                }
+            } else {
+                const { error } = await _supabase.auth.signUp({ email, password });
+                if (error) {
+                    showError(error.message);
+                    document.getElementById('authBtn').innerText = "Create Business Account";
+                }
             }
-            checkUserFlow();
         }
 
         async function checkUserFlow() {
             const { data: { user } } = await _supabase.auth.getUser();
             if (!user) return;
 
-            // Check profile
-            const { data: profile } = await _supabase.from('profiles').select('*').eq('id', user.id).single();
+            // Check if profile exists and has been set up
+            const { data: profile } = await _supabase.from('profiles').select('company_name, verification_status').eq('id', user.id).single();
             
             if (!profile || !profile.company_name) {
-                // New User: Show Document Upload -> Profile Setup
+                // Determine which setup step they are on
                 document.getElementById('stepAuth').classList.add('hidden-view');
-                document.getElementById('stepDocs').classList.remove('hidden-view');
+                if (!profile || profile.verification_status !== 'reviewing') {
+                    document.getElementById('stepDocs').classList.remove('hidden-view');
+                } else {
+                    document.getElementById('stepProfile').classList.remove('hidden-view');
+                }
             } else {
-                // Existing User: Launch App
                 launchApp();
             }
         }
 
-        function nextStep(stepId) {
+        function documentSelected() {
+            const fileInput = document.getElementById('compDoc');
+            if (fileInput.files.length > 0) {
+                document.getElementById('uploadText').innerText = fileInput.files[0].name;
+                const docBtn = document.getElementById('docBtn');
+                docBtn.disabled = false;
+                docBtn.className = "w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold py-4 rounded-xl";
+            }
+        }
+
+        async function submitDocument() {
+            const { data: { user } } = await _supabase.auth.getUser();
+            
+            // Note: In a production app, you would upload the file to Supabase Storage here.
+            // For now, we update the profile status to show they submitted it.
+            await _supabase.from('profiles').upsert({ id: user.id, verification_status: 'reviewing' });
+            
             document.getElementById('stepDocs').classList.add('hidden-view');
-            document.getElementById(stepId).classList.remove('hidden-view');
+            document.getElementById('stepProfile').classList.remove('hidden-view');
         }
 
         async function saveProfileAndEnter() {
@@ -235,9 +291,9 @@
 
             if(!compName || !ceoName) return alert("Fill required fields");
 
-            await _supabase.from('profiles').upsert({
-                id: user.id, company_name: compName, ceo_name: ceoName, industry_type: industry
-            });
+            await _supabase.from('profiles').update({
+                company_name: compName, ceo_name: ceoName, industry_type: industry
+            }).eq('id', user.id);
 
             document.getElementById('authContainer').classList.add('hidden-view');
             document.getElementById('trialPopup').classList.remove('hidden-view');
@@ -251,30 +307,30 @@
         function launchApp() {
             document.getElementById('authContainer').classList.add('hidden-view');
             document.getElementById('appWorkspace').classList.remove('hidden-view');
-            // Inject First Module
-            loadModule('home.html');
+            loadModule('home.html', document.querySelector('.nav-btn'));
         }
 
-        // The Iframe Injector
-        function loadModule(filename) {
+        function loadModule(filename, element) {
             document.getElementById('moduleFrame').src = filename;
             
-            // UI Update for active bottom bar icons
-            const buttons = document.querySelectorAll('.bottom-bar button');
-            buttons.forEach(btn => {
-                if(!btn.classList.contains('floating-add')) {
+            if (element) {
+                const buttons = document.querySelectorAll('.nav-btn');
+                buttons.forEach(btn => {
                     btn.classList.remove('text-brand-600');
                     btn.classList.add('text-slate-400');
+                });
+                if(!element.classList.contains('floating-add')) {
+                    element.classList.remove('text-slate-400');
+                    element.classList.add('text-brand-600');
                 }
-            });
-            event.currentTarget.classList.remove('text-slate-400');
-            event.currentTarget.classList.add('text-brand-600');
+            }
         }
-
-        // Run on start
-        _supabase.auth.getUser().then(({ data: { user } }) => {
-            if (user) checkUserFlow();
-        });
+        
+        // Expose signout for injected modules to call
+        window.signOutApp = async function() {
+            await _supabase.auth.signOut();
+            window.location.reload();
+        }
     </script>
 </body>
 </html>
