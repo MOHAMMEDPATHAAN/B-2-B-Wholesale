@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Home Module</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: transparent; }
+        /* Hide scrollbar for a native app feel */
+        ::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="p-4 text-slate-800 dark:text-slate-100">
+
+    <!-- Top Header -->
+    <header class="flex justify-between items-center mb-6 pt-2">
+        <div>
+            <p class="text-xs font-bold text-indigo-500 uppercase tracking-wider">Overview</p>
+            <h1 class="text-2xl font-bold">Dashboard</h1>
+        </div>
+        <div class="flex gap-3">
+            <button class="bg-white dark:bg-slate-800 p-2 rounded-full shadow-sm relative">
+                <i data-lucide="bell" class="w-5 h-5"></i>
+                <span class="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-slate-800"></span>
+            </button>
+            <button class="bg-white dark:bg-slate-800 p-2 rounded-full shadow-sm">
+                <i data-lucide="search" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Quick Stats Row -->
+    <div class="flex gap-4 overflow-x-auto pb-4 snap-x">
+        <div class="min-w-[150px] bg-indigo-600 text-white p-5 rounded-3xl snap-start shadow-lg shadow-indigo-500/30">
+            <i data-lucide="package" class="w-6 h-6 opacity-80 mb-2"></i>
+            <h3 class="text-2xl font-bold">124</h3>
+            <p class="text-xs opacity-80">Total Products</p>
+        </div>
+        <div class="min-w-[150px] bg-white dark:bg-slate-800 p-5 rounded-3xl snap-start border border-slate-100 dark:border-slate-700 shadow-sm">
+            <i data-lucide="users" class="w-6 h-6 text-pink-500 mb-2"></i>
+            <h3 class="text-2xl font-bold">89</h3>
+            <p class="text-xs text-slate-500">B2B Customers</p>
+        </div>
+        <div class="min-w-[150px] bg-white dark:bg-slate-800 p-5 rounded-3xl snap-start border border-slate-100 dark:border-slate-700 shadow-sm">
+            <i data-lucide="trending-up" class="w-6 h-6 text-green-500 mb-2"></i>
+            <h3 class="text-2xl font-bold">+14%</h3>
+            <p class="text-xs text-slate-500">Monthly Growth</p>
+        </div>
+    </div>
+
+    <!-- Your Products Column -->
+    <section class="mt-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-bold">Your Products</h2>
+            <button class="text-xs font-bold text-indigo-500">View All</button>
+        </div>
+        
+        <div class="space-y-3">
+            <!-- Mock Product 1 -->
+            <div class="bg-white dark:bg-slate-800 p-3 rounded-2xl flex items-center gap-4 border border-slate-100 dark:border-slate-700 shadow-sm">
+                <div class="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center">
+                    <i data-lucide="box" class="w-8 h-8 text-slate-400"></i>
+                </div>
+                <div class="flex-1">
+                    <h4 class="font-bold text-sm">Industrial Valve X9</h4>
+                    <p class="text-xs text-slate-500">Stock: 450 units</p>
+                </div>
+                <div class="text-right">
+                    <p class="font-bold text-sm text-green-500">₹450</p>
+                    <p class="text-[10px] text-slate-400">per unit</p>
+                </div>
+            </div>
+
+            <!-- Mock Product 2 -->
+            <div class="bg-white dark:bg-slate-800 p-3 rounded-2xl flex items-center gap-4 border border-slate-100 dark:border-slate-700 shadow-sm">
+                <div class="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center">
+                    <i data-lucide="cpu" class="w-8 h-8 text-slate-400"></i>
+                </div>
+                <div class="flex-1">
+                    <h4 class="font-bold text-sm">Micro-Controller Board</h4>
+                    <p class="text-xs text-slate-500">Stock: 1,200 units</p>
+                </div>
+                <div class="text-right">
+                    <p class="font-bold text-sm text-green-500">₹850</p>
+                    <p class="text-[10px] text-slate-400">per unit</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recent B2B Customers Column -->
+    <section class="mt-8 mb-20">
+        <h2 class="text-lg font-bold mb-4">Recent B2B Partners</h2>
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-100 dark:border-slate-700 shadow-sm">
+            <div class="flex items-center gap-3 border-b border-slate-100 dark:border-slate-700 pb-3 mb-3">
+                <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold text-sm">TM</div>
+                <div class="flex-1">
+                    <h4 class="font-bold text-sm">TechCorp Motors</h4>
+                    <p class="text-xs text-slate-500">Ordered: 5,000 units</p>
+                </div>
+                <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center font-bold text-sm">GS</div>
+                <div class="flex-1">
+                    <h4 class="font-bold text-sm">Global Steel Solutions</h4>
+                    <p class="text-xs text-slate-500">Ordered: 200 units</p>
+                </div>
+                <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
