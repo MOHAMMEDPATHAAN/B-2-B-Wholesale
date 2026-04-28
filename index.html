@@ -78,11 +78,136 @@
 <body class="text-slate-800 dark:text-slate-100">
 
     <!-- ========================================== -->
-    <!-- 3. MAIN APP WORKSPACE                      -->
+    <!-- 0. SPLASH SCREEN (Memory Check & Anim)     -->
+    <!-- ========================================== -->
+    <div id="splashScreen" class="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-slate-900 absolute inset-0 z-[100]">
+        <h1 class="text-4xl font-extrabold text-gold-animate mb-8 tracking-wider">GOLDEN'S</h1>
+        <div class="spinner"></div>
+        
+        <!-- Animated Developer Footer -->
+        <div class="dev-logo">
+            <span>GOLDEN</span><span class="text-apos">'</span><span class="text-tool"> tool</span><span>S</span>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 1. AUTH & STRICT ONBOARDING FLOW           -->
+    <!-- ========================================== -->
+    <div id="authContainer" class="min-h-screen flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-900 absolute inset-0 z-50 hidden-view">
+        
+        <!-- Step A: Login/Signup -->
+        <div id="stepAuth" class="w-full max-w-sm hidden-view">
+            <div class="text-center mb-8">
+                <i data-lucide="crown" class="w-12 h-12 text-gold-500 mx-auto mb-2"></i>
+                <h1 class="text-3xl font-extrabold text-gold-animate tracking-wide uppercase">Golden's</h1>
+                <p class="text-slate-500 font-bold tracking-widest text-xs mt-1">BUSINESS NETWORK</p>
+            </div>
+
+            <div class="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl mb-6">
+                <button id="tabLogin" onclick="toggleAuthMode(true)" class="flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-slate-700 shadow text-gold-600">Log In</button>
+                <button id="tabSignup" onclick="toggleAuthMode(false)" class="flex-1 py-2 text-sm font-bold rounded-lg text-slate-500">Sign Up</button>
+            </div>
+
+            <input type="text" id="emailOrPhone" placeholder="Email or Mobile Number" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none mb-3 focus:border-gold-500 focus:ring-1 focus:ring-gold-500">
+            <input type="password" id="password" placeholder="Password" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none mb-2 focus:border-gold-500 focus:ring-1 focus:ring-gold-500">
+            
+            <div class="text-right mb-4">
+                <button onclick="resetPassword()" class="text-xs font-bold text-gold-600 hover:text-gold-700">Forgot Password?</button>
+            </div>
+            
+            <p id="authError" class="text-red-500 font-bold text-sm text-center mb-4 hidden-view"></p>
+            
+            <button onclick="handleAuth()" id="authBtn" class="w-full bg-gradient-to-r from-gold-500 to-gold-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-gold-500/30 hover:scale-[1.02] transition-transform uppercase tracking-wider">
+                Access Network
+            </button>
+        </div>
+
+        <!-- Step B: Compulsory Document -->
+        <div id="stepDocs" class="w-full max-w-sm hidden-view text-center">
+            <h1 class="text-xl font-extrabold text-gold-animate tracking-wide uppercase mb-6">Golden's Verification</h1>
+            <div class="bg-slate-50 dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <i data-lucide="file-check-2" class="w-12 h-12 text-gold-500 mx-auto mb-4"></i>
+                <h2 class="text-lg font-bold mb-2">Upload Compulsory Document</h2>
+                <p class="text-slate-500 text-xs mb-6 font-medium">To protect the Golden's Network, a valid GST, Tax, or Company Registration document is strictly required.</p>
+                
+                <input type="file" id="compDoc" accept=".pdf,image/*" class="hidden" onchange="documentSelected()">
+                <label for="compDoc" class="cursor-pointer border-2 border-dashed border-gold-500 rounded-xl p-6 mb-6 block hover:bg-gold-50 dark:hover:bg-gold-500/10 transition-colors">
+                    <i data-lucide="upload-cloud" class="w-6 h-6 text-gold-600 mx-auto mb-2"></i>
+                    <span id="uploadText" class="font-bold text-sm text-gold-600">Select Document</span>
+                </label>
+                
+                <button onclick="submitDocument()" id="docBtn" class="w-full bg-slate-300 dark:bg-slate-700 text-slate-500 font-bold py-3.5 rounded-xl uppercase tracking-wider text-sm" disabled>
+                    Upload & Continue
+                </button>
+            </div>
+        </div>
+
+        <!-- Step C: Strict Company Details -->
+        <div id="stepProfile" class="w-full max-w-md hidden-view flex flex-col h-[90vh]">
+            <div class="text-center mt-6 mb-4">
+                <h1 class="text-xl font-extrabold text-gold-animate tracking-wide uppercase">Golden's Business</h1>
+                <p class="text-xs font-bold text-slate-500 mt-1">FINAL SETUP STEP</p>
+            </div>
+            
+            <div class="space-y-4 overflow-y-auto px-4 pb-24 flex-1">
+                <p class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest bg-gold-50 dark:bg-gold-900/20 py-1 px-2 rounded inline-block">1. Leadership</p>
+                <input type="text" id="compName" placeholder="Registered Company Name *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
+                <input type="text" id="ceoName" placeholder="CEO / Manager Name *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
+                <input type="tel" id="mobile" placeholder="Business Mobile Number *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
+                
+                <p class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest bg-gold-50 dark:bg-gold-900/20 py-1 px-2 rounded inline-block mt-4">2. Operations</p>
+                <select id="industry" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
+                    <option value="">Select Industry *</option>
+                    <option value="Manufacturing">Manufacturing</option>
+                    <option value="Textiles">Textiles</option>
+                    <option value="Electronics">Electronics</option>
+                    <option value="Agriculture">Agriculture</option>
+                </select>
+                <input type="text" id="coreProduct" placeholder="Core Product Category *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
+                <input type="text" id="production" placeholder="Daily Production Capacity *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
+                
+                <p class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest bg-gold-50 dark:bg-gold-900/20 py-1 px-2 rounded inline-block mt-4">3. Verification Data</p>
+                <input type="text" id="taxId" placeholder="GST Number / Tax ID *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
+                <input type="text" id="address" placeholder="Headquarters Address *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
+                
+                <div class="flex gap-4">
+                    <input type="number" id="founded" placeholder="Year Founded *" class="w-1/2 p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
+                    <select id="employees" class="w-1/2 p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
+                        <option value="">Employees *</option>
+                        <option value="1-10">1 - 10</option>
+                        <option value="11-50">11 - 50</option>
+                        <option value="50-200">50 - 200</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 absolute bottom-0 left-0 right-0 z-10">
+                <button onclick="saveProfileAndEnter()" id="finishBtn" class="w-full bg-gradient-to-r from-gold-500 to-gold-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-gold-500/30 uppercase tracking-wider text-sm">
+                    Complete Golden Setup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 2. GOLDEN TRIAL POPUP                      -->
+    <!-- ========================================== -->
+    <div id="trialPopup" class="popup-overlay hidden-view">
+        <div class="bg-white dark:bg-slate-900 p-8 rounded-3xl w-11/12 max-w-sm text-center shadow-2xl border border-gold-500/30">
+            <i data-lucide="crown" class="w-16 h-16 text-gold-500 mx-auto mb-4 animate-bounce"></i>
+            <h2 class="text-2xl font-extrabold text-gold-animate uppercase tracking-wide mb-2">Elite Unlocked!</h2>
+            <p class="text-slate-500 font-medium text-sm mb-6">Welcome to Golden's Business. Your account has been granted full Elite access for 3 days.</p>
+            <button onclick="closePopup()" class="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold py-4 rounded-xl uppercase tracking-wider text-sm">
+                Enter Dashboard
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 3. MAIN APP & I-FRAME INJECTION            -->
     <!-- ========================================== -->
     <div id="appWorkspace" class="hidden-view">
         <iframe id="moduleFrame" src=""></iframe>
-
         <nav class="bottom-bar">
             <button onclick="loadModule('home.html', this)" class="nav-btn flex flex-col items-center gap-1 text-gold-600 w-16 transition-colors">
                 <i data-lucide="home" class="w-6 h-6"></i><span class="text-[10px] font-bold">Home</span>
