@@ -142,43 +142,46 @@
             </div>
         </div>
 
-        <!-- Step C: Strict Company Details -->
+<!-- Step C: Global Company Setup -->
         <div id="stepProfile" class="w-full max-w-md hidden-view flex flex-col h-[90vh]">
             <div class="text-center mt-6 mb-4">
                 <h1 class="text-xl font-extrabold text-gold-animate tracking-wide uppercase">Golden's Business</h1>
-                <p class="text-xs font-bold text-slate-500 mt-1">FINAL SETUP STEP</p>
+                <p class="text-xs font-bold text-slate-500 mt-1">GLOBAL SETUP STEP</p>
             </div>
             
             <div class="space-y-4 overflow-y-auto px-4 pb-24 flex-1">
-                <p class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest bg-gold-50 dark:bg-gold-900/20 py-1 px-2 rounded inline-block">1. Leadership</p>
-                <input type="text" id="compName" placeholder="Registered Company Name *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
-                <input type="text" id="ceoName" placeholder="CEO / Manager Name *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
-                <input type="tel" id="mobile" placeholder="Business Mobile Number *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
+                <p class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest bg-gold-50 dark:bg-gold-900/20 py-1 px-2 rounded inline-block">1. Identity & Location</p>
+                <input type="text" id="compName" placeholder="Registered Company Name *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-gold-500 outline-none">
+                <input type="text" id="ceoName" placeholder="CEO / Manager Name *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-gold-500 outline-none">
+                <input type="tel" id="mobile" placeholder="Business Mobile Number *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-gold-500 outline-none">
                 
+                <select id="country" onchange="updateTaxLabel()" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-gold-500 outline-none font-bold text-gold-600">
+                    <option value="">Select Country / Jurisdiction *</option>
+                    <option value="US">United States</option>
+                    <option value="UK">United Kingdom</option>
+                    <option value="EU">European Union</option>
+                    <option value="IN">India</option>
+                    <option value="AU">Australia</option>
+                    <option value="CA">Canada</option>
+                    <option value="SG">Singapore</option>
+                    <option value="AE">UAE</option>
+                    <option value="OTHER">Other Region</option>
+                </select>
+
                 <p class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest bg-gold-50 dark:bg-gold-900/20 py-1 px-2 rounded inline-block mt-4">2. Operations</p>
-                <select id="industry" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
+                <select id="industry" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-gold-500 outline-none">
                     <option value="">Select Industry *</option>
                     <option value="Manufacturing">Manufacturing</option>
                     <option value="Textiles">Textiles</option>
                     <option value="Electronics">Electronics</option>
                     <option value="Agriculture">Agriculture</option>
                 </select>
-                <input type="text" id="coreProduct" placeholder="Core Product Category *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
-                <input type="text" id="production" placeholder="Daily Production Capacity *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
+                <input type="text" id="coreProduct" placeholder="Core Product Category *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-gold-500 outline-none">
+                <input type="text" id="production" placeholder="Daily Production Capacity *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-gold-500 outline-none">
                 
                 <p class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest bg-gold-50 dark:bg-gold-900/20 py-1 px-2 rounded inline-block mt-4">3. Verification Data</p>
-                <input type="text" id="taxId" placeholder="GST Number / Tax ID *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
-                <input type="text" id="address" placeholder="Headquarters Address *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
-                
-                <div class="flex gap-4">
-                    <input type="number" id="founded" placeholder="Year Founded *" class="w-1/2 p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
-                    <select id="employees" class="w-1/2 p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 outline-none">
-                        <option value="">Employees *</option>
-                        <option value="1-10">1 - 10</option>
-                        <option value="11-50">11 - 50</option>
-                        <option value="50-200">50 - 200</option>
-                    </select>
-                </div>
+                <input type="text" id="taxId" placeholder="Tax Identification Number *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-gold-500 outline-none">
+                <input type="text" id="address" placeholder="Headquarters Address *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-gold-500 outline-none">
             </div>
             
             <div class="p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 absolute bottom-0 left-0 right-0 z-10">
@@ -187,8 +190,6 @@
                 </button>
             </div>
         </div>
-    </div>
-
     <!-- ========================================== -->
     <!-- 2. GOLDEN TRIAL POPUP                      -->
     <!-- ========================================== -->
@@ -440,6 +441,68 @@
         }
 
         initApp();
+        
+            let currentTaxType = "TIN";
+
+            // Global Tax Mapping
+            function updateTaxLabel() {
+                const country = document.getElementById('country').value;
+                const taxInput = document.getElementById('taxId');
+                const taxMap = {
+                    'US': { label: 'EIN (Employer Identification Number) *', type: 'EIN' },
+                    'UK': { label: 'VAT Number or UTR *', type: 'VAT/UTR' },
+                    'EU': { label: 'EU VAT Number *', type: 'VAT' },
+                    'IN': { label: 'GSTIN (GST Number) *', type: 'GSTIN' },
+                    'AU': { label: 'ABN (Australian Business Number) *', type: 'ABN' },
+                    'CA': { label: 'BN (Business Number) *', type: 'BN' },
+                    'SG': { label: 'UEN (Unique Entity Number) *', type: 'UEN' },
+                    'AE': { label: 'TRN (Tax Registration Number) *', type: 'TRN' },
+                    'OTHER': { label: 'Local Tax Identification Number (TIN) *', type: 'TIN' }
+                };
+                
+                if (taxMap[country]) {
+                    taxInput.placeholder = taxMap[country].label;
+                    currentTaxType = taxMap[country].type;
+                } else {
+                    taxInput.placeholder = "Tax Identification Number *";
+                    currentTaxType = "TIN";
+                }
+            }
+
+            async function saveProfileAndEnter() {
+                const btn = document.getElementById('finishBtn');
+                
+                const data = {
+                    company_name: document.getElementById('compName').value,
+                    ceo_name: document.getElementById('ceoName').value,
+                    phone_number: document.getElementById('mobile').value,
+                    country: document.getElementById('country').value,
+                    industry_type: document.getElementById('industry').value,
+                    core_product_category: document.getElementById('coreProduct').value,
+                    daily_production: document.getElementById('production').value,
+                    tax_id: document.getElementById('taxId').value,
+                    tax_id_type: currentTaxType,
+                    company_address: document.getElementById('address').value,
+                    verification_status: 'reviewing'
+                };
+
+                for (const key in data) {
+                    if (!data[key]) return alert("All fields are strictly required.");
+                }
+
+                btn.innerText = "Finalizing...";
+                const { data: { user } } = await _supabase.auth.getUser();
+
+                const { error } = await _supabase.from('profiles').upsert({ id: user.id, ...data });
+
+                if(error) {
+                    alert("Error: " + error.message);
+                    btn.innerText = "Complete Golden Setup";
+                    return;
+                }
+                launchApp(true);
+            }
+            // ... (Keep the rest of your index.html JS intact)
     </script>
 </body>
 </html>
