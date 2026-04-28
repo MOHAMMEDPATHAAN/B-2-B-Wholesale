@@ -13,22 +13,28 @@
         
         .menu-item {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 1rem; background: white; border: 1px solid #f1f5f9;
-            border-radius: 1rem; margin-bottom: 0.5rem; transition: all 0.2s;
+            padding: 1.25rem; background: rgba(255,255,255,0.6); backdrop-filter: blur(10px);
+            border: 1px solid rgba(0,0,0,0.05); border-radius: 1.25rem; margin-bottom: 0.75rem; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .dark .menu-item { background: #1e293b; border-color: #334155; }
-        .menu-item:active { transform: scale(0.98); }
+        .dark .menu-item { background: rgba(30,41,59,0.6); border-color: rgba(255,255,255,0.05); }
+        .menu-item:active { transform: scale(0.97); }
         
         .sub-view {
             position: fixed; top: 0; left: 100%; width: 100%; height: 100%;
-            background: #f8fafc; transition: left 0.3s ease-in-out; z-index: 50; overflow-y: auto; padding-bottom: 100px;
+            background: #f8fafc; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            z-index: 50; overflow-y: auto; padding-bottom: 100px;
         }
         .dark .sub-view { background: #0f172a; }
         .sub-view.active { left: 0; }
         
-        /* Toggle Switch Styling */
         .toggle-checkbox:checked { right: 0; border-color: #EAB308; }
         .toggle-checkbox:checked + .toggle-label { background-color: #EAB308; }
+
+        /* Loader */
+        .sync-loader { display: none; animation: spin 1s linear infinite; }
+        .sync-loader.active { display: inline-block; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="p-4 text-slate-800 dark:text-slate-100 pb-24">
@@ -37,148 +43,151 @@
     <!-- MAIN PROFILE MENU                          -->
     <!-- ========================================== -->
     <div id="mainMenu">
-        <header class="flex justify-between items-center mb-6 pt-2">
+        <header class="flex justify-between items-center mb-8 pt-2">
             <div>
-                <p class="text-xs font-extrabold text-gold-500 uppercase tracking-widest">Enterprise</p>
-                <h1 class="text-3xl font-extrabold">Profile</h1>
+                <p class="text-[10px] font-extrabold text-gold-500 uppercase tracking-widest mb-1">Golden Enterprise</p>
+                <h1 class="text-3xl font-extrabold tracking-tight">Workspace</h1>
             </div>
-            <div class="bg-gold-500/20 text-gold-600 p-2 rounded-full"><i data-lucide="crown" class="w-6 h-6"></i></div>
+            <div class="flex items-center gap-2">
+                <i data-lucide="loader-2" id="saveIndicator" class="sync-loader w-5 h-5 text-gold-500"></i>
+                <div class="bg-gradient-to-br from-gold-400 to-gold-600 text-white p-2.5 rounded-2xl shadow-lg shadow-gold-500/30"><i data-lucide="crown" class="w-6 h-6"></i></div>
+            </div>
         </header>
 
-        <!-- Dynamic Profile Card -->
-        <div onclick="openSubView('editProfileView')" class="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-800 dark:to-slate-900 text-white p-6 rounded-3xl shadow-xl mb-6 flex items-center gap-4 cursor-pointer relative overflow-hidden">
-            <div class="absolute -right-10 -top-10 w-32 h-32 bg-gold-500/20 rounded-full blur-2xl"></div>
-            <div id="displayDp" class="w-16 h-16 bg-gradient-to-r from-gold-400 to-gold-600 rounded-full flex items-center justify-center text-2xl font-bold shadow-lg border-2 border-white/20">
-                C
+        <!-- Premium Profile Card -->
+        <div onclick="openSubView('editProfileView')" class="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-800 dark:to-slate-900 text-white p-6 rounded-[2rem] shadow-2xl mb-8 flex items-center gap-5 cursor-pointer relative overflow-hidden border border-slate-700">
+            <div class="absolute -right-10 -top-10 w-40 h-40 bg-gold-500/20 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="relative">
+                <img id="displayDp" src="" class="hidden w-16 h-16 rounded-2xl object-cover border-2 border-white/10 shadow-lg">
+                <div id="displayInitials" class="w-16 h-16 bg-gradient-to-tr from-gold-500 to-gold-300 rounded-2xl flex items-center justify-center text-2xl font-bold shadow-lg text-slate-900">?</div>
             </div>
-            <div class="flex-1">
-                <h2 id="displayName" class="text-xl font-bold">Company Name</h2>
-                <p id="displayIndustry" class="text-sm text-gold-400 font-medium">Industry Type</p>
+
+            <div class="flex-1 z-10">
+                <h2 id="displayName" class="text-xl font-bold leading-tight">Loading...</h2>
+                <div class="flex items-center gap-2 mt-1">
+                    <span id="displayCountry" class="text-xs bg-white/10 px-2 py-0.5 rounded-full font-semibold">--</span>
+                    <span id="displayIndustry" class="text-sm text-gold-400 font-medium">--</span>
+                </div>
             </div>
-            <i data-lucide="chevron-right" class="w-6 h-6 text-slate-400"></i>
+            <i data-lucide="chevron-right" class="w-6 h-6 text-slate-400 z-10"></i>
         </div>
 
         <!-- Horizontal Menu Bars -->
-        <div class="space-y-2">
+        <div class="space-y-3">
             <div onclick="openSubView('settingsView')" class="menu-item cursor-pointer shadow-sm">
-                <div class="flex items-center gap-4"><div class="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-500"><i data-lucide="settings" class="w-5 h-5"></i></div><span class="font-bold">Settings</span></div>
+                <div class="flex items-center gap-4"><div class="p-3 bg-white dark:bg-slate-800 rounded-2xl text-slate-600 dark:text-slate-300 shadow-sm"><i data-lucide="settings" class="w-5 h-5"></i></div><span class="font-bold text-lg">App Settings</span></div>
                 <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
             </div>
             <div onclick="openSubView('policiesView')" class="menu-item cursor-pointer shadow-sm">
-                <div class="flex items-center gap-4"><div class="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-500"><i data-lucide="shield" class="w-5 h-5"></i></div><span class="font-bold">Company Policies</span></div>
+                <div class="flex items-center gap-4"><div class="p-3 bg-white dark:bg-slate-800 rounded-2xl text-slate-600 dark:text-slate-300 shadow-sm"><i data-lucide="shield-check" class="w-5 h-5"></i></div><span class="font-bold text-lg">Company Policies</span></div>
                 <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
             </div>
             
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-6 mb-2 pl-2">More Options</p>
+            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-8 mb-3 pl-2">Network Tools</p>
             
             <div onclick="shareProfile()" class="menu-item cursor-pointer shadow-sm">
-                <div class="flex items-center gap-4"><div class="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-500"><i data-lucide="share-2" class="w-5 h-5"></i></div><span class="font-bold">Share Golden Profile</span></div>
-                <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
+                <div class="flex items-center gap-4"><div class="p-2.5 bg-gold-50 dark:bg-gold-900/20 text-gold-600 rounded-xl"><i data-lucide="share-2" class="w-5 h-5"></i></div><span class="font-bold">Share Golden Profile</span></div>
             </div>
-            <div class="menu-item cursor-pointer shadow-sm opacity-70">
-                <div class="flex items-center gap-4"><div class="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-500"><i data-lucide="pie-chart" class="w-5 h-5"></i></div><span class="font-bold">Analytics & Reach</span></div>
-                <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
+            <div class="menu-item opacity-60">
+                <div class="flex items-center gap-4"><div class="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl"><i data-lucide="bar-chart-2" class="w-5 h-5"></i></div><span class="font-bold">Analytics & Reach</span></div><i data-lucide="lock" class="w-4 h-4"></i>
             </div>
-            <div class="menu-item cursor-pointer shadow-sm opacity-70">
-                <div class="flex items-center gap-4"><div class="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-500"><i data-lucide="credit-card" class="w-5 h-5"></i></div><span class="font-bold">Billing & Invoices</span></div>
-                <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
+            <div class="menu-item opacity-60">
+                <div class="flex items-center gap-4"><div class="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl"><i data-lucide="credit-card" class="w-5 h-5"></i></div><span class="font-bold">Billing & Invoices</span></div><i data-lucide="lock" class="w-4 h-4"></i>
             </div>
-            <div class="menu-item cursor-pointer shadow-sm opacity-70">
-                <div class="flex items-center gap-4"><div class="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-500"><i data-lucide="smartphone" class="w-5 h-5"></i></div><span class="font-bold">Linked Devices</span></div>
-                <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
-            </div>
-            <div class="menu-item cursor-pointer shadow-sm opacity-70">
-                <div class="flex items-center gap-4"><div class="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-500"><i data-lucide="help-circle" class="w-5 h-5"></i></div><span class="font-bold">Help & Support</span></div>
-                <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
-            </div>
-            <div onclick="logOutUser()" class="menu-item cursor-pointer shadow-sm border-red-100 dark:border-red-900/30">
-                <div class="flex items-center gap-4"><div class="p-2 bg-red-50 dark:bg-red-900/20 rounded-xl text-red-500"><i data-lucide="log-out" class="w-5 h-5"></i></div><span class="font-bold text-red-500">Sign Out</span></div>
+            
+            <div onclick="logOutUser()" class="menu-item cursor-pointer mt-8 bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900/30">
+                <div class="flex items-center gap-4"><div class="p-2.5 bg-red-100 dark:bg-red-900/30 text-red-600 rounded-xl"><i data-lucide="log-out" class="w-5 h-5"></i></div><span class="font-bold text-red-600">Secure Sign Out</span></div>
             </div>
         </div>
     </div>
 
     <!-- ========================================== -->
-    <!-- EDIT PROFILE VIEW                          -->
+    <!-- EDIT PROFILE VIEW (Secured)                -->
     <!-- ========================================== -->
     <div id="editProfileView" class="sub-view">
         <div class="p-6">
             <header class="flex justify-between items-center mb-8">
-                <button onclick="closeSubView('editProfileView')" class="p-2 bg-white dark:bg-slate-800 rounded-full shadow-sm"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
-                <h2 class="font-bold text-lg">Company Details</h2>
-                <!-- Green Pencil Trigger -->
-                <button onclick="requestEditAccess()" class="p-2 bg-green-50 text-green-600 dark:bg-green-500/20 dark:text-green-400 rounded-full shadow-sm"><i data-lucide="pencil" class="w-5 h-5"></i></button>
+                <button onclick="closeSubView('editProfileView')" class="p-3 bg-white dark:bg-slate-800 rounded-full shadow-sm"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+                <h2 class="font-bold text-lg">Identity</h2>
+                <button onclick="requestEditAccess()" class="p-3 bg-green-50 text-green-600 dark:bg-green-500/20 dark:text-green-400 rounded-full shadow-sm transition-transform active:scale-90"><i data-lucide="pencil" class="w-5 h-5"></i></button>
             </header>
 
-            <div class="flex justify-center mb-6">
-                <div class="relative">
-                    <div id="editDp" class="w-24 h-24 bg-gradient-to-r from-gold-400 to-gold-600 rounded-full flex items-center justify-center text-4xl font-bold text-white shadow-lg">C</div>
-                    <div class="absolute bottom-0 right-0 p-2 bg-slate-900 text-white rounded-full border-2 border-white dark:border-slate-800 cursor-pointer"><i data-lucide="camera" class="w-4 h-4"></i></div>
+            <!-- DP Upload -->
+            <div class="flex justify-center mb-8">
+                <div class="relative cursor-pointer group" onclick="document.getElementById('dpUpload').click()">
+                    <img id="editDpImg" src="" class="hidden w-28 h-28 rounded-[2rem] object-cover shadow-xl border-4 border-white dark:border-slate-800">
+                    <div id="editDpInitials" class="w-28 h-28 bg-gradient-to-tr from-gold-500 to-gold-300 rounded-[2rem] flex items-center justify-center text-4xl font-bold text-slate-900 shadow-xl border-4 border-white dark:border-slate-800">?</div>
+                    <div class="absolute -bottom-2 -right-2 p-3 bg-slate-900 text-white rounded-full shadow-lg border-4 border-white dark:border-slate-800 group-hover:bg-gold-500 transition-colors"><i data-lucide="camera" class="w-4 h-4"></i></div>
+                    <input type="file" id="dpUpload" accept="image/*" class="hidden" onchange="uploadDP(event)">
                 </div>
             </div>
 
-            <div class="space-y-4">
-                <div><label class="text-xs font-bold text-slate-400 uppercase">Company Name</label><input type="text" id="inpComp" class="edit-input w-full p-4 mt-1 rounded-xl bg-white dark:bg-slate-800 border-none shadow-sm text-slate-500" disabled></div>
-                <div><label class="text-xs font-bold text-slate-400 uppercase">CEO / Manager Name</label><input type="text" id="inpCeo" class="edit-input w-full p-4 mt-1 rounded-xl bg-white dark:bg-slate-800 border-none shadow-sm text-slate-500" disabled></div>
-                <div><label class="text-xs font-bold text-slate-400 uppercase">Contact Number</label><input type="text" id="inpPhone" class="edit-input w-full p-4 mt-1 rounded-xl bg-white dark:bg-slate-800 border-none shadow-sm text-slate-500" disabled></div>
-                <div><label class="text-xs font-bold text-slate-400 uppercase">Daily Production</label><input type="text" id="inpProd" class="edit-input w-full p-4 mt-1 rounded-xl bg-white dark:bg-slate-800 border-none shadow-sm text-slate-500" disabled></div>
-                <div><label class="text-xs font-bold text-slate-400 uppercase">GST / Tax ID</label><input type="text" id="inpTax" class="edit-input w-full p-4 mt-1 rounded-xl bg-white dark:bg-slate-800 border-none shadow-sm text-slate-500" disabled></div>
+            <!-- Profile Fields (Locked by Default) -->
+            <div class="space-y-4 bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-sm border border-slate-100 dark:border-slate-700">
+                <div><label class="text-[10px] font-extrabold text-gold-500 uppercase tracking-widest">Company Name</label><input type="text" id="inpComp" class="edit-input w-full py-2 bg-transparent border-b-2 border-slate-100 dark:border-slate-700 font-bold text-lg text-slate-500 transition-all outline-none" disabled></div>
+                <div><label class="text-[10px] font-extrabold text-gold-500 uppercase tracking-widest">CEO / Manager</label><input type="text" id="inpCeo" class="edit-input w-full py-2 bg-transparent border-b-2 border-slate-100 dark:border-slate-700 font-bold text-slate-500 transition-all outline-none" disabled></div>
+                <div><label class="text-[10px] font-extrabold text-gold-500 uppercase tracking-widest">Mobile Number</label><input type="text" id="inpPhone" class="edit-input w-full py-2 bg-transparent border-b-2 border-slate-100 dark:border-slate-700 font-bold text-slate-500 transition-all outline-none" disabled></div>
+                <div><label class="text-[10px] font-extrabold text-gold-500 uppercase tracking-widest" id="lblTax">Tax ID</label><input type="text" id="inpTax" class="edit-input w-full py-2 bg-transparent border-none font-bold text-slate-500 transition-all outline-none" disabled></div>
             </div>
             
-            <button id="saveProfileBtn" onclick="saveEditedProfile()" class="w-full mt-8 bg-green-500 text-white font-bold py-4 rounded-xl shadow-lg hidden">Save Changes</button>
+            <button id="saveProfileBtn" onclick="saveEditedProfile()" class="w-full mt-8 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-extrabold py-4 rounded-2xl shadow-lg shadow-green-500/30 hidden uppercase tracking-wider text-sm transition-transform active:scale-95">Save Authorized Changes</button>
         </div>
     </div>
 
     <!-- ========================================== -->
-    <!-- SETTINGS VIEW (15+ Options)                -->
+    <!-- SETTINGS VIEW (15+ Options & Global Sync)  -->
     <!-- ========================================== -->
     <div id="settingsView" class="sub-view">
         <div class="p-6">
             <header class="flex items-center gap-4 mb-8">
-                <button onclick="closeSubView('settingsView')" class="p-2 bg-white dark:bg-slate-800 rounded-full shadow-sm"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
-                <h2 class="font-bold text-lg">App Settings</h2>
+                <button onclick="closeSubView('settingsView')" class="p-3 bg-white dark:bg-slate-800 rounded-full shadow-sm"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+                <h2 class="font-bold text-2xl">Settings</h2>
             </header>
 
-            <div class="space-y-6">
-                <!-- Theme Section -->
+            <div class="space-y-8">
+                <!-- Global Preferences -->
                 <div>
-                    <p class="text-xs font-bold text-gold-500 uppercase tracking-widest mb-3">Appearance</p>
-                    <div class="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-sm">
-                        <div class="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
-                            <span class="font-semibold">App Theme</span>
-                            <select id="themeSelect" onchange="updateTheme(this.value)" class="bg-slate-100 dark:bg-slate-900 p-2 rounded-lg text-sm font-bold outline-none border-none">
-                                <option value="system">System Default</option>
+                    <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3 pl-2">Global Preferences</p>
+                    <div class="bg-white dark:bg-slate-800 rounded-[2rem] shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+                        <div class="p-5 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                            <span class="font-bold">App Theme</span>
+                            <select id="themeSelect" onchange="updateTheme(this.value)" class="bg-slate-100 dark:bg-slate-900 p-2.5 rounded-xl text-sm font-bold outline-none text-gold-600">
+                                <option value="system">System Auto</option>
                                 <option value="light">Light Mode</option>
                                 <option value="dark">Dark Mode</option>
+                            </select>
+                        </div>
+                        <div class="p-5 flex justify-between items-center">
+                            <span class="font-bold">Language</span>
+                            <select id="langSelect" onchange="updateLanguage(this.value)" class="bg-slate-100 dark:bg-slate-900 p-2.5 rounded-xl text-sm font-bold outline-none text-gold-600 max-w-[140px]">
+                                <option value="en">English (US)</option>
+                                <option value="es">Español</option>
+                                <option value="fr">Français</option>
+                                <option value="de">Deutsch</option>
+                                <option value="zh">中文 (Chinese)</option>
+                                <option value="hi">हिन्दी (Hindi)</option>
+                                <option value="ar">العربية (Arabic)</option>
+                                <option value="ru">Русский</option>
+                                <option value="ja">日本語 (Japanese)</option>
+                                <option value="ko">한국어 (Korean)</option>
+                                <option value="it">Italiano</option>
+                                <option value="pt">Português</option>
+                                <option value="nl">Nederlands</option>
+                                <option value="tr">Türkçe</option>
+                                <option value="vi">Tiếng Việt</option>
+                                <option value="th">ไทย</option>
+                                <!-- ... add as many as needed -->
                             </select>
                         </div>
                     </div>
                 </div>
 
-                <!-- 15+ Toggles -->
+                <!-- 15+ Advanced Toggles -->
                 <div>
-                    <p class="text-xs font-bold text-gold-500 uppercase tracking-widest mb-3">Preferences & Security</p>
-                    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm space-y-1 p-2">
-                        <!-- Toggles Generation -->
-                        <script>
-                            const settingsOpts = [
-                                "Push Notifications", "Email Alerts", "SMS Order Updates", 
-                                "Two-Factor Auth (2FA)", "Public Profile Visibility", "Auto-Approve Customers",
-                                "Show Stock to Public", "Sound Effects", "Haptic Feedback",
-                                "Data Collection Opt-in", "Weekly Report Generation", "AI Product Tagging",
-                                "Show Pricing Publicly", "Sync to Cloud Backup", "Biometric App Lock"
-                            ];
-                            settingsOpts.forEach((opt, i) => {
-                                document.write(`
-                                    <div class="flex justify-between items-center p-3 border-b border-slate-50 dark:border-slate-700/50 last:border-0">
-                                        <span class="font-semibold text-sm">${opt}</span>
-                                        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                                            <input type="checkbox" id="toggle-${i}" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer z-10 top-0 transition-all duration-300" ${i%2===0 ? 'checked' : ''}/>
-                                            <label for="toggle-${i}" class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-300 dark:bg-slate-600 cursor-pointer transition-colors duration-300"></label>
-                                        </div>
-                                    </div>
-                                `);
-                            });
-                        </script>
+                    <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3 pl-2">Business Operations</p>
+                    <div class="bg-white dark:bg-slate-800 rounded-[2rem] shadow-sm border border-slate-100 dark:border-slate-700 p-2" id="togglesContainer">
+                        <!-- Rendered by JS -->
                     </div>
                 </div>
             </div>
@@ -186,24 +195,42 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- COMPANY POLICIES VIEW                      -->
+    <!-- COMPANY POLICIES VIEW (TXT/PDF Upload)     -->
     <!-- ========================================== -->
     <div id="policiesView" class="sub-view">
         <div class="p-6">
             <header class="flex justify-between items-center mb-8">
-                <button onclick="closeSubView('policiesView')" class="p-2 bg-white dark:bg-slate-800 rounded-full shadow-sm"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
-                <h2 class="font-bold text-lg">Company Policies</h2>
-                <button class="text-gold-600 font-bold text-sm">Save</button>
+                <button onclick="closeSubView('policiesView')" class="p-3 bg-white dark:bg-slate-800 rounded-full shadow-sm"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+                <h2 class="font-bold text-xl">Legal & Policies</h2>
+                <div class="w-10"></div> <!-- spacer -->
             </header>
 
-            <p class="text-sm text-slate-500 mb-6">Write your return, shipping, and B2B contract policies here, or upload a formatted text document.</p>
-
-            <textarea placeholder="Type your full company policies here..." class="w-full h-64 p-4 rounded-2xl bg-white dark:bg-slate-800 border-none shadow-sm outline-none focus:ring-2 focus:ring-gold-500 mb-6 resize-none"></textarea>
-
-            <div class="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl p-8 text-center bg-white/50 dark:bg-slate-800/50">
-                <i data-lucide="file-text" class="w-8 h-8 text-slate-400 mx-auto mb-2"></i>
-                <span class="font-bold text-slate-500">Upload .TXT or .PDF Document</span>
+            <div class="bg-gold-50 dark:bg-gold-900/20 border border-gold-200 dark:border-gold-800 rounded-2xl p-4 mb-6">
+                <p class="text-sm text-gold-700 dark:text-gold-400 font-medium">Upload your official B2B contracts, return policies, or shipping terms. Customers will see this before placing orders.</p>
             </div>
+
+            <!-- Current Policy Display -->
+            <div id="currentPolicyBox" class="hidden mb-6 p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="file-check" class="text-green-500 w-8 h-8"></i>
+                    <div>
+                        <p class="font-bold text-sm">Active Policy Document</p>
+                        <p class="text-xs text-slate-500" id="policyFileName">document.pdf</p>
+                    </div>
+                </div>
+                <button onclick="window.open(currentPolicyUrl)" class="text-gold-600 font-bold text-xs bg-gold-50 dark:bg-gold-900/30 px-3 py-1.5 rounded-lg">View</button>
+            </div>
+
+            <input type="file" id="policyUpload" accept=".txt,.pdf" class="hidden" onchange="uploadPolicy(event)">
+            <label for="policyUpload" class="cursor-pointer border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-[2rem] p-10 text-center bg-white/50 dark:bg-slate-800/50 block hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group">
+                <div class="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <i data-lucide="upload-cloud" class="w-8 h-8 text-slate-500 group-hover:text-gold-500 transition-colors"></i>
+                </div>
+                <h3 class="font-bold text-lg mb-1" id="policyUploadText">Upload New Document</h3>
+                <span class="font-semibold text-xs text-slate-400">Supported: PDF, TXT (Max 5MB)</span>
+            </label>
+            
+            <button id="savePolicyBtn" onclick="confirmPolicyUpload()" class="w-full mt-6 bg-gold-500 text-white font-bold py-4 rounded-xl shadow-lg hidden">Save Policy</button>
         </div>
     </div>
 
@@ -212,10 +239,26 @@
     <!-- ========================================== -->
     <script>
         lucide.createIcons();
-        
-        // Grab the Supabase connection directly from the parent index.html!
         const _supabase = window.parent._supabase;
         let currentUser = null;
+        let currentProfile = null;
+        let pendingPolicyFile = null;
+        let currentPolicyUrl = "";
+
+        const TOGGLES = [
+            { id: 'push_notif', label: 'Push Notifications' },
+            { id: 'email_alerts', label: 'Email Order Alerts' },
+            { id: 'two_factor', label: 'Two-Factor Auth (2FA)' },
+            { id: 'public_vis', label: 'Public Profile Visibility' },
+            { id: 'auto_approve', label: 'Auto-Approve Buyers' },
+            { id: 'show_stock', label: 'Show Stock Quantity' },
+            { id: 'show_price', label: 'Show Prices Publicly' },
+            { id: 'sound_fx', label: 'App Sound Effects' },
+            { id: 'haptic', label: 'Haptic Feedback' },
+            { id: 'weekly_rep', label: 'Weekly AI Reports' },
+            { id: 'ai_tagging', label: 'AI Product Tagging' },
+            { id: 'cloud_sync', label: 'Auto Cloud Backup' }
+        ];
 
         async function initProfile() {
             if(!_supabase) return;
@@ -223,94 +266,203 @@
             if(user) {
                 currentUser = user;
                 const { data: profile } = await _supabase.from('profiles').select('*').eq('id', user.id).single();
+                currentProfile = profile;
                 
                 if(profile) {
                     // Populate Main Card
                     document.getElementById('displayName').innerText = profile.company_name;
                     document.getElementById('displayIndustry').innerText = profile.industry_type;
+                    document.getElementById('displayCountry').innerText = profile.country || 'Global';
+                    
                     const initial = profile.company_name.charAt(0).toUpperCase();
-                    document.getElementById('displayDp').innerText = initial;
-                    document.getElementById('editDp').innerText = initial;
+                    
+                    // Handle DP
+                    if(profile.dp_url) {
+                        const { data } = _supabase.storage.from('profile_pictures').getPublicUrl(profile.dp_url);
+                        document.getElementById('displayDp').src = data.publicUrl;
+                        document.getElementById('editDpImg').src = data.publicUrl;
+                        document.getElementById('displayDp').classList.remove('hidden');
+                        document.getElementById('editDpImg').classList.remove('hidden');
+                        document.getElementById('displayInitials').classList.add('hidden');
+                        document.getElementById('editDpInitials').classList.add('hidden');
+                    } else {
+                        document.getElementById('displayInitials').innerText = initial;
+                        document.getElementById('editDpInitials').innerText = initial;
+                    }
+
+                    // Handle Policy Display
+                    if(profile.policy_doc_url) {
+                        const { data } = _supabase.storage.from('company_policies').getPublicUrl(profile.policy_doc_url);
+                        currentPolicyUrl = data.publicUrl;
+                        document.getElementById('currentPolicyBox').classList.remove('hidden');
+                        document.getElementById('policyFileName').innerText = profile.policy_doc_url.split('/').pop();
+                    }
 
                     // Populate Edit Form
                     document.getElementById('inpComp').value = profile.company_name;
                     document.getElementById('inpCeo').value = profile.ceo_name;
                     document.getElementById('inpPhone').value = profile.phone_number;
-                    document.getElementById('inpProd').value = profile.daily_production;
                     document.getElementById('inpTax').value = profile.tax_id;
+                    document.getElementById('lblTax').innerText = profile.tax_id_type || 'Tax ID';
 
-                    // Set Theme Select to match DB
-                    if(profile.theme) {
-                        document.getElementById('themeSelect').value = profile.theme;
-                    }
+                    // Set Theme & Language
+                    if(profile.theme) document.getElementById('themeSelect').value = profile.theme;
+                    if(profile.language) document.getElementById('langSelect').value = profile.language;
+
+                    renderToggles(profile.app_settings || {});
                 }
             }
         }
 
-        // Navigation
+        // --- Navigation ---
         function openSubView(id) { document.getElementById(id).classList.add('active'); }
         function closeSubView(id) { document.getElementById(id).classList.remove('active'); }
+        function showSync() { document.getElementById('saveIndicator').classList.add('active'); }
+        function hideSync() { setTimeout(() => document.getElementById('saveIndicator').classList.remove('active'), 500); }
 
-        // Security Lock for Edit Profile
+        // --- Profile Picture (DP) ---
+        async function uploadDP(event) {
+            const file = event.target.files[0];
+            if(!file) return;
+            
+            showSync();
+            const filePath = `${currentUser.id}/dp_${Date.now()}.${file.name.split('.').pop()}`;
+            
+            const { error: uploadError } = await _supabase.storage.from('profile_pictures').upload(filePath, file, { upsert: true });
+            if (!uploadError) {
+                await _supabase.from('profiles').update({ dp_url: filePath }).eq('id', currentUser.id);
+                initProfile(); // Refresh UI
+            } else alert("DP Upload failed: " + uploadError.message);
+            hideSync();
+        }
+
+        // --- Strict Edit Lock (Email Verification) ---
         function requestEditAccess() {
-            const answer = prompt("SECURITY LOCK: Please confirm your registered Email or Mobile Number to edit company details.");
-            if (answer) {
-                // Remove disabled state from inputs
+            const enteredEmail = prompt("SECURITY LOCK\nEnter your registered admin email to unlock editing:");
+            if (enteredEmail && enteredEmail.trim().toLowerCase() === currentUser.email.toLowerCase()) {
                 document.querySelectorAll('.edit-input').forEach(inp => {
                     inp.disabled = false;
-                    inp.classList.remove('text-slate-500');
-                    inp.classList.add('text-slate-900', 'dark:text-white', 'ring-1', 'ring-gold-500');
+                    inp.classList.remove('text-slate-500', 'border-slate-100', 'dark:border-slate-700');
+                    inp.classList.add('text-slate-900', 'dark:text-white', 'border-gold-500', 'border-b-2');
                 });
                 document.getElementById('saveProfileBtn').classList.remove('hidden');
+            } else if (enteredEmail) {
+                alert("Unauthorized: Email does not match admin records.");
             }
         }
 
         async function saveEditedProfile() {
+            showSync();
             const btn = document.getElementById('saveProfileBtn');
-            btn.innerText = "Saving...";
+            btn.innerText = "SAVING...";
+            
             const updates = {
                 company_name: document.getElementById('inpComp').value,
                 ceo_name: document.getElementById('inpCeo').value,
                 phone_number: document.getElementById('inpPhone').value,
-                daily_production: document.getElementById('inpProd').value,
                 tax_id: document.getElementById('inpTax').value
             };
             
             await _supabase.from('profiles').update(updates).eq('id', currentUser.id);
-            alert("Profile successfully updated.");
             
-            // Re-lock
-            document.querySelectorAll('.edit-input').forEach(inp => inp.disabled = true);
+            document.querySelectorAll('.edit-input').forEach(inp => {
+                inp.disabled = true;
+                inp.classList.add('text-slate-500');
+                inp.classList.remove('text-slate-900', 'dark:text-white', 'border-gold-500');
+            });
             btn.classList.add('hidden');
-            initProfile(); // Refresh text
+            btn.innerText = "Save Authorized Changes";
+            
+            initProfile(); 
+            hideSync();
         }
 
-        // Master Theme Trigger
-        function updateTheme(val) {
-            if(window.parent && window.parent.changeTheme) {
-                window.parent.changeTheme(val); // This instantly changes the parent Shell's theme too!
+        // --- Settings & Global Sync ---
+        function renderToggles(savedSettings) {
+            const container = document.getElementById('togglesContainer');
+            container.innerHTML = '';
+            TOGGLES.forEach((t) => {
+                // Default to true if not set
+                const isChecked = savedSettings[t.id] !== undefined ? savedSettings[t.id] : true; 
+                container.innerHTML += `
+                    <div class="flex justify-between items-center p-4 border-b border-slate-50 dark:border-slate-700/50 last:border-0">
+                        <span class="font-bold text-sm">${t.label}</span>
+                        <div class="relative inline-block w-11 h-6 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" id="tgl_${t.id}" onchange="saveToggle('${t.id}', this.checked)" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer z-10 top-0 transition-all duration-300" ${isChecked ? 'checked' : ''}/>
+                            <label for="tgl_${t.id}" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-200 dark:bg-slate-600 cursor-pointer transition-colors duration-300"></label>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        async function saveToggle(id, value) {
+            showSync();
+            const newSettings = { ...(currentProfile.app_settings || {}), [id]: value };
+            await _supabase.from('profiles').update({ app_settings: newSettings }).eq('id', currentUser.id);
+            currentProfile.app_settings = newSettings;
+            hideSync();
+        }
+
+        async function updateTheme(val) {
+            showSync();
+            if(window.parent && window.parent.changeTheme) window.parent.changeTheme(val);
+            hideSync();
+        }
+
+        async function updateLanguage(val) {
+            showSync();
+            await _supabase.from('profiles').update({ language: val }).eq('id', currentUser.id);
+            hideSync();
+            // In a real app, this would trigger a translation dictionary update
+        }
+
+        // --- Company Policies ---
+        function uploadPolicy(event) {
+            pendingPolicyFile = event.target.files[0];
+            if(pendingPolicyFile) {
+                document.getElementById('policyUploadText').innerText = pendingPolicyFile.name;
+                document.getElementById('savePolicyBtn').classList.remove('hidden');
             }
         }
 
+        async function confirmPolicyUpload() {
+            if(!pendingPolicyFile) return;
+            showSync();
+            const btn = document.getElementById('savePolicyBtn');
+            btn.innerText = "Encrypting & Uploading...";
+            
+            const filePath = `${currentUser.id}/policy_${Date.now()}.${pendingPolicyFile.name.split('.').pop()}`;
+            
+            const { error: uploadError } = await _supabase.storage.from('company_policies').upload(filePath, pendingPolicyFile, { upsert: true });
+            
+            if (!uploadError) {
+                await _supabase.from('profiles').update({ policy_doc_url: filePath }).eq('id', currentUser.id);
+                btn.classList.add('hidden');
+                document.getElementById('policyUploadText').innerText = "Upload New Document";
+                initProfile(); // Refresh to show current policy box
+            } else alert("Policy Upload failed: " + uploadError.message);
+            
+            btn.innerText = "Save Policy";
+            hideSync();
+        }
+
         function shareProfile() {
+            const url = `https://goldens.network/b/${currentUser.id}`;
             if (navigator.share) {
-                navigator.share({
-                    title: "Golden's Business Profile",
-                    text: `Check out ${document.getElementById('displayName').innerText} on the Golden's B2B Network!`,
-                    url: window.location.href
-                });
+                navigator.share({ title: "Golden's Profile", text: `View ${currentProfile.company_name} on Golden's Network`, url: url });
             } else {
+                navigator.clipboard.writeText(url);
                 alert("Profile Link Copied to Clipboard!");
             }
         }
 
         function logOutUser() {
-            if(window.parent && window.parent.signOutApp) {
-                window.parent.signOutApp();
+            if(confirm("Are you sure you want to securely sign out?")) {
+                if(window.parent && window.parent.signOutApp) window.parent.signOutApp();
             }
         }
 
-        // Start
         initProfile();
     </script>
 </body>
