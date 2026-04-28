@@ -372,76 +372,7 @@
             document.getElementById('stepProfile').classList.remove('hidden-view');
         }
 
-        async function saveProfileAndEnter() {
-            const btn = document.getElementById('finishBtn');
-            
-            const data = {
-                company_name: document.getElementById('compName').value,
-                ceo_name: document.getElementById('ceoName').value,
-                phone_number: document.getElementById('mobile').value,
-                industry_type: document.getElementById('industry').value,
-                core_product_category: document.getElementById('coreProduct').value,
-                daily_production: document.getElementById('production').value,
-                tax_id: document.getElementById('taxId').value,
-                company_address: document.getElementById('address').value,
-                year_founded: document.getElementById('founded').value,
-                employee_count: document.getElementById('employees').value,
-                verification_status: 'reviewing'
-            };
-
-            for (const key in data) {
-                if (!data[key]) return alert("All fields are strictly required.");
-            }
-
-            btn.innerText = "Finalizing...";
-            const { data: { user } } = await _supabase.auth.getUser();
-
-            const { error } = await _supabase.from('profiles').upsert({ id: user.id, ...data });
-
-            if(error) {
-                alert("Error: " + error.message);
-                btn.innerText = "Complete Golden Setup";
-                return;
-            }
-
-            launchApp(true); // true means it's their first time, so show popup!
-        }
-
-        function launchApp(isFirstTime) {
-            document.getElementById('authContainer').classList.add('hidden-view');
-            document.getElementById('appWorkspace').classList.remove('hidden-view');
-            
-            if(isFirstTime) {
-                document.getElementById('trialPopup').classList.remove('hidden-view');
-            }
-            loadModule('home.html', document.querySelector('.nav-btn'));
-        }
-
-        function closePopup() {
-            document.getElementById('trialPopup').classList.add('hidden-view');
-        }
-
-        function loadModule(filename, element) {
-            document.getElementById('moduleFrame').src = filename;
-            if (element) {
-                document.querySelectorAll('.nav-btn').forEach(btn => {
-                    btn.classList.remove('text-gold-600');
-                    btn.classList.add('text-slate-400');
-                });
-                if(!element.classList.contains('floating-add')) {
-                    element.classList.remove('text-slate-400');
-                    element.classList.add('text-gold-600');
-                }
-            }
-        }
-        
-        window.signOutApp = async function() {
-            await _supabase.auth.signOut();
-            window.location.reload();
-        }
-
-        initApp();
-        
+         
             let currentTaxType = "TIN";
 
             // Global Tax Mapping
@@ -502,7 +433,41 @@
                 }
                 launchApp(true);
             }
-            // ... (Keep the rest of your index.html JS intact)
+
+        function launchApp(isFirstTime) {
+            document.getElementById('authContainer').classList.add('hidden-view');
+            document.getElementById('appWorkspace').classList.remove('hidden-view');
+            
+            if(isFirstTime) {
+                document.getElementById('trialPopup').classList.remove('hidden-view');
+            }
+            loadModule('home.html', document.querySelector('.nav-btn'));
+        }
+
+        function closePopup() {
+            document.getElementById('trialPopup').classList.add('hidden-view');
+        }
+
+        function loadModule(filename, element) {
+            document.getElementById('moduleFrame').src = filename;
+            if (element) {
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.classList.remove('text-gold-600');
+                    btn.classList.add('text-slate-400');
+                });
+                if(!element.classList.contains('floating-add')) {
+                    element.classList.remove('text-slate-400');
+                    element.classList.add('text-gold-600');
+                }
+            }
+        }
+        
+        window.signOutApp = async function() {
+            await _supabase.auth.signOut();
+            window.location.reload();
+        }
+
+        initApp();
     </script>
 </body>
 </html>
