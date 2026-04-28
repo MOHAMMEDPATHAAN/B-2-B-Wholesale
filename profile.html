@@ -3,467 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Profile Module</title>
-    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: transparent; }
-        ::-webkit-scrollbar { display: none; }
-        
-        .menu-item {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 1.25rem; background: rgba(255,255,255,0.6); backdrop-filter: blur(10px);
-            border: 1px solid rgba(0,0,0,0.05); border-radius: 1.25rem; margin-bottom: 0.75rem; 
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .dark .menu-item { background: rgba(30,41,59,0.6); border-color: rgba(255,255,255,0.05); }
-        .menu-item:active { transform: scale(0.97); }
-        
-        .sub-view {
-            position: fixed; top: 0; left: 100%; width: 100%; height: 100%;
-            background: #f8fafc; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            z-index: 50; overflow-y: auto; padding-bottom: 100px;
-        }
+        .sub-view { position: fixed; inset: 0; background: #f8fafc; z-index: 100; left: 100%; transition: left 0.4s ease; overflow-y: auto; }
         .dark .sub-view { background: #0f172a; }
         .sub-view.active { left: 0; }
-        
-        .toggle-checkbox:checked { right: 0; border-color: #EAB308; }
-        .toggle-checkbox:checked + .toggle-label { background-color: #EAB308; }
-
-        /* Loader */
-        .sync-loader { display: none; animation: spin 1s linear infinite; }
-        .sync-loader.active { display: inline-block; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .edit-input { background: transparent; border-bottom: 2px solid #e2e8f0; font-weight: 700; }
+        .dark .edit-input { border-color: #334155; color: white; }
     </style>
 </head>
-<body class="p-4 text-slate-800 dark:text-slate-100 pb-24">
+<body class="p-5 text-slate-800 dark:text-slate-100 pb-32">
 
-    <!-- ========================================== -->
-    <!-- MAIN PROFILE MENU                          -->
-    <!-- ========================================== -->
-    <div id="mainMenu">
-        <header class="flex justify-between items-center mb-8 pt-2">
-            <div>
-                <p class="text-[10px] font-extrabold text-gold-500 uppercase tracking-widest mb-1">Golden Enterprise</p>
-                <h1 class="text-3xl font-extrabold tracking-tight">Workspace</h1>
-            </div>
-            <div class="flex items-center gap-2">
-                <i data-lucide="loader-2" id="saveIndicator" class="sync-loader w-5 h-5 text-gold-500"></i>
-                <div class="bg-gradient-to-br from-gold-400 to-gold-600 text-white p-2.5 rounded-2xl shadow-lg shadow-gold-500/30"><i data-lucide="crown" class="w-6 h-6"></i></div>
-            </div>
-        </header>
-
-        <!-- Premium Profile Card -->
-        <div onclick="openSubView('editProfileView')" class="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-800 dark:to-slate-900 text-white p-6 rounded-[2rem] shadow-2xl mb-8 flex items-center gap-5 cursor-pointer relative overflow-hidden border border-slate-700">
-            <div class="absolute -right-10 -top-10 w-40 h-40 bg-gold-500/20 rounded-full blur-3xl pointer-events-none"></div>
-            
-            <div class="relative">
-                <img id="displayDp" src="" class="hidden w-16 h-16 rounded-2xl object-cover border-2 border-white/10 shadow-lg">
-                <div id="displayInitials" class="w-16 h-16 bg-gradient-to-tr from-gold-500 to-gold-300 rounded-2xl flex items-center justify-center text-2xl font-bold shadow-lg text-slate-900">?</div>
-            </div>
-
-            <div class="flex-1 z-10">
-                <h2 id="displayName" class="text-xl font-bold leading-tight">Loading...</h2>
-                <div class="flex items-center gap-2 mt-1">
-                    <span id="displayCountry" class="text-xs bg-white/10 px-2 py-0.5 rounded-full font-semibold">--</span>
-                    <span id="displayIndustry" class="text-sm text-gold-400 font-medium">--</span>
-                </div>
-            </div>
-            <i data-lucide="chevron-right" class="w-6 h-6 text-slate-400 z-10"></i>
+    <header class="flex justify-between items-center mb-10">
+        <h1 data-tr="profile_title" class="text-3xl font-black uppercase">Identity</h1>
+        <div class="flex gap-3">
+            <i data-lucide="bell" class="w-6 h-6 text-slate-400"></i>
+            <i data-lucide="shield-check" class="w-6 h-6 text-green-500"></i>
         </div>
+    </header>
 
-        <!-- Horizontal Menu Bars -->
-        <div class="space-y-3">
-            <div onclick="openSubView('settingsView')" class="menu-item cursor-pointer shadow-sm">
-                <div class="flex items-center gap-4"><div class="p-3 bg-white dark:bg-slate-800 rounded-2xl text-slate-600 dark:text-slate-300 shadow-sm"><i data-lucide="settings" class="w-5 h-5"></i></div><span class="font-bold text-lg">App Settings</span></div>
-                <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
+    <!-- CEO Info Card -->
+    <div onclick="openView('editView')" class="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-[2.5rem] shadow-2xl flex items-center gap-5 cursor-pointer relative overflow-hidden border border-slate-700">
+        <div class="relative">
+            <img id="ceoPic" src="https://ui-avatars.com/api/?name=CEO&background=EAB308&color=000" class="w-16 h-16 rounded-2xl object-cover border-2 border-gold-500">
+            <input type="file" id="ceoPicInp" class="hidden" onchange="uploadCeoPic(event)">
+        </div>
+        <div>
+            <h2 id="ceoName" class="text-xl font-bold text-white">CEO Name</h2>
+            <p id="compName" class="text-sm text-gold-500 font-bold uppercase tracking-widest">Company Name</p>
+        </div>
+        <i data-lucide="chevron-right" class="ml-auto text-slate-500"></i>
+    </div>
+
+    <!-- Menu List -->
+    <div class="mt-10 space-y-3">
+        <div onclick="openView('settingsView')" class="flex items-center justify-between p-5 bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800">
+            <div class="flex items-center gap-4"><i data-lucide="settings" class="text-gold-500"></i><span data-tr="settings" class="font-bold">Settings</span></div>
+            <i data-lucide="chevron-right" class="w-5 h-5 text-slate-300"></i>
+        </div>
+        <div onclick="openView('doc2View')" class="flex items-center justify-between p-5 bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800">
+            <div class="flex items-center gap-4"><i data-lucide="file-plus" class="text-blue-500"></i><span data-tr="doc2" class="font-bold">Add Supplemental Document</span></div>
+            <i data-lucide="chevron-right" class="w-5 h-5 text-slate-300"></i>
+        </div>
+    </div>
+
+    <!-- Settings Sub-View -->
+    <div id="settingsView" class="sub-view p-6">
+        <button onclick="closeView('settingsView')" class="p-3 bg-white dark:bg-slate-800 rounded-full mb-8"><i data-lucide="arrow-left"></i></button>
+        <h2 class="text-2xl font-black mb-8">Workspace Settings</h2>
+        
+        <div class="space-y-6">
+            <div class="p-5 bg-white dark:bg-slate-900 rounded-3xl">
+                <label class="text-[10px] font-black text-slate-400 uppercase">App Theme</label>
+                <select onchange="changeTheme(this.value)" id="themeSel" class="w-full mt-2 bg-transparent font-bold text-gold-500 outline-none">
+                    <option value="dark">Dark Mode (Default)</option>
+                    <option value="light">Light Mode</option>
+                </select>
             </div>
-            <div onclick="openSubView('policiesView')" class="menu-item cursor-pointer shadow-sm">
-                <div class="flex items-center gap-4"><div class="p-3 bg-white dark:bg-slate-800 rounded-2xl text-slate-600 dark:text-slate-300 shadow-sm"><i data-lucide="shield-check" class="w-5 h-5"></i></div><span class="font-bold text-lg">Company Policies</span></div>
-                <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
-            </div>
-            
-            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-8 mb-3 pl-2">Network Tools</p>
-            
-            <div onclick="shareProfile()" class="menu-item cursor-pointer shadow-sm">
-                <div class="flex items-center gap-4"><div class="p-2.5 bg-gold-50 dark:bg-gold-900/20 text-gold-600 rounded-xl"><i data-lucide="share-2" class="w-5 h-5"></i></div><span class="font-bold">Share Golden Profile</span></div>
-            </div>
-            <div class="menu-item opacity-60">
-                <div class="flex items-center gap-4"><div class="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl"><i data-lucide="bar-chart-2" class="w-5 h-5"></i></div><span class="font-bold">Analytics & Reach</span></div><i data-lucide="lock" class="w-4 h-4"></i>
-            </div>
-            <div class="menu-item opacity-60">
-                <div class="flex items-center gap-4"><div class="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl"><i data-lucide="credit-card" class="w-5 h-5"></i></div><span class="font-bold">Billing & Invoices</span></div><i data-lucide="lock" class="w-4 h-4"></i>
-            </div>
-            
-            <div onclick="logOutUser()" class="menu-item cursor-pointer mt-8 bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900/30">
-                <div class="flex items-center gap-4"><div class="p-2.5 bg-red-100 dark:bg-red-900/30 text-red-600 rounded-xl"><i data-lucide="log-out" class="w-5 h-5"></i></div><span class="font-bold text-red-600">Secure Sign Out</span></div>
+            <div class="p-5 bg-white dark:bg-slate-900 rounded-3xl">
+                <label class="text-[10px] font-black text-slate-400 uppercase">System Language</label>
+                <select onchange="changeLang(this.value)" id="langSel" class="w-full mt-2 bg-transparent font-bold text-gold-500 outline-none">
+                    <option value="en">English (Global)</option>
+                    <option value="hi">हिन्दी (Hindi)</option>
+                    <option value="ur">اردو (Urdu)</option>
+                    <option value="ar">العربية (Arabic)</option>
+                </select>
             </div>
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- EDIT PROFILE VIEW (Secured)                -->
-    <!-- ========================================== -->
-    <div id="editProfileView" class="sub-view">
-        <div class="p-6">
-            <header class="flex justify-between items-center mb-8">
-                <button onclick="closeSubView('editProfileView')" class="p-3 bg-white dark:bg-slate-800 rounded-full shadow-sm"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
-                <h2 class="font-bold text-lg">Identity</h2>
-                <button onclick="requestEditAccess()" class="p-3 bg-green-50 text-green-600 dark:bg-green-500/20 dark:text-green-400 rounded-full shadow-sm transition-transform active:scale-90"><i data-lucide="pencil" class="w-5 h-5"></i></button>
-            </header>
-
-            <!-- DP Upload -->
-            <div class="flex justify-center mb-8">
-                <div class="relative cursor-pointer group" onclick="document.getElementById('dpUpload').click()">
-                    <img id="editDpImg" src="" class="hidden w-28 h-28 rounded-[2rem] object-cover shadow-xl border-4 border-white dark:border-slate-800">
-                    <div id="editDpInitials" class="w-28 h-28 bg-gradient-to-tr from-gold-500 to-gold-300 rounded-[2rem] flex items-center justify-center text-4xl font-bold text-slate-900 shadow-xl border-4 border-white dark:border-slate-800">?</div>
-                    <div class="absolute -bottom-2 -right-2 p-3 bg-slate-900 text-white rounded-full shadow-lg border-4 border-white dark:border-slate-800 group-hover:bg-gold-500 transition-colors"><i data-lucide="camera" class="w-4 h-4"></i></div>
-                    <input type="file" id="dpUpload" accept="image/*" class="hidden" onchange="uploadDP(event)">
-                </div>
-            </div>
-
-            <!-- Profile Fields (Locked by Default) -->
-            <div class="space-y-4 bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-sm border border-slate-100 dark:border-slate-700">
-                <div><label class="text-[10px] font-extrabold text-gold-500 uppercase tracking-widest">Company Name</label><input type="text" id="inpComp" class="edit-input w-full py-2 bg-transparent border-b-2 border-slate-100 dark:border-slate-700 font-bold text-lg text-slate-500 transition-all outline-none" disabled></div>
-                <div><label class="text-[10px] font-extrabold text-gold-500 uppercase tracking-widest">CEO / Manager</label><input type="text" id="inpCeo" class="edit-input w-full py-2 bg-transparent border-b-2 border-slate-100 dark:border-slate-700 font-bold text-slate-500 transition-all outline-none" disabled></div>
-                <div><label class="text-[10px] font-extrabold text-gold-500 uppercase tracking-widest">Mobile Number</label><input type="text" id="inpPhone" class="edit-input w-full py-2 bg-transparent border-b-2 border-slate-100 dark:border-slate-700 font-bold text-slate-500 transition-all outline-none" disabled></div>
-                <div><label class="text-[10px] font-extrabold text-gold-500 uppercase tracking-widest" id="lblTax">Tax ID</label><input type="text" id="inpTax" class="edit-input w-full py-2 bg-transparent border-none font-bold text-slate-500 transition-all outline-none" disabled></div>
-            </div>
-            
-            <button id="saveProfileBtn" onclick="saveEditedProfile()" class="w-full mt-8 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-extrabold py-4 rounded-2xl shadow-lg shadow-green-500/30 hidden uppercase tracking-wider text-sm transition-transform active:scale-95">Save Authorized Changes</button>
+    <!-- Document 2 Sub-View -->
+    <div id="doc2View" class="sub-view p-6">
+        <button onclick="closeView('doc2View')" class="p-3 bg-white dark:bg-slate-800 rounded-full mb-8"><i data-lucide="arrow-left"></i></button>
+        <h2 class="text-2xl font-black mb-4">Verification Layer 2</h2>
+        <p class="text-sm text-slate-500 mb-8">If your primary document was rejected or incomplete, upload your Secondary Trade License here. This is only allowed ONCE.</p>
+        
+        <div id="doc2UploadArea" class="border-2 border-dashed border-slate-300 dark:border-slate-700 p-10 rounded-[2.5rem] text-center">
+            <i data-lucide="upload-cloud" class="w-12 h-12 mx-auto mb-4 text-slate-400"></i>
+            <input type="file" id="doc2File" class="hidden" onchange="handleDoc2(this)">
+            <button onclick="document.getElementById('doc2File').click()" class="bg-gold-500 text-slate-950 px-6 py-3 rounded-2xl font-black">Choose Document 2</button>
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- SETTINGS VIEW (15+ Options & Global Sync)  -->
-    <!-- ========================================== -->
-    <div id="settingsView" class="sub-view">
-        <div class="p-6">
-            <header class="flex items-center gap-4 mb-8">
-                <button onclick="closeSubView('settingsView')" class="p-3 bg-white dark:bg-slate-800 rounded-full shadow-sm"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
-                <h2 class="font-bold text-2xl">Settings</h2>
-            </header>
-
-            <div class="space-y-8">
-                <!-- Global Preferences -->
-                <div>
-                    <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3 pl-2">Global Preferences</p>
-                    <div class="bg-white dark:bg-slate-800 rounded-[2rem] shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
-                        <div class="p-5 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
-                            <span class="font-bold">App Theme</span>
-                            <select id="themeSelect" onchange="updateTheme(this.value)" class="bg-slate-100 dark:bg-slate-900 p-2.5 rounded-xl text-sm font-bold outline-none text-gold-600">
-                                <option value="system">System Auto</option>
-                                <option value="light">Light Mode</option>
-                                <option value="dark">Dark Mode</option>
-                            </select>
-                        </div>
-                        <div class="p-5 flex justify-between items-center">
-                            <span class="font-bold">Language</span>
-                            <select id="langSelect" onchange="updateLanguage(this.value)" class="bg-slate-100 dark:bg-slate-900 p-2.5 rounded-xl text-sm font-bold outline-none text-gold-600 max-w-[140px]">
-                                <option value="en">English (US)</option>
-                                <option value="es">Español</option>
-                                <option value="fr">Français</option>
-                                <option value="de">Deutsch</option>
-                                <option value="zh">中文 (Chinese)</option>
-                                <option value="hi">हिन्दी (Hindi)</option>
-                                <option value="ar">العربية (Arabic)</option>
-                                <option value="ru">Русский</option>
-                                <option value="ja">日本語 (Japanese)</option>
-                                <option value="ko">한국어 (Korean)</option>
-                                <option value="it">Italiano</option>
-                                <option value="pt">Português</option>
-                                <option value="nl">Nederlands</option>
-                                <option value="tr">Türkçe</option>
-                                <option value="vi">Tiếng Việt</option>
-                                <option value="th">ไทย</option>
-                                <!-- ... add as many as needed -->
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 15+ Advanced Toggles -->
-                <div>
-                    <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3 pl-2">Business Operations</p>
-                    <div class="bg-white dark:bg-slate-800 rounded-[2rem] shadow-sm border border-slate-100 dark:border-slate-700 p-2" id="togglesContainer">
-                        <!-- Rendered by JS -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- COMPANY POLICIES VIEW (TXT/PDF Upload)     -->
-    <!-- ========================================== -->
-    <div id="policiesView" class="sub-view">
-        <div class="p-6">
-            <header class="flex justify-between items-center mb-8">
-                <button onclick="closeSubView('policiesView')" class="p-3 bg-white dark:bg-slate-800 rounded-full shadow-sm"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
-                <h2 class="font-bold text-xl">Legal & Policies</h2>
-                <div class="w-10"></div> <!-- spacer -->
-            </header>
-
-            <div class="bg-gold-50 dark:bg-gold-900/20 border border-gold-200 dark:border-gold-800 rounded-2xl p-4 mb-6">
-                <p class="text-sm text-gold-700 dark:text-gold-400 font-medium">Upload your official B2B contracts, return policies, or shipping terms. Customers will see this before placing orders.</p>
-            </div>
-
-            <!-- Current Policy Display -->
-            <div id="currentPolicyBox" class="hidden mb-6 p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <i data-lucide="file-check" class="text-green-500 w-8 h-8"></i>
-                    <div>
-                        <p class="font-bold text-sm">Active Policy Document</p>
-                        <p class="text-xs text-slate-500" id="policyFileName">document.pdf</p>
-                    </div>
-                </div>
-                <button onclick="window.open(currentPolicyUrl)" class="text-gold-600 font-bold text-xs bg-gold-50 dark:bg-gold-900/30 px-3 py-1.5 rounded-lg">View</button>
-            </div>
-
-            <input type="file" id="policyUpload" accept=".txt,.pdf" class="hidden" onchange="uploadPolicy(event)">
-            <label for="policyUpload" class="cursor-pointer border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-[2rem] p-10 text-center bg-white/50 dark:bg-slate-800/50 block hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group">
-                <div class="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                    <i data-lucide="upload-cloud" class="w-8 h-8 text-slate-500 group-hover:text-gold-500 transition-colors"></i>
-                </div>
-                <h3 class="font-bold text-lg mb-1" id="policyUploadText">Upload New Document</h3>
-                <span class="font-semibold text-xs text-slate-400">Supported: PDF, TXT (Max 5MB)</span>
-            </label>
-            
-            <button id="savePolicyBtn" onclick="confirmPolicyUpload()" class="w-full mt-6 bg-gold-500 text-white font-bold py-4 rounded-xl shadow-lg hidden">Save Policy</button>
-        </div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- SCRIPTS                                    -->
-    <!-- ========================================== -->
     <script>
         lucide.createIcons();
         const _supabase = window.parent._supabase;
         let currentUser = null;
-        let currentProfile = null;
-        let pendingPolicyFile = null;
-        let currentPolicyUrl = "";
 
-        const TOGGLES = [
-            { id: 'push_notif', label: 'Push Notifications' },
-            { id: 'email_alerts', label: 'Email Order Alerts' },
-            { id: 'two_factor', label: 'Two-Factor Auth (2FA)' },
-            { id: 'public_vis', label: 'Public Profile Visibility' },
-            { id: 'auto_approve', label: 'Auto-Approve Buyers' },
-            { id: 'show_stock', label: 'Show Stock Quantity' },
-            { id: 'show_price', label: 'Show Prices Publicly' },
-            { id: 'sound_fx', label: 'App Sound Effects' },
-            { id: 'haptic', label: 'Haptic Feedback' },
-            { id: 'weekly_rep', label: 'Weekly AI Reports' },
-            { id: 'ai_tagging', label: 'AI Product Tagging' },
-            { id: 'cloud_sync', label: 'Auto Cloud Backup' }
-        ];
+        const TRANSLATIONS = {
+            en: { profile_title: "Identity", settings: "Settings", doc2: "Supplemental Document" },
+            hi: { profile_title: "पहचान", settings: "सेटिंग्स", doc2: "पूरक दस्तावेज़" },
+            ur: { profile_title: "شناخت", settings: "ترجیحات", doc2: "اضافی دستاویز" }
+        };
 
-        async function initProfile() {
-            if(!_supabase) return;
+        async function init() {
             const { data: { user } } = await _supabase.auth.getUser();
-            if(user) {
-                currentUser = user;
-                const { data: profile } = await _supabase.from('profiles').select('*').eq('id', user.id).single();
-                currentProfile = profile;
-                
-                if(profile) {
-                    // Populate Main Card
-                    document.getElementById('displayName').innerText = profile.company_name;
-                    document.getElementById('displayIndustry').innerText = profile.industry_type;
-                    document.getElementById('displayCountry').innerText = profile.country || 'Global';
-                    
-                    const initial = profile.company_name.charAt(0).toUpperCase();
-                    
-                    // Handle DP
-                    if(profile.dp_url) {
-                        const { data } = _supabase.storage.from('profile_pictures').getPublicUrl(profile.dp_url);
-                        document.getElementById('displayDp').src = data.publicUrl;
-                        document.getElementById('editDpImg').src = data.publicUrl;
-                        document.getElementById('displayDp').classList.remove('hidden');
-                        document.getElementById('editDpImg').classList.remove('hidden');
-                        document.getElementById('displayInitials').classList.add('hidden');
-                        document.getElementById('editDpInitials').classList.add('hidden');
-                    } else {
-                        document.getElementById('displayInitials').innerText = initial;
-                        document.getElementById('editDpInitials').innerText = initial;
-                    }
-
-                    // Handle Policy Display
-                    if(profile.policy_doc_url) {
-                        const { data } = _supabase.storage.from('company_policies').getPublicUrl(profile.policy_doc_url);
-                        currentPolicyUrl = data.publicUrl;
-                        document.getElementById('currentPolicyBox').classList.remove('hidden');
-                        document.getElementById('policyFileName').innerText = profile.policy_doc_url.split('/').pop();
-                    }
-
-                    // Populate Edit Form
-                    document.getElementById('inpComp').value = profile.company_name;
-                    document.getElementById('inpCeo').value = profile.ceo_name;
-                    document.getElementById('inpPhone').value = profile.phone_number;
-                    document.getElementById('inpTax').value = profile.tax_id;
-                    document.getElementById('lblTax').innerText = profile.tax_id_type || 'Tax ID';
-
-                    // Set Theme & Language
-                    if(profile.theme) document.getElementById('themeSelect').value = profile.theme;
-                    if(profile.language) document.getElementById('langSelect').value = profile.language;
-
-                    renderToggles(profile.app_settings || {});
-                }
+            currentUser = user;
+            const { data } = await _supabase.from('profiles').select('*').eq('id', user.id).single();
+            if(data) {
+                document.getElementById('ceoName').innerText = data.ceo_name;
+                document.getElementById('compName').innerText = data.company_name;
+                if(data.language) changeLang(data.language);
+                if(data.doc_2_url) document.getElementById('doc2UploadArea').innerHTML = "<p class='text-green-500 font-bold'>✓ Supplemental Document Submitted</p>";
             }
         }
 
-        // --- Navigation ---
-        function openSubView(id) { document.getElementById(id).classList.add('active'); }
-        function closeSubView(id) { document.getElementById(id).classList.remove('active'); }
-        function showSync() { document.getElementById('saveIndicator').classList.add('active'); }
-        function hideSync() { setTimeout(() => document.getElementById('saveIndicator').classList.remove('active'), 500); }
+        function openView(id) { document.getElementById(id).classList.add('active'); }
+        function closeView(id) { document.getElementById(id).classList.remove('active'); }
 
-        // --- Profile Picture (DP) ---
-        async function uploadDP(event) {
-            const file = event.target.files[0];
+        async function changeTheme(mode) {
+            window.parent.syncTheme(mode);
+            await _supabase.from('profiles').update({ theme: mode }).eq('id', currentUser.id);
+        }
+
+        async function changeLang(lang) {
+            document.querySelectorAll('[data-tr]').forEach(el => {
+                const key = el.getAttribute('data-tr');
+                if(TRANSLATIONS[lang][key]) el.innerText = TRANSLATIONS[lang][key];
+            });
+            window.parent.syncLanguage(lang);
+            await _supabase.from('profiles').update({ language: lang }).eq('id', currentUser.id);
+        }
+
+        async function handleDoc2(input) {
+            const file = input.files[0];
             if(!file) return;
-            
-            showSync();
-            const filePath = `${currentUser.id}/dp_${Date.now()}.${file.name.split('.').pop()}`;
-            
-            const { error: uploadError } = await _supabase.storage.from('profile_pictures').upload(filePath, file, { upsert: true });
-            if (!uploadError) {
-                await _supabase.from('profiles').update({ dp_url: filePath }).eq('id', currentUser.id);
-                initProfile(); // Refresh UI
-            } else alert("DP Upload failed: " + uploadError.message);
-            hideSync();
+            const path = `${currentUser.id}/doc2_${Date.now()}`;
+            await _supabase.storage.from('verification_docs').upload(path, file);
+            await _supabase.from('profiles').update({ doc_2_url: path }).eq('id', currentUser.id);
+            alert("Document 2 successfully saved to vault.");
+            init();
         }
 
-        // --- Strict Edit Lock (Email Verification) ---
-        function requestEditAccess() {
-            const enteredEmail = prompt("SECURITY LOCK\nEnter your registered admin email to unlock editing:");
-            if (enteredEmail && enteredEmail.trim().toLowerCase() === currentUser.email.toLowerCase()) {
-                document.querySelectorAll('.edit-input').forEach(inp => {
-                    inp.disabled = false;
-                    inp.classList.remove('text-slate-500', 'border-slate-100', 'dark:border-slate-700');
-                    inp.classList.add('text-slate-900', 'dark:text-white', 'border-gold-500', 'border-b-2');
-                });
-                document.getElementById('saveProfileBtn').classList.remove('hidden');
-            } else if (enteredEmail) {
-                alert("Unauthorized: Email does not match admin records.");
-            }
-        }
-
-        async function saveEditedProfile() {
-            showSync();
-            const btn = document.getElementById('saveProfileBtn');
-            btn.innerText = "SAVING...";
-            
-            const updates = {
-                company_name: document.getElementById('inpComp').value,
-                ceo_name: document.getElementById('inpCeo').value,
-                phone_number: document.getElementById('inpPhone').value,
-                tax_id: document.getElementById('inpTax').value
-            };
-            
-            await _supabase.from('profiles').update(updates).eq('id', currentUser.id);
-            
-            document.querySelectorAll('.edit-input').forEach(inp => {
-                inp.disabled = true;
-                inp.classList.add('text-slate-500');
-                inp.classList.remove('text-slate-900', 'dark:text-white', 'border-gold-500');
-            });
-            btn.classList.add('hidden');
-            btn.innerText = "Save Authorized Changes";
-            
-            initProfile(); 
-            hideSync();
-        }
-
-        // --- Settings & Global Sync ---
-        function renderToggles(savedSettings) {
-            const container = document.getElementById('togglesContainer');
-            container.innerHTML = '';
-            TOGGLES.forEach((t) => {
-                // Default to true if not set
-                const isChecked = savedSettings[t.id] !== undefined ? savedSettings[t.id] : true; 
-                container.innerHTML += `
-                    <div class="flex justify-between items-center p-4 border-b border-slate-50 dark:border-slate-700/50 last:border-0">
-                        <span class="font-bold text-sm">${t.label}</span>
-                        <div class="relative inline-block w-11 h-6 align-middle select-none transition duration-200 ease-in">
-                            <input type="checkbox" id="tgl_${t.id}" onchange="saveToggle('${t.id}', this.checked)" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer z-10 top-0 transition-all duration-300" ${isChecked ? 'checked' : ''}/>
-                            <label for="tgl_${t.id}" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-200 dark:bg-slate-600 cursor-pointer transition-colors duration-300"></label>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        async function saveToggle(id, value) {
-            showSync();
-            const newSettings = { ...(currentProfile.app_settings || {}), [id]: value };
-            await _supabase.from('profiles').update({ app_settings: newSettings }).eq('id', currentUser.id);
-            currentProfile.app_settings = newSettings;
-            hideSync();
-        }
-
-        async function updateTheme(val) {
-            showSync();
-            if(window.parent && window.parent.changeTheme) window.parent.changeTheme(val);
-            hideSync();
-        }
-
-        async function updateLanguage(val) {
-            showSync();
-            await _supabase.from('profiles').update({ language: val }).eq('id', currentUser.id);
-            hideSync();
-            // In a real app, this would trigger a translation dictionary update
-        }
-
-        // --- Company Policies ---
-        function uploadPolicy(event) {
-            pendingPolicyFile = event.target.files[0];
-            if(pendingPolicyFile) {
-                document.getElementById('policyUploadText').innerText = pendingPolicyFile.name;
-                document.getElementById('savePolicyBtn').classList.remove('hidden');
-            }
-        }
-
-        async function confirmPolicyUpload() {
-            if(!pendingPolicyFile) return;
-            showSync();
-            const btn = document.getElementById('savePolicyBtn');
-            btn.innerText = "Encrypting & Uploading...";
-            
-            const filePath = `${currentUser.id}/policy_${Date.now()}.${pendingPolicyFile.name.split('.').pop()}`;
-            
-            const { error: uploadError } = await _supabase.storage.from('company_policies').upload(filePath, pendingPolicyFile, { upsert: true });
-            
-            if (!uploadError) {
-                await _supabase.from('profiles').update({ policy_doc_url: filePath }).eq('id', currentUser.id);
-                btn.classList.add('hidden');
-                document.getElementById('policyUploadText').innerText = "Upload New Document";
-                initProfile(); // Refresh to show current policy box
-            } else alert("Policy Upload failed: " + uploadError.message);
-            
-            btn.innerText = "Save Policy";
-            hideSync();
-        }
-
-        function shareProfile() {
-            const url = `https://goldens.network/b/${currentUser.id}`;
-            if (navigator.share) {
-                navigator.share({ title: "Golden's Profile", text: `View ${currentProfile.company_name} on Golden's Network`, url: url });
-            } else {
-                navigator.clipboard.writeText(url);
-                alert("Profile Link Copied to Clipboard!");
-            }
-        }
-
-        function logOutUser() {
-            if(confirm("Are you sure you want to securely sign out?")) {
-                if(window.parent && window.parent.signOutApp) window.parent.signOutApp();
-            }
-        }
-
-        initProfile();
+        init();
     </script>
 </body>
 </html>
