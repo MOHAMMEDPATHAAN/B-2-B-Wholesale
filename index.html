@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Golden's Business | Global B2B</title>
-    <!-- External Dependencies -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -12,342 +11,226 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         
-        :root {
-            --gold-primary: #EAB308;
-            --gold-light: #FDE047;
-            --gold-dark: #A16207;
-        }
+        :root { --gold: #EAB308; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; overflow: hidden; height: 100vh; background: #0f172a; transition: background 0.5s ease; }
 
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            overflow: hidden;
-            background-color: #0f172a; /* Default to Dark for Splash */
-            color: white;
-            height: 100vh;
-            width: 100vw;
+        /* --- PREMIUM DEVELOPER LOGO ANIMATION --- */
+        .gold-vault {
+            position: relative; width: 120px; height: 120px;
+            display: flex; align-items: center; justify-content: center;
         }
-
-        /* DEVELOPER LOGO ANIMATION */
-        .dev-logo-container {
-            position: relative;
-            animation: pulse-glow 3s ease-in-out infinite;
+        .vault-ring {
+            position: absolute; border: 2px dashed var(--gold);
+            border-radius: 50%; animation: rotate 10s linear infinite;
         }
-
-        @keyframes pulse-glow {
-            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(234, 179, 8, 0.4)); }
-            50% { transform: scale(1.05); filter: drop-shadow(0 0 25px rgba(234, 179, 8, 0.8)); }
+        .ring-1 { width: 100px; height: 100px; opacity: 0.3; }
+        .ring-2 { width: 120px; height: 120px; opacity: 0.1; animation-direction: reverse; }
+        .gold-logo-svg {
+            z-index: 10; filter: drop-shadow(0 0 15px rgba(234, 179, 8, 0.6));
+            animation: breathe 3s ease-in-out infinite;
         }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
 
-        .gold-animate {
-            background: linear-gradient(90deg, #ca8a04, #facc15, #ca8a04);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: shine 3s linear infinite;
-        }
-
-        @keyframes shine {
-            to { background-position: 200% center; }
-        }
-
-        /* Navigation Transitions */
         .hidden-view { display: none !important; }
+        .glass-panel { background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); }
         
-        /* Bottom Bar */
-        .bottom-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 75px;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(15px);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            border-top: 1px solid rgba(0,0,0,0.05);
-            z-index: 100;
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-
-        .dark .bottom-bar {
-            background: rgba(15, 23, 42, 0.9);
-            border-top: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .floating-add {
-            background: linear-gradient(135deg, #EAB308, #A16207);
-            width: 60px;
-            height: 60px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            box-shadow: 0 10px 20px rgba(234, 179, 8, 0.4);
-            transform: translateY(-25px);
-            border: 4px solid white;
-        }
-        .dark .floating-add { border-color: #0f172a; }
-
-        iframe {
-            width: 100%;
-            height: calc(100vh - 75px);
-            border: none;
-            background: transparent;
-        }
+        iframe { width: 100%; height: calc(100vh - 80px); border: none; background: transparent; }
     </style>
 </head>
-<body class="flex flex-col items-center justify-center transition-colors duration-500">
+<body class="flex flex-col items-center justify-center">
 
-    <!-- 1. SPLASH SCREEN & DEVELOPER ANIMATION -->
-    <div id="splashScreen" class="fixed inset-0 z-[1000] flex flex-col items-center justify-center bg-slate-900">
-        <div class="dev-logo-container mb-6">
-            <!-- Your Developer Logo (SVG Crown/G) -->
-            <svg width="100" height="100" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#EAB308" />
-                <circle cx="12" cy="12" r="10" stroke="#EAB308" stroke-width="0.5" stroke-dasharray="4 4" />
+    <!-- 1. SPLASH & DEV LOGO -->
+    <div id="splashScreen" class="fixed inset-0 z-[1000] flex flex-col items-center justify-center bg-slate-950">
+        <div class="gold-vault mb-6">
+            <div class="vault-ring ring-1"></div>
+            <div class="vault-ring ring-2"></div>
+            <svg class="gold-logo-svg" width="60" height="60" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z" fill="url(#goldGradient)" />
+                <defs>
+                    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#FDE047" />
+                        <stop offset="100%" style="stop-color:#A16207" />
+                    </linearGradient>
+                </defs>
             </svg>
         </div>
-        <h1 class="text-2xl font-extrabold gold-animate tracking-tighter uppercase">Golden's Business</h1>
-        <p class="text-slate-500 text-[10px] mt-4 font-bold tracking-[0.3em] uppercase">Global B2B Network</p>
-        
-        <!-- Simple Progress Bar -->
-        <div class="w-48 h-1 bg-slate-800 rounded-full mt-8 overflow-hidden">
-            <div id="loadingBar" class="h-full bg-gold-500 w-0 transition-all duration-300"></div>
-        </div>
+        <h1 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-yellow-500 to-yellow-700 uppercase tracking-widest">Golden's Business</h1>
+        <div class="w-40 h-0.5 bg-slate-800 mt-6 overflow-hidden rounded-full"><div id="loadProgress" class="h-full bg-gold-500 w-0 transition-all"></div></div>
     </div>
 
-    <!-- 2. AUTHENTICATION FLOW -->
-    <div id="authSection" class="w-full max-w-md px-8 hidden-view flex flex-col items-center">
+    <!-- 2. AUTHENTICATION -->
+    <div id="authSection" class="w-full max-w-md px-8 hidden-view">
         <div class="text-center mb-10">
-            <h2 class="text-4xl font-extrabold text-white mb-2">Welcome</h2>
-            <p class="text-slate-400 font-medium">Verify your identity to enter the network.</p>
+            <h2 id="authTitle" class="text-3xl font-extrabold text-white">Secure Access</h2>
+            <p id="authDesc" class="text-slate-500 text-sm mt-2">Enter credentials to join the B2B Vault.</p>
         </div>
         
-        <div class="w-full space-y-4">
-            <div class="relative">
-                <i data-lucide="mail" class="absolute left-4 top-4 w-5 h-5 text-slate-500"></i>
-                <input type="email" id="authEmail" placeholder="Business Email" class="w-full bg-slate-800 p-4 pl-12 rounded-2xl border border-slate-700 outline-none focus:border-gold-500 transition-all">
+        <div class="space-y-4">
+            <input type="email" id="email" placeholder="Corporate Email" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl text-white outline-none focus:border-gold-500">
+            <input type="password" id="pass" placeholder="Master Password" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl text-white outline-none focus:border-gold-500">
+            
+            <button onclick="handleAuth()" id="authBtn" class="w-full bg-gold-500 text-slate-950 font-black py-4 rounded-2xl shadow-xl shadow-gold-500/20 uppercase tracking-tighter">Enter Network</button>
+            
+            <div class="flex justify-between px-2">
+                <span onclick="toggleMode()" id="toggleText" class="text-xs font-bold text-slate-500 cursor-pointer hover:text-gold-500">New? Register Company</span>
+                <span onclick="forgotPassword()" class="text-xs font-bold text-gold-600 cursor-pointer">Recover Access?</span>
             </div>
-            <div class="relative">
-                <i data-lucide="lock" class="absolute left-4 top-4 w-5 h-5 text-slate-500"></i>
-                <input type="password" id="authPass" placeholder="Password" class="w-full bg-slate-800 p-4 pl-12 rounded-2xl border border-slate-700 outline-none focus:border-gold-500 transition-all">
-            </div>
-            <button onclick="handleAuth()" id="authBtn" class="w-full bg-gold-500 text-slate-900 font-extrabold py-4 rounded-2xl shadow-xl shadow-gold-500/20 active:scale-95 transition-transform">
-                Get Started
-            </button>
-            <p id="authSwitch" onclick="toggleAuthMode()" class="text-center text-sm text-slate-500 font-bold cursor-pointer mt-4 hover:text-gold-500">Don't have an account? Sign Up</p>
         </div>
     </div>
 
-    <!-- 3. GLOBAL PROFILE SETUP (Location Based) -->
-    <div id="stepProfile" class="w-full max-w-md hidden-view flex flex-col h-[90vh] text-slate-800 dark:text-white">
-        <div class="text-center mt-6 mb-4">
-            <h1 class="text-xl font-extrabold gold-animate tracking-wide uppercase">Golden's Business</h1>
-            <p class="text-xs font-bold text-slate-500 mt-1">GLOBAL SETUP STEP</p>
-        </div>
-        
-        <div class="space-y-4 overflow-y-auto px-4 pb-24 flex-1">
-            <p class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest bg-gold-50 dark:bg-gold-900/20 py-1 px-2 rounded inline-block">1. Identity & Location</p>
-            <input type="text" id="compName" placeholder="Registered Company Name *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-gold-500 outline-none">
-            <input type="text" id="ceoName" placeholder="CEO / Manager Name *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-gold-500 outline-none">
-            <input type="tel" id="mobile" placeholder="Business Mobile Number *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-gold-500 outline-none">
+    <!-- 3. MANDATORY GLOBAL SETUP -->
+    <div id="setupView" class="w-full max-w-lg px-6 hidden-view h-screen overflow-y-auto pt-10 pb-32">
+        <h2 class="text-2xl font-black text-white mb-6 uppercase">Global Registration</h2>
+        <div class="space-y-5">
+            <div><label class="text-[10px] text-slate-500 font-bold uppercase">Legal Identity</label>
+            <input type="text" id="s_comp" oninput="this.value=this.value.replace(/[^\w\s]/gi, '')" placeholder="Company Name (No Emojis)" class="w-full bg-slate-900 p-4 rounded-xl text-white border border-slate-800"></div>
             
-            <select id="country" onchange="updateTaxLabel()" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-gold-500 outline-none font-bold text-gold-600">
-                <option value="">Select Country / Jurisdiction *</option>
-                <option value="US">United States</option>
-                <option value="UK">United Kingdom</option>
-                <option value="EU">European Union</option>
-                <option value="IN">India</option>
-                <option value="AU">Australia</option>
-                <option value="CA">Canada</option>
-                <option value="SG">Singapore</option>
-                <option value="AE">UAE</option>
-                <option value="OTHER">Other Region</option>
+            <div class="grid grid-cols-2 gap-4">
+                <input type="text" id="s_ceo" placeholder="CEO Name" class="bg-slate-900 p-4 rounded-xl text-white border border-slate-800">
+                <input type="tel" id="s_phone" oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="Phone (Digits Only)" class="bg-slate-900 p-4 rounded-xl text-white border border-slate-800">
+            </div>
+
+            <select id="s_country" onchange="syncTax()" class="w-full bg-slate-900 p-4 rounded-xl text-gold-500 font-bold border border-slate-800">
+                <option value="US">USA (EIN)</option>
+                <option value="UK">UK (VAT)</option>
+                <option value="IN" selected>India (GSTIN)</option>
             </select>
 
-            <p class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest bg-gold-50 dark:bg-gold-900/20 py-1 px-2 rounded inline-block mt-4">2. Verification Data</p>
-            <input type="text" id="taxId" placeholder="Tax Identification Number *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-gold-500 outline-none">
-            <input type="text" id="address" placeholder="Headquarters Address *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-gold-500 outline-none">
-        </div>
-        
-        <div class="p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 absolute bottom-0 left-0 right-0 z-10">
-            <button onclick="saveProfileAndEnter()" id="finishBtn" class="w-full bg-gradient-to-r from-gold-500 to-gold-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-gold-500/30 uppercase tracking-wider text-sm">
-                Complete Golden Setup
-            </button>
+            <input type="text" id="s_tax" placeholder="Tax ID" class="w-full bg-slate-900 p-4 rounded-xl text-white border border-slate-800">
+
+            <div class="p-5 border-2 border-dashed border-slate-800 rounded-2xl text-center bg-slate-900/50">
+                <p class="text-xs text-slate-400 mb-3">MANDATORY: Registration Certificate (PDF/JPG)</p>
+                <input type="file" id="s_doc" class="hidden" onchange="document.getElementById('docName').innerText=this.files[0].name">
+                <button onclick="document.getElementById('s_doc').click()" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold">Choose File</button>
+                <p id="docName" class="text-[10px] text-gold-500 mt-2"></p>
+            </div>
+            
+            <button onclick="completeSetup()" id="setupBtn" class="w-full bg-gold-500 text-slate-950 font-black py-4 rounded-2xl uppercase tracking-widest mt-6">Submit for Verification</button>
         </div>
     </div>
 
-    <!-- 4. MAIN APP WORKSPACE -->
-    <div id="appWorkspace" class="hidden-view w-full h-full">
-        <iframe id="moduleFrame" src="home.html"></iframe>
-
-        <nav class="bottom-bar">
-            <button onclick="loadModule('home.html', this)" class="nav-btn flex flex-col items-center gap-1 text-gold-600 w-16">
-                <i data-lucide="home" class="w-6 h-6"></i><span class="text-[10px] font-bold">Home</span>
-            </button>
-            <button onclick="loadModule('reels.html', this)" class="nav-btn flex flex-col items-center gap-1 text-slate-400 w-16">
-                <i data-lucide="play-square" class="w-6 h-6"></i><span class="text-[10px] font-bold">Reels</span>
-            </button>
-            <button onclick="loadModule('add.html', this)" class="floating-add">
-                <i data-lucide="plus" class="w-8 h-8"></i>
-            </button>
-            <button onclick="loadModule('plans.html', this)" class="nav-btn flex flex-col items-center gap-1 text-slate-400 w-16">
-                <i data-lucide="zap" class="w-6 h-6"></i><span class="text-[10px] font-bold">Plans</span>
-            </button>
-            <button onclick="loadModule('profile.html', this)" class="nav-btn flex flex-col items-center gap-1 text-slate-400 w-16">
-                <i data-lucide="user" class="w-6 h-6"></i><span class="text-[10px] font-bold">Profile</span>
-            </button>
+    <!-- 4. APP WORKSPACE -->
+    <div id="workspace" class="hidden-view w-full h-full bg-white dark:bg-slate-950">
+        <iframe id="mainFrame" src="home.html"></iframe>
+        <nav class="fixed bottom-0 left-0 right-0 h-20 glass-panel flex justify-around items-center px-4 border-t border-slate-200 dark:border-slate-800">
+            <button onclick="nav('home.html',this)" class="nav-btn text-gold-500"><i data-lucide="home"></i></button>
+            <button onclick="nav('reels.html',this)" class="nav-btn text-slate-400"><i data-lucide="play-square"></i></button>
+            <button class="w-14 h-14 bg-gold-500 rounded-2xl -translate-y-6 flex items-center justify-center shadow-lg"><i data-lucide="plus" class="text-slate-950"></i></button>
+            <button onclick="nav('plans.html',this)" class="nav-btn text-slate-400"><i data-lucide="zap"></i></button>
+            <button onclick="nav('profile.html',this)" class="nav-btn text-slate-400"><i data-lucide="user"></i></button>
         </nav>
     </div>
 
     <script>
-        // --- 1. SUPABASE CONFIG ---
-        const supabaseUrl = 'https://puvdfqnjzliiuupchppj.supabase.co'; 
+        const supabaseUrl = 'https://puvdfqnjzliiuupchppj.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1dmRmcW5qemxpaXV1cGNocHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTExOTgsImV4cCI6MjA5MjU4NzE5OH0.hDK6fjZ2SesJ7qkeWVXxOoxW2Xmr7MDlKO-BFtJtDu0';
         const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
-        window._supabase = _supabase; // Expose to modules
+        window._supabase = _supabase;
 
-        // --- 2. GLOBAL STATE ---
         let isSignUp = false;
-        let currentTaxType = "TIN";
 
-        // --- 3. INIT & ANIMATION ---
         window.onload = () => {
             lucide.createIcons();
-            const bar = document.getElementById('loadingBar');
-            let progress = 0;
-            const int = setInterval(() => {
-                progress += 5;
-                bar.style.width = progress + '%';
-                if(progress >= 100) {
-                    clearInterval(int);
-                    checkUserSession();
-                }
-            }, 50);
+            let p = 0;
+            const bar = document.getElementById('loadProgress');
+            const timer = setInterval(() => {
+                p += 4; bar.style.width = p + '%';
+                if(p >= 100) { clearInterval(timer); checkSession(); }
+            }, 30);
         };
 
-        async function checkUserSession() {
+        async function checkSession() {
             const { data: { session } } = await _supabase.auth.getSession();
             document.getElementById('splashScreen').classList.add('hidden-view');
-            
             if(session) {
-                const { data: profile } = await _supabase.from('profiles').select('*').eq('id', session.user.id).single();
-                if(profile && profile.company_name) {
-                    launchApp(profile.theme === 'dark');
-                } else {
-                    document.getElementById('stepProfile').classList.remove('hidden-view');
-                    document.body.classList.add('bg-white', 'dark:bg-slate-900');
-                }
+                const { data } = await _supabase.from('profiles').select('*').eq('id', session.user.id).single();
+                if(data && data.company_name) launchApp(data);
+                else document.getElementById('setupView').classList.remove('hidden-view');
             } else {
                 document.getElementById('authSection').classList.remove('hidden-view');
             }
         }
 
-        // --- 4. AUTH HANDLERS ---
-        function toggleAuthMode() {
+        function toggleMode() {
             isSignUp = !isSignUp;
-            document.getElementById('authBtn').innerText = isSignUp ? "Create Business Account" : "Get Started";
-            document.getElementById('authSwitch').innerText = isSignUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up";
+            document.getElementById('authTitle').innerText = isSignUp ? "Create Vault" : "Secure Access";
+            document.getElementById('authBtn').innerText = isSignUp ? "Open Account" : "Enter Network";
+            document.getElementById('toggleText').innerText = isSignUp ? "Have login? Sign In" : "New? Register Company";
         }
 
         async function handleAuth() {
-            const email = document.getElementById('authEmail').value;
-            const pass = document.getElementById('authPass').value;
-            const btn = document.getElementById('authBtn');
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('pass').value;
+            if(!email || !pass) return;
             
-            if(!email || !pass) return alert("Fill all fields.");
-            btn.innerText = "Processing...";
+            const btn = document.getElementById('authBtn'); btn.innerText = "Verifying...";
+            const { data, error } = isSignUp ? await _supabase.auth.signUp({email, password:pass}) : await _supabase.auth.signInWithPassword({email, password:pass});
+            
+            if(error) { alert(error.message); btn.innerText = "Retry"; }
+            else checkSession();
+        }
 
-            let result;
-            if(isSignUp) {
-                result = await _supabase.auth.signUp({ email, password: pass });
-            } else {
-                result = await _supabase.auth.signInWithPassword({ email, password: pass });
-            }
-
-            if(result.error) {
-                alert(result.error.message);
-                btn.innerText = isSignUp ? "Create Account" : "Get Started";
-            } else {
-                checkUserSession();
+        async function forgotPassword() {
+            const email = prompt("Enter registered business email for Magic Link:");
+            if(email) {
+                await _supabase.auth.resetPasswordForEmail(email);
+                alert("Magic Link sent! Check your inbox.");
             }
         }
 
-        // --- 5. PROFILE & LOCATION ---
-        function updateTaxLabel() {
-            const country = document.getElementById('country').value;
-            const taxInput = document.getElementById('taxId');
-            const taxMap = {
-                'US': { label: 'EIN (Employer ID Number) *', type: 'EIN' },
-                'UK': { label: 'VAT or UTR Number *', type: 'VAT' },
-                'IN': { label: 'GSTIN (GST Number) *', type: 'GSTIN' },
-                'AU': { label: 'ABN Number *', type: 'ABN' },
-                'CA': { label: 'Business Number (BN) *', type: 'BN' },
-                'SG': { label: 'UEN (Unique Entity No) *', type: 'UEN' },
-                'AE': { label: 'TRN Number *', type: 'TRN' },
-                'OTHER': { label: 'Local Tax ID (TIN) *', type: 'TIN' }
-            };
-            if(taxMap[country]) {
-                taxInput.placeholder = taxMap[country].label;
-                currentTaxType = taxMap[country].type;
-            }
-        }
-
-        async function saveProfileAndEnter() {
+        async function completeSetup() {
+            const btn = document.getElementById('setupBtn');
+            const file = document.getElementById('s_doc').files[0];
+            if(!file) return alert("Registration Document is Mandatory.");
+            
+            btn.innerText = "Uploading Documents...";
             const { data: { user } } = await _supabase.auth.getUser();
-            const data = {
+            
+            const filePath = `${user.id}/signup_doc_${Date.now()}`;
+            await _supabase.storage.from('verification_docs').upload(filePath, file);
+
+            const payload = {
                 id: user.id,
-                company_name: document.getElementById('compName').value,
-                ceo_name: document.getElementById('ceoName').value,
-                phone_number: document.getElementById('mobile').value,
-                country: document.getElementById('country').value,
-                tax_id: document.getElementById('taxId').value,
-                tax_id_type: currentTaxType,
-                company_address: document.getElementById('address').value,
-                language: 'en',
-                theme: 'dark'
+                company_name: document.getElementById('s_comp').value,
+                ceo_name: document.getElementById('s_ceo').value,
+                phone_number: document.getElementById('s_phone').value,
+                country: document.getElementById('s_country').value,
+                tax_id: document.getElementById('s_tax').value,
+                signup_doc_url: filePath,
+                verification_status: 'reviewing'
             };
 
-            const { error } = await _supabase.from('profiles').upsert(data);
-            if(!error) launchApp(true);
-            else alert(error.message);
-        }
-
-        // --- 6. APP CORE LOGIC ---
-        function launchApp(isDark) {
-            document.getElementById('authSection').classList.add('hidden-view');
-            document.getElementById('stepProfile').classList.add('hidden-view');
-            document.getElementById('appWorkspace').classList.remove('hidden-view');
-            changeTheme(isDark ? 'dark' : 'light');
-        }
-
-        function loadModule(url, btn) {
-            document.getElementById('moduleFrame').src = url;
-            // Update UI Active State
-            document.querySelectorAll('.nav-btn').forEach(b => {
-                b.classList.remove('text-gold-600');
-                b.classList.add('text-slate-400');
-            });
-            btn.classList.remove('text-slate-400');
-            btn.classList.add('text-gold-600');
-        }
-
-        function changeTheme(mode) {
-            if (mode === 'dark') {
-                document.documentElement.classList.add('dark');
-                document.body.classList.replace('bg-white', 'bg-slate-900');
-            } else {
-                document.documentElement.classList.remove('dark');
-                document.body.classList.replace('bg-slate-900', 'bg-white');
+            const { error } = await _supabase.from('profiles').upsert(payload);
+            if(!error) {
+                alert("SUCCESS: Document is under review. Your profile will be verified within 24 hours.");
+                launchApp(payload);
             }
         }
 
-        async function signOutApp() {
-            await _supabase.auth.signOut();
-            window.location.reload();
+        function launchApp(profile) {
+            document.getElementById('setupView').classList.add('hidden-view');
+            document.getElementById('authSection').classList.add('hidden-view');
+            document.getElementById('workspace').classList.remove('hidden-view');
+            syncTheme(profile.theme || 'dark');
         }
+
+        function nav(url, el) {
+            document.getElementById('mainFrame').src = url;
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.replace('text-gold-500', 'text-slate-400'));
+            el.classList.replace('text-slate-400', 'text-gold-500');
+        }
+
+        // --- GLOBAL LISTENERS FOR IFRAME SETTINGS ---
+        window.syncTheme = (mode) => {
+            if(mode === 'dark') document.documentElement.classList.add('dark');
+            else document.documentElement.classList.remove('dark');
+        };
+
+        window.syncLanguage = (lang) => {
+            // Logic to reload translations in shell if needed
+            console.log("Shell language switched to:", lang);
+        };
     </script>
 </body>
 </html>
