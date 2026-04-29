@@ -1,144 +1,403 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="antialiased">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Profile - Golden's Business</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                    colors: { 
+                        gold: { 300: '#FDE047', 400: '#FACC15', 500: '#EAB308', 600: '#CA8A04', 700: '#A16207' },
+                        premium: { 900: '#1a1400', 800: '#332900' } // Deep rich blacks for golden premium theme
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: transparent; }
-        .sub-view { position: fixed; inset: 0; background: #f8fafc; z-index: 100; left: 100%; transition: left 0.4s ease; overflow-y: auto; }
-        .dark .sub-view { background: #0f172a; }
-        .sub-view.active { left: 0; }
-        .edit-input { background: transparent; border-bottom: 2px solid #e2e8f0; font-weight: 700; }
-        .dark .edit-input { border-color: #334155; color: white; }
+        body { -webkit-tap-highlight-color: transparent; background: #f8fafc; }
+        .dark body { background: #0f172a; }
+        .theme-golden body { background: linear-gradient(135deg, #1a1400 0%, #000000 100%); color: #FDE047; }
+        
+        .hidden-view { display: none !important; }
+        
+        /* Premium Golden Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #EAB308; border-radius: 10px; }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+        .dark .glass-card { background: rgba(30, 41, 59, 0.7); border-color: rgba(255,255,255,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .theme-golden .glass-card { background: rgba(51, 41, 0, 0.6); border-color: rgba(234, 179, 8, 0.2); box-shadow: 0 10px 30px rgba(234, 179, 8, 0.1); }
+
+        .dp-container {
+            width: 100px; height: 100px; border-radius: 50%;
+            background: linear-gradient(135deg, #FACC15, #CA8A04);
+            padding: 3px; position: relative; margin: 0 auto;
+        }
+        .dp-inner {
+            width: 100%; height: 100%; border-radius: 50%;
+            background: #fff; overflow: hidden; display: flex; align-items: center; justify-content: center;
+            border: 2px solid #fff;
+        }
+        .dark .dp-inner { background: #0f172a; border-color: #0f172a; }
+        .theme-golden .dp-inner { background: #1a1400; border-color: #1a1400; }
+
+        .edit-badge {
+            position: absolute; bottom: 0; right: -5px;
+            background: #22c55e; color: white; border-radius: 50%;
+            width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+            border: 3px solid #f8fafc; cursor: pointer; box-shadow: 0 4px 10px rgba(34, 197, 94, 0.4);
+            transition: transform 0.2s;
+        }
+        .dark .edit-badge { border-color: #0f172a; }
+        .theme-golden .edit-badge { border-color: #1a1400; background: #EAB308; box-shadow: 0 4px 10px rgba(234, 179, 8, 0.4); color: #000; }
+        .edit-badge:active { transform: scale(0.9); }
+
+        .text-gold-gradient {
+            background: linear-gradient(to right, #CA8A04, #FDE047);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 100; display: flex; align-items: center; justify-content: center; }
+        .modal-content { animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes scaleUp { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
-<body class="p-5 text-slate-800 dark:text-slate-100 pb-32">
+<body class="pb-24 transition-colors duration-300">
 
-    <header class="flex justify-between items-center mb-10">
-        <h1 data-tr="profile_title" class="text-3xl font-black uppercase">Identity</h1>
-        <div class="flex gap-3">
-            <i data-lucide="bell" class="w-6 h-6 text-slate-400"></i>
-            <i data-lucide="shield-check" class="w-6 h-6 text-green-500"></i>
-        </div>
-    </header>
-
-    <!-- CEO Info Card -->
-    <div onclick="openView('editView')" class="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-[2.5rem] shadow-2xl flex items-center gap-5 cursor-pointer relative overflow-hidden border border-slate-700">
-        <div class="relative">
-            <img id="ceoPic" src="https://ui-avatars.com/api/?name=CEO&background=EAB308&color=000" class="w-16 h-16 rounded-2xl object-cover border-2 border-gold-500">
-            <input type="file" id="ceoPicInp" class="hidden" onchange="uploadCeoPic(event)">
-        </div>
-        <div>
-            <h2 id="ceoName" class="text-xl font-bold text-white">CEO Name</h2>
-            <p id="compName" class="text-sm text-gold-500 font-bold uppercase tracking-widest">Company Name</p>
-        </div>
-        <i data-lucide="chevron-right" class="ml-auto text-slate-500"></i>
+    <!-- Header -->
+    <div class="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex justify-between items-center">
+        <h1 class="text-xl font-extrabold text-gold-gradient tracking-wide uppercase">Company Profile</h1>
+        <button class="text-slate-400 hover:text-gold-500 transition-colors"><i data-lucide="bell" class="w-6 h-6"></i></button>
     </div>
 
-    <!-- Menu List -->
-    <div class="mt-10 space-y-3">
-        <div onclick="openView('settingsView')" class="flex items-center justify-between p-5 bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800">
-            <div class="flex items-center gap-4"><i data-lucide="settings" class="text-gold-500"></i><span data-tr="settings" class="font-bold">Settings</span></div>
-            <i data-lucide="chevron-right" class="w-5 h-5 text-slate-300"></i>
-        </div>
-        <div onclick="openView('doc2View')" class="flex items-center justify-between p-5 bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800">
-            <div class="flex items-center gap-4"><i data-lucide="file-plus" class="text-blue-500"></i><span data-tr="doc2" class="font-bold">Add Supplemental Document</span></div>
-            <i data-lucide="chevron-right" class="w-5 h-5 text-slate-300"></i>
-        </div>
-    </div>
-
-    <!-- Settings Sub-View -->
-    <div id="settingsView" class="sub-view p-6">
-        <button onclick="closeView('settingsView')" class="p-3 bg-white dark:bg-slate-800 rounded-full mb-8"><i data-lucide="arrow-left"></i></button>
-        <h2 class="text-2xl font-black mb-8">Workspace Settings</h2>
+    <div class="p-4 space-y-6 max-w-2xl mx-auto">
         
-        <div class="space-y-6">
-            <div class="p-5 bg-white dark:bg-slate-900 rounded-3xl">
-                <label class="text-[10px] font-black text-slate-400 uppercase">App Theme</label>
-                <select onchange="changeTheme(this.value)" id="themeSel" class="w-full mt-2 bg-transparent font-bold text-gold-500 outline-none">
-                    <option value="dark">Dark Mode (Default)</option>
+        <!-- Profile Card -->
+        <div class="glass-card rounded-3xl p-6 text-center relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-24 bg-gradient-to-r from-gold-600/20 to-gold-400/5"></div>
+            
+            <div class="dp-container z-10 relative mt-4">
+                <div class="dp-inner">
+                    <img id="profileImage" src="" class="w-full h-full object-cover hidden-view" alt="DP">
+                    <i id="profilePlaceholder" data-lucide="building-2" class="w-10 h-10 text-gold-500"></i>
+                </div>
+                <!-- Verification Lock (Green Pencil) -->
+                <button onclick="requestEditLock()" class="edit-badge">
+                    <i data-lucide="pencil" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <h2 id="displayCompanyName" class="text-2xl font-extrabold mt-4 text-slate-800 dark:text-white theme-golden:text-gold-300">Loading...</h2>
+            <p id="displayCeoName" class="text-sm font-bold text-slate-500 dark:text-slate-400 theme-golden:text-gold-600 mt-1 uppercase tracking-widest">CEO / Manager</p>
+            
+            <div class="flex justify-center gap-2 mt-4">
+                <span class="bg-gold-100 dark:bg-gold-900/30 text-gold-700 dark:text-gold-400 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                    <i data-lucide="shield-check" class="w-3 h-3"></i> Verified
+                </span>
+                <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold px-3 py-1 rounded-full" id="displayPlan">Elite Plan</span>
+            </div>
+        </div>
+
+        <!-- System & Theme Settings -->
+        <div class="glass-card rounded-3xl p-2">
+            <p class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest px-4 pt-4 pb-2">Application Preferences</p>
+            
+            <!-- Theme Engine -->
+            <div class="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-500"><i data-lucide="palette" class="w-5 h-5"></i></div>
+                    <div>
+                        <p class="font-bold text-sm text-slate-800 dark:text-white">Global Theme</p>
+                        <p class="text-xs text-slate-500">Apperance across all modules</p>
+                    </div>
+                </div>
+                <select id="themeSelect" onchange="updateTheme(this.value)" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm p-2 outline-none font-bold text-slate-700 dark:text-slate-200">
+                    <option value="system">System Default</option>
                     <option value="light">Light Mode</option>
+                    <option value="dark">Dark Mode</option>
+                    <option value="golden">Golden Premium</option>
                 </select>
             </div>
-            <div class="p-5 bg-white dark:bg-slate-900 rounded-3xl">
-                <label class="text-[10px] font-black text-slate-400 uppercase">System Language</label>
-                <select onchange="changeLang(this.value)" id="langSel" class="w-full mt-2 bg-transparent font-bold text-gold-500 outline-none">
-                    <option value="en">English (Global)</option>
+
+            <!-- Language Engine (25+) -->
+            <div class="flex items-center justify-between p-4">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-500"><i data-lucide="globe-2" class="w-5 h-5"></i></div>
+                    <div>
+                        <p class="font-bold text-sm text-slate-800 dark:text-white">Business Language</p>
+                        <p class="text-xs text-slate-500">Localize interface</p>
+                    </div>
+                </div>
+                <select id="langSelect" onchange="updateLanguage(this.value)" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm p-2 outline-none font-bold text-slate-700 dark:text-slate-200 w-28">
+                    <option value="en">English (US)</option>
+                    <option value="en-gb">English (UK)</option>
                     <option value="hi">हिन्दी (Hindi)</option>
-                    <option value="ur">اردو (Urdu)</option>
+                    <option value="te">తెలుగు (Telugu)</option>
                     <option value="ar">العربية (Arabic)</option>
+                    <option value="zh">中文 (Chinese)</option>
+                    <option value="es">Español (Spanish)</option>
+                    <option value="fr">Français (French)</option>
+                    <option value="de">Deutsch (German)</option>
+                    <option value="ja">日本語 (Japanese)</option>
+                    <option value="ko">한국어 (Korean)</option>
+                    <option value="ru">Русский (Russian)</option>
+                    <option value="pt">Português</option>
+                    <option value="it">Italiano (Italian)</option>
+                    <option value="bn">বাংলা (Bengali)</option>
+                    <option value="ur">اردو (Urdu)</option>
+                    <option value="id">Bahasa Indonesia</option>
+                    <option value="tr">Türkçe (Turkish)</option>
+                    <option value="vi">Tiếng Việt</option>
+                    <option value="th">ไทย (Thai)</option>
+                    <option value="nl">Nederlands</option>
+                    <option value="pl">Polski (Polish)</option>
+                    <option value="sv">Svenska (Swedish)</option>
+                    <option value="ta">தமிழ் (Tamil)</option>
+                    <option value="gu">ગુજરાતી (Gujarati)</option>
                 </select>
+            </div>
+        </div>
+
+        <!-- Company Policies & Documents -->
+        <div class="glass-card rounded-3xl p-2">
+            <p class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest px-4 pt-4 pb-2">Legal & Compliance</p>
+            
+            <div class="p-4 flex items-center justify-between border-b border-slate-100 dark:border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-500"><i data-lucide="file-text" class="w-5 h-5"></i></div>
+                    <div>
+                        <p class="font-bold text-sm text-slate-800 dark:text-white">Company Policies</p>
+                        <p class="text-xs text-slate-500" id="policyStatus">No policy uploaded</p>
+                    </div>
+                </div>
+                <input type="file" id="policyDoc" accept=".pdf,.txt" class="hidden" onchange="handlePolicyUpload(event)">
+                <label for="policyDoc" class="cursor-pointer bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold px-4 py-2 rounded-lg hover:bg-gold-500 hover:text-white transition-colors">
+                    Upload
+                </label>
+            </div>
+            
+            <div class="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-b-2xl transition-colors">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-500"><i data-lucide="shield-alert" class="w-5 h-5"></i></div>
+                    <p class="font-bold text-sm text-slate-800 dark:text-white">Privacy & Security Data</p>
+                </div>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+            </div>
+        </div>
+
+        <!-- System Actions -->
+        <div class="glass-card rounded-3xl p-2">
+            <button class="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-t-2xl transition-colors border-b border-slate-100 dark:border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-gold-50 dark:bg-gold-900/20 rounded-xl text-gold-600"><i data-lucide="credit-card" class="w-5 h-5"></i></div>
+                    <p class="font-bold text-sm text-slate-800 dark:text-white">Billing & Subscriptions</p>
+                </div>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+            </button>
+            <button onclick="triggerSignOut()" class="w-full p-4 flex items-center justify-between text-left hover:bg-red-50 dark:hover:bg-red-900/10 rounded-b-2xl transition-colors">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-red-50 dark:bg-red-900/20 rounded-xl text-red-500"><i data-lucide="log-out" class="w-5 h-5"></i></div>
+                    <p class="font-bold text-sm text-red-500">Secure Logout</p>
+                </div>
+            </button>
+        </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- EDIT VERIFICATION MODAL                    -->
+    <!-- ========================================== -->
+    <div id="verifyModal" class="modal-overlay hidden-view">
+        <div class="bg-white dark:bg-slate-900 p-8 rounded-3xl w-11/12 max-w-sm modal-content shadow-2xl border border-gold-500/30">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="lock" class="w-8 h-8 text-red-500"></i>
+                </div>
+                <h2 class="text-xl font-extrabold text-slate-800 dark:text-white uppercase tracking-wide">Security Lock</h2>
+                <p class="text-slate-500 text-xs mt-2 font-medium">To edit sensitive company data or change your Profile Picture, please confirm your registered email address.</p>
+            </div>
+            
+            <input type="email" id="verifyEmail" placeholder="Registered Email *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none mb-4 focus:border-gold-500 focus:ring-1 focus:ring-gold-500">
+            <p id="verifyError" class="text-red-500 text-xs font-bold text-center mb-4 hidden-view"></p>
+            
+            <div class="flex gap-3">
+                <button onclick="closeVerifyModal()" class="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold py-3.5 rounded-xl text-sm transition-colors hover:bg-slate-200 dark:hover:bg-slate-700">Cancel</button>
+                <button onclick="confirmEditAccess()" class="flex-1 bg-gradient-to-r from-gold-500 to-gold-600 text-white font-bold py-3.5 rounded-xl text-sm shadow-lg shadow-gold-500/30 transition-transform hover:scale-[1.02]">Verify</button>
             </div>
         </div>
     </div>
 
-    <!-- Document 2 Sub-View -->
-    <div id="doc2View" class="sub-view p-6">
-        <button onclick="closeView('doc2View')" class="p-3 bg-white dark:bg-slate-800 rounded-full mb-8"><i data-lucide="arrow-left"></i></button>
-        <h2 class="text-2xl font-black mb-4">Verification Layer 2</h2>
-        <p class="text-sm text-slate-500 mb-8">If your primary document was rejected or incomplete, upload your Secondary Trade License here. This is only allowed ONCE.</p>
-        
-        <div id="doc2UploadArea" class="border-2 border-dashed border-slate-300 dark:border-slate-700 p-10 rounded-[2.5rem] text-center">
-            <i data-lucide="upload-cloud" class="w-12 h-12 mx-auto mb-4 text-slate-400"></i>
-            <input type="file" id="doc2File" class="hidden" onchange="handleDoc2(this)">
-            <button onclick="document.getElementById('doc2File').click()" class="bg-gold-500 text-slate-950 px-6 py-3 rounded-2xl font-black">Choose Document 2</button>
-        </div>
-    </div>
+    <!-- Hidden DP Upload Input (Triggered after verification) -->
+    <input type="file" id="dpUpload" accept="image/*" class="hidden" onchange="handleDpUpload(event)">
 
     <script>
         lucide.createIcons();
+
+        // Connect to Parent's Supabase Instance (Zero Memory Waste!)
         const _supabase = window.parent._supabase;
         let currentUser = null;
+        let currentProfile = null;
 
-        const TRANSLATIONS = {
-            en: { profile_title: "Identity", settings: "Settings", doc2: "Supplemental Document" },
-            hi: { profile_title: "पहचान", settings: "सेटिंग्स", doc2: "पूरक दस्तावेज़" },
-            ur: { profile_title: "شناخت", settings: "ترجیحات", doc2: "اضافی دستاویز" }
-        };
+        async function initProfile() {
+            if (!_supabase) {
+                document.getElementById('displayCompanyName').innerText = "Database Disconnected";
+                return;
+            }
 
-        async function init() {
             const { data: { user } } = await _supabase.auth.getUser();
+            if (!user) return;
             currentUser = user;
-            const { data } = await _supabase.from('profiles').select('*').eq('id', user.id).single();
-            if(data) {
-                document.getElementById('ceoName').innerText = data.ceo_name;
-                document.getElementById('compName').innerText = data.company_name;
-                if(data.language) changeLang(data.language);
-                if(data.doc_2_url) document.getElementById('doc2UploadArea').innerHTML = "<p class='text-green-500 font-bold'>✓ Supplemental Document Submitted</p>";
+
+            const { data: profile } = await _supabase.from('profiles').select('*').eq('id', user.id).single();
+            if (profile) {
+                currentProfile = profile;
+                document.getElementById('displayCompanyName').innerText = profile.company_name || "Business Name";
+                document.getElementById('displayCeoName').innerText = profile.ceo_name ? `${profile.ceo_name} • ${profile.country || 'Global'}` : "CEO";
+                
+                // Load Settings
+                if (profile.theme) {
+                    document.getElementById('themeSelect').value = profile.theme;
+                    applyLocalTheme(profile.theme);
+                }
+                if (profile.language) document.getElementById('langSelect').value = profile.language;
+                if (profile.dp_url) renderDP(_supabase.storage.from('profile_pictures').getPublicUrl(profile.dp_url).data.publicUrl);
+                if (profile.policy_doc_url) document.getElementById('policyStatus').innerHTML = "<span class='text-green-500 font-bold'>Verified Policy Active</span>";
             }
         }
 
-        function openView(id) { document.getElementById(id).classList.add('active'); }
-        function closeView(id) { document.getElementById(id).classList.remove('active'); }
-
-        async function changeTheme(mode) {
-            window.parent.syncTheme(mode);
-            await _supabase.from('profiles').update({ theme: mode }).eq('id', currentUser.id);
+        // --- THEME ENGINE ---
+        function updateTheme(theme) {
+            applyLocalTheme(theme);
+            // Save to DB
+            if(currentUser) _supabase.from('profiles').update({ theme: theme }).eq('id', currentUser.id);
+            // Update Parent Shell
+            if (window.parent && typeof window.parent.changeTheme === 'function') {
+                window.parent.changeTheme(theme);
+            }
         }
 
-        async function changeLang(lang) {
-            document.querySelectorAll('[data-tr]').forEach(el => {
-                const key = el.getAttribute('data-tr');
-                if(TRANSLATIONS[lang][key]) el.innerText = TRANSLATIONS[lang][key];
-            });
-            window.parent.syncLanguage(lang);
-            await _supabase.from('profiles').update({ language: lang }).eq('id', currentUser.id);
+        function applyLocalTheme(theme) {
+            const html = document.documentElement;
+            html.classList.remove('dark', 'theme-golden');
+            
+            if (theme === 'dark') html.classList.add('dark');
+            else if (theme === 'golden') {
+                html.classList.add('dark'); // Golden builds on dark mode
+                html.classList.add('theme-golden');
+            } else if (theme === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                html.classList.add('dark');
+            }
         }
 
-        async function handleDoc2(input) {
-            const file = input.files[0];
-            if(!file) return;
-            const path = `${currentUser.id}/doc2_${Date.now()}`;
-            await _supabase.storage.from('verification_docs').upload(path, file);
-            await _supabase.from('profiles').update({ doc_2_url: path }).eq('id', currentUser.id);
-            alert("Document 2 successfully saved to vault.");
-            init();
+        // --- LANGUAGE ENGINE ---
+        function updateLanguage(lang) {
+            if(currentUser) _supabase.from('profiles').update({ language: lang }).eq('id', currentUser.id);
+            // In a full app, this would trigger a JSON translation dictionary load.
         }
 
-        init();
+        // --- SECURITY LOCK FOR EDITS ---
+        function requestEditLock() {
+            document.getElementById('verifyModal').classList.remove('hidden-view');
+            document.getElementById('verifyError').classList.add('hidden-view');
+            document.getElementById('verifyEmail').value = '';
+        }
+
+        function closeVerifyModal() {
+            document.getElementById('verifyModal').classList.add('hidden-view');
+        }
+
+        function confirmEditAccess() {
+            const inputEmail = document.getElementById('verifyEmail').value.trim();
+            if (!inputEmail || !currentUser) return;
+
+            if (inputEmail.toLowerCase() === currentUser.email.toLowerCase()) {
+                closeVerifyModal();
+                // Access granted! Trigger DP upload or open an Edit form
+                document.getElementById('dpUpload').click();
+            } else {
+                const err = document.getElementById('verifyError');
+                err.innerText = "Security Alert: Email does not match records.";
+                err.classList.remove('hidden-view');
+            }
+        }
+
+        // --- FILE UPLOADS (Storage) ---
+        async function handleDpUpload(event) {
+            const file = event.target.files[0];
+            if(!file || !currentUser) return;
+            
+            const filePath = `${currentUser.id}/dp_${Date.now()}.${file.name.split('.').pop()}`;
+            
+            // Show loading state
+            document.getElementById('profilePlaceholder').setAttribute('data-lucide', 'loader-2');
+            document.getElementById('profilePlaceholder').classList.add('animate-spin');
+            lucide.createIcons();
+
+            const { error: uploadError } = await _supabase.storage.from('profile_pictures').upload(filePath, file, { upsert: true });
+            if (!uploadError) {
+                await _supabase.from('profiles').update({ dp_url: filePath }).eq('id', currentUser.id);
+                const publicUrl = _supabase.storage.from('profile_pictures').getPublicUrl(filePath).data.publicUrl;
+                renderDP(publicUrl);
+            } else {
+                alert("Upload failed. Ensure Supabase storage policies are set.");
+            }
+        }
+
+        function renderDP(url) {
+            const img = document.getElementById('profileImage');
+            const icon = document.getElementById('profilePlaceholder');
+            img.src = url;
+            img.classList.remove('hidden-view');
+            icon.classList.add('hidden-view');
+        }
+
+        async function handlePolicyUpload(event) {
+            const file = event.target.files[0];
+            if(!file || !currentUser) return;
+
+            const filePath = `${currentUser.id}/policy_${Date.now()}.${file.name.split('.').pop()}`;
+            document.getElementById('policyStatus').innerText = "Uploading secure document...";
+
+            const { error } = await _supabase.storage.from('company_policies').upload(filePath, file, { upsert: true });
+            if(!error) {
+                await _supabase.from('profiles').update({ policy_doc_url: filePath }).eq('id', currentUser.id);
+                document.getElementById('policyStatus').innerHTML = "<span class='text-green-500 font-bold'>Verified Policy Active</span>";
+            } else {
+                document.getElementById('policyStatus').innerHTML = "<span class='text-red-500 font-bold'>Upload Failed</span>";
+            }
+        }
+
+        // --- LOGOUT ---
+        function triggerSignOut() {
+            if (window.parent && typeof window.parent.signOutApp === 'function') {
+                window.parent.signOutApp();
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            initProfile();
+            // Apply theme immediately if inherited from parent localstorage
+            const savedTheme = localStorage.getItem('golden_theme') || 'system';
+            applyLocalTheme(savedTheme);
+        });
+
     </script>
 </body>
 </html>
