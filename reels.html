@@ -28,14 +28,19 @@
         .dark .form-input { background: #1e293b; border-color: #334155; color: white; }
         .theme-golden .form-input { background: rgba(20,15,0,0.5); border-color: rgba(234,179,8,0.3); color: #fef08a; }
         
-        .reel-card { border-radius: 16px; overflow: hidden; position: relative; aspect-ratio: 9/16; background: #000; border: 1px solid transparent; }
+        .reel-card { border-radius: 16px; overflow: hidden; position: relative; aspect-ratio: 9/16; background: #000; border: 1px solid transparent; cursor: pointer; transition: transform 0.2s; }
+        .reel-card:active { transform: scale(0.98); }
         .theme-golden .reel-card { border-color: rgba(234,179,8,0.2); box-shadow: 0 4px 20px rgba(234,179,8,0.1); }
         
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; overflow-y: auto; backdrop-filter: blur(5px); }
         .modal-content { background: white; min-height: 100vh; padding: 20px; padding-bottom: 100px; animation: slideUp 0.3s ease-out; }
         .dark .modal-content { background: #0f172a; }
         .theme-golden .modal-content { background: #0a0a0a; border-top: 1px solid rgba(234,179,8,0.3); }
+        
+        .instant-view-content { background: black; width: 100%; height: 100vh; animation: scaleUp 0.2s ease-out; position: relative; display: flex; flex-col; justify-content: center; }
+        
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes scaleUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body class="transition-colors duration-300">
@@ -47,7 +52,7 @@
             <p class="text-xs font-bold text-slate-500 theme-golden:text-gold-200/50"><span data-i18n="total">Total Reels</span>: <span id="totalReels">0</span></p>
         </div>
         <div class="flex gap-2">
-            <select id="sortType" onchange="renderReels()" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 theme-golden:bg-premium-800 text-xs font-bold text-slate-600 dark:text-slate-300 theme-golden:text-gold-500 outline-none border border-transparent theme-golden:border-gold-500/30">
+            <select id="sortType" onchange="handleSortChange()" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 theme-golden:bg-premium-800 text-xs font-bold text-slate-600 dark:text-slate-300 theme-golden:text-gold-500 outline-none border border-transparent theme-golden:border-gold-500/30">
                 <option value="newest" data-i18n="sortNew">Newest First</option>
                 <option value="oldest" data-i18n="sortOld">Oldest First</option>
                 <option value="az" data-i18n="sortAZ">A to Z</option>
@@ -66,6 +71,22 @@
     <div id="reelsGrid" class="p-4 grid grid-cols-2 gap-4"></div>
 
     <!-- ========================================== -->
+    <!-- INSTANT VIEW MODAL (Player)                -->
+    <!-- ========================================== -->
+    <div id="instantViewModal" class="modal-overlay hidden-view" onclick="closeInstantView(event)">
+        <div class="instant-view-content" onclick="event.stopPropagation()">
+            <button onclick="closeInstantView(true)" class="absolute top-6 right-6 text-white bg-black/50 backdrop-blur p-3 rounded-full z-50 hover:bg-red-500"><i data-lucide="x" class="w-6 h-6"></i></button>
+            
+            <video id="ivVideo" src="" class="w-full h-[85vh] object-cover" controls autoplay loop playsinline></video>
+            
+            <div class="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black via-black/80 to-transparent">
+                <h2 id="ivTitle" class="text-white font-extrabold text-lg shadow-black">Title</h2>
+                <p id="ivDesc" class="text-gray-300 text-sm mt-1 max-h-24 overflow-y-auto"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
     <!-- UPLOAD REEL MODAL                          -->
     <!-- ========================================== -->
     <div id="uploadModal" class="modal-overlay hidden-view">
@@ -77,22 +98,39 @@
 
             <div class="space-y-5 max-w-lg mx-auto">
                 
-                <!-- MP4 Upload (Normal File Selection) -->
-                <div class="p-6 border-2 border-dashed border-slate-300 dark:border-slate-700 theme-golden:border-gold-500/50 rounded-2xl text-center bg-slate-50 dark:bg-slate-800 theme-golden:bg-premium-800">
-                    <i data-lucide="upload-cloud" class="w-10 h-10 mx-auto text-slate-400 theme-golden:text-gold-500 mb-2"></i>
-                    <label class="block text-sm font-bold text-slate-800 dark:text-white theme-golden:text-gold-100 cursor-pointer">
-                        Tap to select MP4 video (Max 1 Min, 49MB)
-                        <!-- Removed capture="environment" to allow normal gallery selection -->
-                        <input type="file" id="reelMedia" accept="video/mp4,video/x-m4v,video/*" class="hidden" onchange="previewVideo(event)">
-                    </label>
-                    <p id="videoError" class="text-red-500 text-xs font-bold mt-2 hidden-view"></p>
-                    <video id="videoPreview" class="w-full mt-4 rounded-xl hidden-view" controls></video>
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- MP4 Upload (1 Min Limit) -->
+                    <div class="p-6 border-2 border-dashed border-slate-300 dark:border-slate-700 theme-golden:border-gold-500/50 rounded-2xl text-center bg-slate-50 dark:bg-slate-800 theme-golden:bg-premium-800">
+                        <i data-lucide="video" class="w-8 h-8 mx-auto text-slate-400 theme-golden:text-gold-500 mb-2"></i>
+                        <label class="block text-xs font-bold text-slate-800 dark:text-white theme-golden:text-gold-100 cursor-pointer">
+                            Video (Max 1 Min, 49MB)
+                            <input type="file" id="reelMedia" accept="video/mp4,video/x-m4v,video/*" class="hidden" onchange="previewVideo(event)">
+                        </label>
+                    </div>
+
+                    <!-- Thumbnail Upload -->
+                    <div class="p-6 border-2 border-dashed border-slate-300 dark:border-slate-700 theme-golden:border-gold-500/50 rounded-2xl text-center bg-slate-50 dark:bg-slate-800 theme-golden:bg-premium-800">
+                        <i data-lucide="image" class="w-8 h-8 mx-auto text-slate-400 theme-golden:text-gold-500 mb-2"></i>
+                        <label class="block text-xs font-bold text-slate-800 dark:text-white theme-golden:text-gold-100 cursor-pointer">
+                            Thumbnail Cover (Opt)
+                            <input type="file" id="reelThumb" accept="image/*" class="hidden" onchange="checkThumbSize(event)">
+                        </label>
+                    </div>
+                </div>
+                
+                <p id="mediaError" class="text-red-500 text-xs font-bold mt-2 hidden-view"></p>
+                <video id="videoPreview" class="w-full mt-4 rounded-xl hidden-view" controls></video>
+
+                <div class="relative">
+                    <input type="text" id="reelTitle" placeholder="Catchy Hook / Title (Max 150) *" class="form-input" maxlength="150" oninput="updateCounter('titleCounter', this.value.length, 150)">
+                    <span id="titleCounter" class="absolute right-3 top-3 text-xs text-slate-400 font-bold">0/150</span>
                 </div>
 
-                <input type="text" id="reelTitle" placeholder="Catchy Hook / Title *" class="form-input">
-                <textarea id="reelDesc" placeholder="Caption / Description..." rows="3" class="form-input"></textarea>
+                <div class="relative">
+                    <textarea id="reelDesc" placeholder="Caption / Description (Max 10,000)..." rows="4" class="form-input" maxlength="10000" oninput="updateCounter('descCounter', this.value.length, 10000)"></textarea>
+                    <span id="descCounter" class="absolute right-3 bottom-3 text-xs text-slate-400 font-bold">0/10000</span>
+                </div>
 
-                <!-- Product Linker -->
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1 theme-golden:text-gold-500" data-i18n="linkProduct">Connect to a Product (Optional)</label>
                     <select id="linkedProduct" class="form-input">
@@ -110,7 +148,6 @@
     <script>
         lucide.createIcons();
         
-        // 🛑 NATIVE SUPABASE CONNECTION 🛑
         const SUPABASE_URL = 'https://puvdfqnjzliiuupchppj.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1dmRmcW5qemxpaXV1cGNocHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTExOTgsImV4cCI6MjA5MjU4NzE5OH0.hDK6fjZ2SesJ7qkeWVXxOoxW2Xmr7MDlKO-BFtJtDu0';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -119,25 +156,39 @@
         let isGridView = true;
         let allReels = [];
 
-        // Language Dictionary
-        const translations = {
-            'en': { 'reels': 'Promotions', 'total': 'Total Reels', 'sortNew': 'Newest First', 'sortOld': 'Oldest First', 'sortAZ': 'A to Z', 'sortZA': 'Z to A', 'createReel': 'Create Reel', 'linkProduct': 'Connect to a Product (Optional)' },
-            'hi': { 'reels': 'प्रचार', 'total': 'कुल रील्स', 'sortNew': 'सबसे नया', 'sortOld': 'सबसे पुराना', 'sortAZ': 'A से Z', 'sortZA': 'Z से A', 'createReel': 'रীল बनाएं', 'linkProduct': 'उत्पाद से जोड़ें (वैकल्पिक)' }
-        };
+        // --- COMPLIANCE BLOCKER ---
+        const illegalWords = ['scam', 'fraud', 'illegal', 'porn', 'nsfw', 'weapon', 'drugs', 'hack', 'steal'];
+        function isContentSafe(text) {
+            const lowerText = text.toLowerCase();
+            return !illegalWords.some(word => lowerText.includes(word));
+        }
+
+        function updateCounter(id, length, max) { document.getElementById(id).innerText = `${length}/${max}`; }
 
         function applySettings() {
             const theme = localStorage.getItem('golden_theme') || 'system';
-            const lang = localStorage.getItem('golden_language') || 'en';
-            const html = document.documentElement;
-            if (theme === 'dark') html.classList.add('dark');
-            else if (theme === 'golden') html.classList.add('dark', 'theme-golden');
+            if (theme === 'dark') document.documentElement.classList.add('dark');
+            else if (theme === 'golden') document.documentElement.classList.add('dark', 'theme-golden');
             
-            if (translations[lang]) {
-                document.querySelectorAll('[data-i18n]').forEach(el => {
-                    const key = el.getAttribute('data-i18n');
-                    if(translations[lang][key]) el.innerText = translations[lang][key];
-                });
-            }
+            const savedView = localStorage.getItem('golden_reel_view');
+            const savedSort = localStorage.getItem('golden_reel_sort');
+            if(savedView) isGridView = (savedView === 'grid');
+            if(savedSort) document.getElementById('sortType').value = savedSort;
+            
+            document.getElementById('viewIcon').setAttribute('data-lucide', isGridView ? 'layout-grid' : 'list');
+        }
+
+        async function savePreferencesToCloud() {
+            if(!currentUser) return;
+            localStorage.setItem('golden_reel_view', isGridView ? 'grid' : 'list');
+            localStorage.setItem('golden_reel_sort', document.getElementById('sortType').value);
+            
+            const { data } = await _supabase.from('profiles').select('app_settings').eq('id', currentUser.id).single();
+            let currentSettings = data?.app_settings || {};
+            currentSettings.reel_view = isGridView ? 'grid' : 'list';
+            currentSettings.reel_sort = document.getElementById('sortType').value;
+            
+            await _supabase.from('profiles').update({ app_settings: currentSettings }).eq('id', currentUser.id);
         }
 
         async function init() {
@@ -161,9 +212,22 @@
             const { data } = await _supabase.from('reels').select('*, products(title)').eq('user_id', currentUser.id);
             if(data) {
                 allReels = data;
-                document.getElementById('totalReels').innerText = data.length;
+                document.getElementById('totalReels').innerText = allReels.length;
                 renderReels();
             }
+        }
+
+        function handleSortChange() {
+            renderReels();
+            savePreferencesToCloud();
+        }
+
+        function toggleView() {
+            isGridView = !isGridView;
+            document.getElementById('viewIcon').setAttribute('data-lucide', isGridView ? 'layout-grid' : 'list');
+            lucide.createIcons();
+            renderReels();
+            savePreferencesToCloud();
         }
 
         function renderReels() {
@@ -181,17 +245,18 @@
             
             sorted.forEach(r => {
                 const vidUrl = _supabase.storage.from('reels_media').getPublicUrl(r.video_url).data.publicUrl;
+                const thumbUrl = r.thumbnail_url ? _supabase.storage.from('reels_media').getPublicUrl(r.thumbnail_url).data.publicUrl : '';
                 const linkBadge = r.products ? `<div class="absolute top-2 right-2 bg-gold-500/90 backdrop-blur text-[10px] font-bold text-black px-2 py-1 rounded-md z-10 shadow-lg"><i data-lucide="link" class="w-3 h-3 inline"></i> ${r.products.title}</div>` : '';
                 
-                // Formatted Stamp
                 const d = new Date(r.created_at);
                 const stamp = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} ${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}`;
 
                 grid.innerHTML += `
-                    <div class="reel-card">
+                    <div class="reel-card" onclick="openInstantView('${r.id}')">
                         ${linkBadge}
-                        <video src="${vidUrl}" class="w-full h-full object-cover" muted loop onmouseover="this.play()" onmouseout="this.pause()"></video>
-                        <div class="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
+                        ${thumbUrl ? `<img src="${thumbUrl}" class="absolute inset-0 w-full h-full object-cover z-0">` : ''}
+                        <video src="${vidUrl}" class="w-full h-full object-cover relative z-10 ${thumbUrl ? 'opacity-0 hover:opacity-100' : ''}" muted loop onmouseover="this.play()" onmouseout="this.pause()"></video>
+                        <div class="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-20">
                             <h3 class="font-bold text-sm text-white truncate">${r.title}</h3>
                             <p class="text-[9px] text-gray-300 font-mono mt-1">${stamp}</p>
                         </div>
@@ -201,41 +266,59 @@
             lucide.createIcons();
         }
 
-        function toggleView() {
-            isGridView = !isGridView;
-            document.getElementById('viewIcon').setAttribute('data-lucide', isGridView ? 'layout-grid' : 'list');
-            lucide.createIcons();
-            renderReels();
+        // --- INSTANT VIEW LOGIC ---
+        function openInstantView(id) {
+            const r = allReels.find(x => x.id === id);
+            if(!r) return;
+            const vidUrl = _supabase.storage.from('reels_media').getPublicUrl(r.video_url).data.publicUrl;
+            
+            const player = document.getElementById('ivVideo');
+            player.src = vidUrl;
+            document.getElementById('ivTitle').innerText = r.title;
+            document.getElementById('ivDesc').innerText = r.description || '';
+            
+            document.getElementById('instantViewModal').classList.remove('hidden-view');
         }
 
+        function closeInstantView(force) { 
+            if(force === true || force.target.id === 'instantViewModal') {
+                document.getElementById('ivVideo').pause(); // Stop playing when closed
+                document.getElementById('instantViewModal').classList.add('hidden-view'); 
+            }
+        }
+
+        // --- UPLOAD LOGIC ---
         function previewVideo(event) {
             const file = event.target.files[0];
-            const errBox = document.getElementById('videoError');
+            const errBox = document.getElementById('mediaError');
             errBox.classList.add('hidden-view');
 
             if(file) {
-                // 49MB File Size Check
                 if(file.size > 49 * 1024 * 1024) {
-                    errBox.innerText = "Error: File exceeds 49MB limit.";
+                    errBox.innerText = "Error: Video exceeds 49MB limit.";
                     errBox.classList.remove('hidden-view');
-                    event.target.value = "";
-                    return;
+                    event.target.value = ""; return;
                 }
-
                 const vid = document.getElementById('videoPreview');
                 vid.src = URL.createObjectURL(file);
                 
-                // 1 MINUTE DURATION CHECK
                 vid.onloadedmetadata = function() {
-                    if(vid.duration > 61) { // 61 to allow tiny buffer
+                    if(vid.duration > 61) { 
                         errBox.innerText = `Error: Video is ${Math.round(vid.duration)}s. Maximum limit is 60 seconds (1 Min).`;
                         errBox.classList.remove('hidden-view');
                         event.target.value = "";
                         vid.classList.add('hidden-view');
-                    } else {
-                        vid.classList.remove('hidden-view');
-                    }
+                    } else vid.classList.remove('hidden-view');
                 };
+            }
+        }
+
+        function checkThumbSize(event) {
+            const file = event.target.files[0];
+            if(file && file.size > 5 * 1024 * 1024) {
+                document.getElementById('mediaError').innerText = "Error: Thumbnail exceeds 5MB limit.";
+                document.getElementById('mediaError').classList.remove('hidden-view');
+                event.target.value = "";
             }
         }
 
@@ -245,9 +328,16 @@
         async function saveReel() {
             const btn = document.getElementById('saveBtn');
             const file = document.getElementById('reelMedia').files[0];
+            const thumbFile = document.getElementById('reelThumb').files[0];
             const title = document.getElementById('reelTitle').value;
+            const desc = document.getElementById('reelDesc').value;
 
             if(!file || !title) return alert("Video and Title are required.");
+            
+            // Compliance Check
+            if(!isContentSafe(title) || !isContentSafe(desc)) {
+                return alert("COMPLIANCE ALERT: Prohibited or inappropriate language detected. Please revise before saving.");
+            }
 
             btn.innerText = "Encrypting & Uploading... (Do not close)";
             btn.disabled = true;
@@ -255,24 +345,33 @@
             const path = `${currentUser.id}/reel_${Date.now()}.${file.name.split('.').pop()}`;
             const { error: uploadError } = await _supabase.storage.from('reels_media').upload(path, file);
             
+            let thumbPath = null;
+            if(thumbFile && !uploadError) {
+                thumbPath = `${currentUser.id}/thumb_${Date.now()}.${thumbFile.name.split('.').pop()}`;
+                await _supabase.storage.from('reels_media').upload(thumbPath, thumbFile);
+            }
+
             if(uploadError) {
                 alert("Upload Error: " + uploadError.message);
             } else {
                 const reelData = {
                     user_id: currentUser.id,
                     title: title,
-                    description: document.getElementById('reelDesc').value,
+                    description: desc,
                     video_url: path,
+                    thumbnail_url: thumbPath,
                     linked_product_id: document.getElementById('linkedProduct').value || null
                 };
 
                 await _supabase.from('reels').insert([reelData]);
                 
                 closeUploadModal();
-                fetchReels(); // Auto refresh handles UI stamps
+                fetchReels();
                 
-                // Reset form
                 document.getElementById('reelTitle').value = '';
+                document.getElementById('reelDesc').value = '';
+                document.getElementById('titleCounter').innerText = "0/150";
+                document.getElementById('descCounter').innerText = "0/10000";
                 document.getElementById('videoPreview').classList.add('hidden-view');
             }
             btn.innerText = "Publish Reel";
@@ -282,4 +381,4 @@
         window.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
-</html>s
+</html>
