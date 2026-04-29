@@ -29,7 +29,8 @@
         .theme-golden .form-input { background: rgba(20,15,0,0.5); border-color: rgba(234,179,8,0.3); color: #fef08a; }
         .theme-golden .form-input:focus { border-color: #FDE047; box-shadow: 0 0 10px rgba(234,179,8,0.2); }
 
-        .product-card { background: white; border-radius: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden; position: relative; }
+        .product-card { background: white; border-radius: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden; position: relative; cursor: pointer; transition: transform 0.2s; }
+        .product-card:active { transform: scale(0.98); }
         .dark .product-card { background: #1e293b; }
         .theme-golden .product-card { background: #171717; border: 1px solid rgba(234,179,8,0.2); box-shadow: 0 4px 15px rgba(234,179,8,0.05); }
 
@@ -37,7 +38,13 @@
         .modal-content { background: white; min-height: 100vh; padding: 20px; padding-bottom: 100px; animation: slideUp 0.3s ease-out; }
         .dark .modal-content { background: #0f172a; }
         .theme-golden .modal-content { background: #0a0a0a; border-top: 1px solid rgba(234,179,8,0.3); }
+        
+        .instant-view-content { background: white; width: 90%; max-width: 400px; margin: auto; margin-top: 10vh; border-radius: 24px; padding: 24px; animation: scaleUp 0.3s ease-out; position: relative; }
+        .dark .instant-view-content { background: #1e293b; }
+        .theme-golden .instant-view-content { background: #171717; border: 1px solid rgba(234,179,8,0.4); box-shadow: 0 20px 50px rgba(234,179,8,0.15); }
+
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes scaleUp { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body class="transition-colors duration-300">
@@ -49,8 +56,7 @@
             <p class="text-xs font-bold text-slate-500 theme-golden:text-gold-200/50"><span data-i18n="total">Total</span>: <span id="totalCount">0</span></p>
         </div>
         <div class="flex gap-2">
-            <!-- Sort Option -->
-            <select id="sortType" onchange="renderProducts()" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 theme-golden:bg-premium-800 text-xs font-bold text-slate-600 dark:text-slate-300 theme-golden:text-gold-500 outline-none border border-transparent theme-golden:border-gold-500/30">
+            <select id="sortType" onchange="handleSortChange()" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 theme-golden:bg-premium-800 text-xs font-bold text-slate-600 dark:text-slate-300 theme-golden:text-gold-500 outline-none border border-transparent theme-golden:border-gold-500/30">
                 <option value="newest" data-i18n="sortNew">Newest First</option>
                 <option value="oldest" data-i18n="sortOld">Oldest First</option>
                 <option value="az" data-i18n="sortAZ">A to Z</option>
@@ -58,11 +64,9 @@
                 <option value="priceHigh" data-i18n="sortHigh">Price: High to Low</option>
                 <option value="priceLow" data-i18n="sortLow">Price: Low to High</option>
             </select>
-            <!-- View Toggle -->
             <button onclick="toggleView()" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 theme-golden:bg-premium-800 text-slate-500 theme-golden:text-gold-500">
                 <i id="viewIcon" data-lucide="layout-grid" class="w-5 h-5"></i>
             </button>
-            <!-- Add Button -->
             <button onclick="openUploadModal()" class="btn-plus p-2 rounded-xl flex items-center justify-center transition-transform hover:scale-105">
                 <i data-lucide="plus" class="w-6 h-6"></i>
             </button>
@@ -70,8 +74,26 @@
     </div>
 
     <!-- Product Grid -->
-    <div id="productGrid" class="p-4 grid grid-cols-2 gap-4">
-        <!-- Rendered via JS -->
+    <div id="productGrid" class="p-4 grid grid-cols-2 gap-4"></div>
+
+    <!-- ========================================== -->
+    <!-- INSTANT VIEW MODAL                         -->
+    <!-- ========================================== -->
+    <div id="instantViewModal" class="modal-overlay hidden-view" onclick="closeInstantView(event)">
+        <div class="instant-view-content" onclick="event.stopPropagation()">
+            <button onclick="closeInstantView(true)" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 bg-slate-100 dark:bg-slate-800 theme-golden:bg-premium-800 p-2 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
+            
+            <img id="ivImg" src="" class="w-full h-48 object-cover rounded-xl mb-4" alt="Product">
+            <h2 id="ivTitle" class="text-xl font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-300">Title</h2>
+            <p id="ivPrice" class="text-lg font-black text-green-600 theme-golden:text-gold-500 mt-1">₹0</p>
+            
+            <div class="mt-4 space-y-2 border-t border-slate-100 dark:border-slate-800 theme-golden:border-gold-500/20 pt-4">
+                <p class="text-xs text-slate-600 dark:text-slate-300 theme-golden:text-gold-100/70"><strong class="theme-golden:text-gold-400">Quality:</strong> <span id="ivQuality"></span></p>
+                <p class="text-xs text-slate-600 dark:text-slate-300 theme-golden:text-gold-100/70"><strong class="theme-golden:text-gold-400">Min Order:</strong> <span id="ivMin"></span></p>
+                <p class="text-xs text-slate-600 dark:text-slate-300 theme-golden:text-gold-100/70"><strong class="theme-golden:text-gold-400">Stock:</strong> <span id="ivStock"></span></p>
+                <p class="text-sm text-slate-700 dark:text-slate-200 mt-2 theme-golden:text-gold-100" id="ivDesc"></p>
+            </div>
+        </div>
     </div>
 
     <!-- ========================================== -->
@@ -85,20 +107,18 @@
             </div>
 
             <div class="space-y-5 max-w-lg mx-auto">
-                <!-- Media Upload (49MB Limit Enforced) -->
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1 theme-golden:text-gold-500">Product Media (Max 49MB)</label>
                     <input type="file" id="prodMedia" multiple accept="image/*,video/*" class="form-input" onchange="checkFileSize(this)">
                     <p id="sizeError" class="text-red-500 text-xs font-bold mt-1 hidden-view">File exceeds 49MB limit.</p>
                 </div>
 
-                <!-- Core Details -->
-                <input type="text" id="prodTitle" placeholder="Product Title *" class="form-input">
+                <input type="text" id="prodTitle" placeholder="Product Title *" class="form-input" maxlength="150">
                 <div class="grid grid-cols-2 gap-3">
                     <input type="number" id="prodPrice" placeholder="Wholesale Price (₹) *" class="form-input">
                     <input type="number" id="prodMinUnit" placeholder="Min. Order Qty *" class="form-input">
                 </div>
-                <textarea id="prodDesc" placeholder="Product Description..." rows="3" class="form-input"></textarea>
+                <textarea id="prodDesc" placeholder="Product Description..." rows="3" class="form-input" maxlength="10000"></textarea>
 
                 <!-- Dimensions & Auto-Calc -->
                 <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800 theme-golden:bg-premium-800 border border-slate-200 dark:border-slate-700 theme-golden:border-gold-500/20">
@@ -119,7 +139,16 @@
                 <!-- Operations -->
                 <div class="grid grid-cols-2 gap-3">
                     <input type="text" id="prodWeight" placeholder="Weight (e.g. 5kg)" class="form-input">
-                    <input type="text" id="prodQuality" placeholder="Quality/Grade" class="form-input">
+                    <select id="prodQuality" class="form-input">
+                        <option value="">Select Quality / Grade</option>
+                        <option value="5 Star Premium">5 Star Premium</option>
+                        <option value="4 Star">4 Star</option>
+                        <option value="3 Star">3 Star</option>
+                        <option value="Grade A+">Grade A+</option>
+                        <option value="Grade A">Grade A</option>
+                        <option value="Grade B+">Grade B+</option>
+                        <option value="Standard">Standard</option>
+                    </select>
                     <input type="number" id="prodStock" placeholder="Available Stock" class="form-input">
                     <input type="number" id="prodDaily" placeholder="Daily Production" class="form-input">
                 </div>
@@ -133,37 +162,48 @@
 
     <script>
         lucide.createIcons();
-        
-        // 🛑 NATIVE SUPABASE CONNECTION 🛑
         const SUPABASE_URL = 'https://puvdfqnjzliiuupchppj.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1dmRmcW5qemxpaXV1cGNocHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTExOTgsImV4cCI6MjA5MjU4NzE5OH0.hDK6fjZ2SesJ7qkeWVXxOoxW2Xmr7MDlKO-BFtJtDu0';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let currentUser = null;
         let isGridView = true;
-        let allProducts = []; // Stores all fetched products for local sorting
+        let allProducts = [];
 
-        // Language Dictionary
-        const translations = {
-            'en': { 'products': 'Products', 'total': 'Total', 'sortNew': 'Newest First', 'sortOld': 'Oldest First', 'sortAZ': 'A to Z', 'sortZA': 'Z to A', 'sortHigh': 'Price: High to Low', 'sortLow': 'Price: Low to High', 'newProduct': 'New Product' },
-            'hi': { 'products': 'उत्पाद', 'total': 'कुल', 'sortNew': 'सबसे नया', 'sortOld': 'सबसे पुराना', 'sortAZ': 'A से Z', 'sortZA': 'Z से A', 'sortHigh': 'कीमत: अधिक से कम', 'sortLow': 'कीमत: कम से अधिक', 'newProduct': 'नया उत्पाद' },
-            'es': { 'products': 'Productos', 'total': 'Total', 'sortNew': 'Más nuevos', 'sortOld': 'Más antiguos', 'sortAZ': 'A a Z', 'sortZA': 'Z a A', 'sortHigh': 'Precio: Mayor a Menor', 'sortLow': 'Precio: Menor a Mayor', 'newProduct': 'Nuevo Producto' }
-        };
+        // --- COMPLIANCE BLOCKER (B2B Content Filter) ---
+        const illegalWords = ['scam', 'fraud', 'illegal', 'porn', 'nsfw', 'weapon', 'drugs', 'hack', 'steal'];
+        function isContentSafe(text) {
+            const lowerText = text.toLowerCase();
+            return !illegalWords.some(word => lowerText.includes(word));
+        }
 
-        // Apply Theme & Lang from LocalStorage
+        // Apply Theme, Lang, and Preferences
         function applySettings() {
             const theme = localStorage.getItem('golden_theme') || 'system';
-            const lang = localStorage.getItem('golden_language') || 'en';
-            const html = document.documentElement;
-            if (theme === 'dark') html.classList.add('dark');
-            else if (theme === 'golden') html.classList.add('dark', 'theme-golden');
+            if (theme === 'dark') document.documentElement.classList.add('dark');
+            else if (theme === 'golden') document.documentElement.classList.add('dark', 'theme-golden');
             
-            if (translations[lang]) {
-                document.querySelectorAll('[data-i18n]').forEach(el => {
-                    const key = el.getAttribute('data-i18n');
-                    if(translations[lang][key]) el.innerText = translations[lang][key];
-                });
-            }
+            // Load persistent view/sort
+            const savedView = localStorage.getItem('golden_prod_view');
+            const savedSort = localStorage.getItem('golden_prod_sort');
+            if(savedView) isGridView = (savedView === 'grid');
+            if(savedSort) document.getElementById('sortType').value = savedSort;
+            
+            document.getElementById('viewIcon').setAttribute('data-lucide', isGridView ? 'layout-grid' : 'list');
+        }
+
+        async function savePreferencesToCloud() {
+            if(!currentUser) return;
+            localStorage.setItem('golden_prod_view', isGridView ? 'grid' : 'list');
+            localStorage.setItem('golden_prod_sort', document.getElementById('sortType').value);
+            
+            // Fetch existing settings to merge (so we don't overwrite other settings)
+            const { data } = await _supabase.from('profiles').select('app_settings').eq('id', currentUser.id).single();
+            let currentSettings = data?.app_settings || {};
+            currentSettings.product_view = isGridView ? 'grid' : 'list';
+            currentSettings.product_sort = document.getElementById('sortType').value;
+            
+            await _supabase.from('profiles').update({ app_settings: currentSettings }).eq('id', currentUser.id);
         }
 
         async function init() {
@@ -179,15 +219,27 @@
             if(data) {
                 allProducts = data;
                 document.getElementById('totalCount').innerText = allProducts.length;
-                renderProducts(); // Will apply sort automatically
+                renderProducts();
             }
+        }
+
+        function handleSortChange() {
+            renderProducts();
+            savePreferencesToCloud();
+        }
+
+        function toggleView() {
+            isGridView = !isGridView;
+            document.getElementById('viewIcon').setAttribute('data-lucide', isGridView ? 'layout-grid' : 'list');
+            lucide.createIcons();
+            renderProducts();
+            savePreferencesToCloud();
         }
 
         function renderProducts() {
             const grid = document.getElementById('productGrid');
             const sortType = document.getElementById('sortType').value;
             
-            // Apply Sort Logic Locally
             let sorted = [...allProducts];
             if(sortType === 'newest') sorted.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
             else if(sortType === 'oldest') sorted.sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
@@ -203,13 +255,12 @@
                 const imgData = p.media_urls && p.media_urls.length > 0 ? p.media_urls[0] : null;
                 const imgUrl = imgData ? _supabase.storage.from('product_media').getPublicUrl(imgData.path).data.publicUrl : 'https://via.placeholder.com/150?text=No+Image';
                 
-                // Formatted Date Stamp
-                const dateObj = new Date(p.created_at);
-                const stamp = `${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+                const d = new Date(p.created_at);
+                const stamp = `${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
                 const sizeStamp = imgData && imgData.size ? ` | ${(imgData.size / (1024*1024)).toFixed(2)} MB` : '';
 
                 grid.innerHTML += `
-                    <div class="product-card flex ${isGridView ? 'flex-col' : 'flex-row items-center'}">
+                    <div class="product-card flex ${isGridView ? 'flex-col' : 'flex-row items-center'}" onclick="openInstantView('${p.id}')">
                         <img src="${imgUrl}" class="${isGridView ? 'w-full h-32' : 'w-24 h-24'} object-cover" alt="Product">
                         <div class="p-3 w-full flex flex-col justify-between">
                             <div>
@@ -225,73 +276,85 @@
             });
         }
 
-        function toggleView() {
-            isGridView = !isGridView;
-            document.getElementById('viewIcon').setAttribute('data-lucide', isGridView ? 'layout-grid' : 'list');
-            lucide.createIcons();
-            renderProducts();
+        // --- INSTANT VIEW LOGIC ---
+        function openInstantView(id) {
+            const p = allProducts.find(x => x.id === id);
+            if(!p) return;
+            const imgData = p.media_urls && p.media_urls.length > 0 ? p.media_urls[0] : null;
+            document.getElementById('ivImg').src = imgData ? _supabase.storage.from('product_media').getPublicUrl(imgData.path).data.publicUrl : 'https://via.placeholder.com/150';
+            document.getElementById('ivTitle').innerText = p.title;
+            document.getElementById('ivPrice').innerText = `₹${p.price}`;
+            document.getElementById('ivQuality').innerText = p.quality || 'N/A';
+            document.getElementById('ivMin').innerText = p.min_unit;
+            document.getElementById('ivStock').innerText = p.stock || 'Unlimited';
+            document.getElementById('ivDesc').innerText = p.description || 'No description provided.';
+            
+            document.getElementById('instantViewModal').classList.remove('hidden-view');
         }
+        function closeInstantView(force) { if(force === true || force.target.id === 'instantViewModal') document.getElementById('instantViewModal').classList.add('hidden-view'); }
 
+        // --- UPLOAD LOGIC ---
         function openUploadModal() { document.getElementById('uploadModal').classList.remove('hidden-view'); }
         function closeUploadModal() { document.getElementById('uploadModal').classList.add('hidden-view'); }
 
-        // --- Auto Calculate Volume ---
-        function calcVolume() {
-            const l = parseFloat(document.getElementById('dimL').value) || 0;
-            const b = parseFloat(document.getElementById('dimB').value) || 0;
-            const h = parseFloat(document.getElementById('dimH').value) || 0;
-            const vol = l * b * h;
-            document.getElementById('calcVol').innerText = vol.toFixed(2);
-            document.getElementById('volUnit').innerText = document.getElementById('dimUnit').value + '³';
-        }
-
-        // --- 49MB File Size Check ---
         function checkFileSize(input) {
-            const maxBytes = 49 * 1024 * 1024; // 49 MB
+            const maxBytes = 49 * 1024 * 1024;
             for(let file of input.files) {
                 if(file.size > maxBytes) {
                     document.getElementById('sizeError').classList.remove('hidden-view');
-                    input.value = ""; // Clear selection
-                    return;
+                    input.value = ""; return;
                 }
             }
             document.getElementById('sizeError').classList.add('hidden-view');
         }
 
+        function calcVolume() {
+            const l = parseFloat(document.getElementById('dimL').value) || 0;
+            const b = parseFloat(document.getElementById('dimB').value) || 0;
+            const h = parseFloat(document.getElementById('dimH').value) || 0;
+            document.getElementById('calcVol').innerText = (l * b * h).toFixed(2);
+            document.getElementById('volUnit').innerText = document.getElementById('dimUnit').value + '³';
+        }
+
         async function saveProduct() {
             const btn = document.getElementById('saveBtn');
             const title = document.getElementById('prodTitle').value;
+            const desc = document.getElementById('prodDesc').value;
             const price = document.getElementById('prodPrice').value;
 
             if(!title || !price) return alert("Title and Price are required.");
+            
+            // Compliance Check
+            if(!isContentSafe(title) || !isContentSafe(desc)) {
+                return alert("COMPLIANCE ALERT: Prohibited or inappropriate language detected in Title or Description. Please revise before saving.");
+            }
 
             btn.innerText = "Processing & Saving...";
             btn.disabled = true;
 
             const files = document.getElementById('prodMedia').files;
-            let mediaData = []; // Will store path and size for the metadata stamp
+            let mediaData = [];
 
             for(let i=0; i<files.length; i++) {
                 const file = files[i];
                 const path = `${currentUser.id}/prod_${Date.now()}_${i}.${file.name.split('.').pop()}`;
                 const { error } = await _supabase.storage.from('product_media').upload(path, file);
-                if(!error) {
-                    mediaData.push({ path: path, size: file.size });
-                }
+                if(!error) mediaData.push({ path: path, size: file.size });
             }
 
             const productData = {
                 user_id: currentUser.id,
                 title: title, price: price, 
                 min_unit: document.getElementById('prodMinUnit').value || 1,
-                description: document.getElementById('prodDesc').value,
+                description: desc,
+                quality: document.getElementById('prodQuality').value,
                 dimensions: {
                     l: document.getElementById('dimL').value, b: document.getElementById('dimB').value,
                     h: document.getElementById('dimH').value, unit: document.getElementById('dimUnit').value,
                     volume: document.getElementById('calcVol').innerText
                 },
                 stock: document.getElementById('prodStock').value || 0,
-                media_urls: mediaData // Saving JSON object with size for auto-stamp
+                media_urls: mediaData
             };
 
             const { error } = await _supabase.from('products').insert([productData]);
@@ -299,8 +362,8 @@
             if(error) alert("Database Error: " + error.message);
             else {
                 closeUploadModal();
-                fetchProducts(); // Auto-refreshes and shows new stamp
-                document.querySelectorAll('input, textarea').forEach(el => el.value = ''); // reset
+                fetchProducts();
+                document.querySelectorAll('input, textarea').forEach(el => el.value = '');
             }
             btn.innerText = "Save & Publish Product";
             btn.disabled = false;
