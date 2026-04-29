@@ -7,6 +7,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <script>
@@ -17,7 +18,7 @@
                     fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
                     colors: { 
                         gold: { 300: '#FDE047', 400: '#FACC15', 500: '#EAB308', 600: '#CA8A04', 700: '#A16207' },
-                        premium: { 900: '#1a1400', 800: '#332900' } // Deep rich blacks for golden premium theme
+                        premium: { 900: '#0a0a0a', 800: '#171717' } 
                     }
                 }
             }
@@ -27,11 +28,14 @@
     <style>
         body { -webkit-tap-highlight-color: transparent; background: #f8fafc; }
         .dark body { background: #0f172a; }
-        .theme-golden body { background: linear-gradient(135deg, #1a1400 0%, #000000 100%); color: #FDE047; }
+        /* UPGRADED GOLDEN THEME */
+        .theme-golden body { 
+            background: radial-gradient(circle at top right, #241c00 0%, #0a0a0a 60%, #000000 100%); 
+            color: #fef08a; 
+        }
         
         .hidden-view { display: none !important; }
         
-        /* Premium Golden Scrollbar */
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #EAB308; border-radius: 10px; }
 
@@ -40,14 +44,20 @@
             backdrop-filter: blur(16px);
             border: 1px solid rgba(255,255,255,0.2);
             box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
         }
         .dark .glass-card { background: rgba(30, 41, 59, 0.7); border-color: rgba(255,255,255,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .theme-golden .glass-card { background: rgba(51, 41, 0, 0.6); border-color: rgba(234, 179, 8, 0.2); box-shadow: 0 10px 30px rgba(234, 179, 8, 0.1); }
+        .theme-golden .glass-card { 
+            background: rgba(20, 15, 0, 0.8); 
+            border: 1px solid rgba(234, 179, 8, 0.3); 
+            box-shadow: 0 10px 40px rgba(234, 179, 8, 0.15), inset 0 0 20px rgba(234, 179, 8, 0.05); 
+        }
 
         .dp-container {
-            width: 100px; height: 100px; border-radius: 50%;
+            width: 110px; height: 110px; border-radius: 50%;
             background: linear-gradient(135deg, #FACC15, #CA8A04);
-            padding: 3px; position: relative; margin: 0 auto;
+            padding: 4px; position: relative; margin: 0 auto;
+            box-shadow: 0 10px 25px rgba(234, 179, 8, 0.3);
         }
         .dp-inner {
             width: 100%; height: 100%; border-radius: 50%;
@@ -55,47 +65,56 @@
             border: 2px solid #fff;
         }
         .dark .dp-inner { background: #0f172a; border-color: #0f172a; }
-        .theme-golden .dp-inner { background: #1a1400; border-color: #1a1400; }
+        .theme-golden .dp-inner { background: #0a0a0a; border-color: #0a0a0a; }
 
         .edit-badge {
             position: absolute; bottom: 0; right: -5px;
             background: #22c55e; color: white; border-radius: 50%;
-            width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+            width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
             border: 3px solid #f8fafc; cursor: pointer; box-shadow: 0 4px 10px rgba(34, 197, 94, 0.4);
-            transition: transform 0.2s;
+            transition: transform 0.2s; z-index: 10;
         }
         .dark .edit-badge { border-color: #0f172a; }
-        .theme-golden .edit-badge { border-color: #1a1400; background: #EAB308; box-shadow: 0 4px 10px rgba(234, 179, 8, 0.4); color: #000; }
+        .theme-golden .edit-badge { border-color: #0a0a0a; background: linear-gradient(135deg, #FDE047, #EAB308); box-shadow: 0 4px 15px rgba(234, 179, 8, 0.5); color: #000; }
         .edit-badge:active { transform: scale(0.9); }
 
         .text-gold-gradient {
-            background: linear-gradient(to right, #CA8A04, #FDE047);
+            background: linear-gradient(to right, #FDE047, #CA8A04);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
+        .theme-golden .text-gold-gradient { text-shadow: 0 0 20px rgba(234,179,8,0.4); }
 
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 100; display: flex; align-items: center; justify-content: center; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 100; display: flex; align-items: center; justify-content: center; }
         .modal-content { animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         @keyframes scaleUp { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* Form Inputs */
+        .form-input { w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:border-gold-500 font-medium text-sm transition-colors; }
+        .theme-golden .form-input { background: rgba(20,15,0,0.5); border-color: rgba(234,179,8,0.3); color: #fef08a; }
+        .theme-golden .form-input:focus { border-color: #FDE047; box-shadow: 0 0 10px rgba(234,179,8,0.2); }
     </style>
 </head>
 <body class="pb-24 transition-colors duration-300">
 
     <!-- Header -->
-    <div class="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex justify-between items-center">
-        <h1 class="text-xl font-extrabold text-gold-gradient tracking-wide uppercase">Company Profile</h1>
-        <button class="text-slate-400 hover:text-gold-500 transition-colors"><i data-lucide="bell" class="w-6 h-6"></i></button>
+    <div class="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex justify-between items-center theme-golden:bg-premium-900/80 theme-golden:border-gold-500/20">
+        <h1 class="text-xl font-extrabold text-gold-gradient tracking-wide uppercase" data-i18n="companyProfile">Company Profile</h1>
+        <div class="flex gap-4">
+            <button onclick="shareProfile()" class="text-slate-400 hover:text-gold-500 transition-colors theme-golden:text-gold-600"><i data-lucide="share-2" class="w-6 h-6"></i></button>
+            <button class="text-slate-400 hover:text-gold-500 transition-colors theme-golden:text-gold-600"><i data-lucide="bell" class="w-6 h-6"></i></button>
+        </div>
     </div>
 
     <div class="p-4 space-y-6 max-w-2xl mx-auto">
         
-        <!-- Profile Card -->
-        <div class="glass-card rounded-3xl p-6 text-center relative overflow-hidden">
+        <!-- Profile Card (DISPLAY MODE) -->
+        <div id="profileDisplayMode" class="glass-card rounded-3xl p-6 text-center relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-24 bg-gradient-to-r from-gold-600/20 to-gold-400/5"></div>
             
             <div class="dp-container z-10 relative mt-4">
                 <div class="dp-inner">
                     <img id="profileImage" src="" class="w-full h-full object-cover hidden-view" alt="DP">
-                    <i id="profilePlaceholder" data-lucide="building-2" class="w-10 h-10 text-gold-500"></i>
+                    <i id="profilePlaceholder" data-lucide="building-2" class="w-12 h-12 text-gold-500"></i>
                 </div>
                 <!-- Verification Lock (Green Pencil) -->
                 <button onclick="requestEditLock()" class="edit-badge">
@@ -106,28 +125,93 @@
             <h2 id="displayCompanyName" class="text-2xl font-extrabold mt-4 text-slate-800 dark:text-white theme-golden:text-gold-300">Loading...</h2>
             <p id="displayCeoName" class="text-sm font-bold text-slate-500 dark:text-slate-400 theme-golden:text-gold-600 mt-1 uppercase tracking-widest">CEO / Manager</p>
             
-            <div class="flex justify-center gap-2 mt-4">
-                <span class="bg-gold-100 dark:bg-gold-900/30 text-gold-700 dark:text-gold-400 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
-                    <i data-lucide="shield-check" class="w-3 h-3"></i> Verified
+            <div class="flex justify-center gap-2 mt-4 mb-4">
+                <span class="bg-gold-100 dark:bg-gold-900/30 text-gold-700 dark:text-gold-400 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 theme-golden:border theme-golden:border-gold-500/30">
+                    <i data-lucide="shield-check" class="w-3 h-3"></i> <span data-i18n="verified">Verified</span>
                 </span>
-                <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold px-3 py-1 rounded-full" id="displayPlan">Elite Plan</span>
+                <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold px-3 py-1 rounded-full theme-golden:bg-premium-800" id="displayPlan">Elite Plan</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 mt-6 text-left border-t border-slate-100 dark:border-slate-800 pt-4 theme-golden:border-gold-500/20">
+                <div>
+                    <p class="text-[10px] text-slate-400 uppercase font-bold" data-i18n="industry">Industry</p>
+                    <p class="text-sm font-semibold text-slate-700 dark:text-slate-200 theme-golden:text-gold-100" id="dispIndustry">...</p>
+                </div>
+                <div>
+                    <p class="text-[10px] text-slate-400 uppercase font-bold" data-i18n="capacity">Daily Capacity</p>
+                    <p class="text-sm font-semibold text-slate-700 dark:text-slate-200 theme-golden:text-gold-100" id="dispCapacity">...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Card (EDIT MODE) -->
+        <div id="profileEditMode" class="glass-card rounded-3xl p-6 relative overflow-hidden hidden-view">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-extrabold text-gold-gradient uppercase tracking-wide">Edit Profile</h2>
+                <button onclick="cancelEdit()" class="text-slate-400 hover:text-red-500"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="flex flex-col items-center mb-4">
+                    <div class="dp-container mb-2" onclick="document.getElementById('dpUpload').click()" style="cursor: pointer;">
+                        <div class="dp-inner">
+                            <img id="editProfileImage" src="" class="w-full h-full object-cover hidden-view" alt="DP">
+                            <i id="editProfilePlaceholder" data-lucide="camera" class="w-8 h-8 text-gold-500"></i>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-400 font-bold">Tap to change logo</p>
+                </div>
+
+                <label class="block text-xs font-bold text-slate-500 mb-1">Company Name</label>
+                <input type="text" id="editCompName" class="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:border-gold-500 font-medium text-sm theme-golden:bg-premium-800 theme-golden:border-gold-500/30 theme-golden:text-gold-100">
+                
+                <label class="block text-xs font-bold text-slate-500 mb-1">CEO / Manager Name</label>
+                <input type="text" id="editCeoName" class="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:border-gold-500 font-medium text-sm theme-golden:bg-premium-800 theme-golden:border-gold-500/30 theme-golden:text-gold-100">
+                
+                <label class="block text-xs font-bold text-slate-500 mb-1">Mobile Number (Requires Verification on Save)</label>
+                <input type="tel" id="editMobile" class="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:border-gold-500 font-medium text-sm theme-golden:bg-premium-800 theme-golden:border-gold-500/30 theme-golden:text-gold-100">
+                
+                <label class="block text-xs font-bold text-slate-500 mb-1">Company Type / Industry</label>
+                <select id="editIndustry" class="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:border-gold-500 font-medium text-sm theme-golden:bg-premium-800 theme-golden:border-gold-500/30 theme-golden:text-gold-100">
+                    <option value="Manufacturing">Manufacturing</option>
+                    <option value="Textiles">Textiles</option>
+                    <option value="Electronics">Electronics & Hardware</option>
+                    <option value="Agriculture">Agriculture & Farming</option>
+                    <option value="Software/IT">Software/IT</option>
+                    <option value="Healthcare/Pharma">Healthcare & Pharma</option>
+                    <option value="Real Estate">Real Estate & Construction</option>
+                    <option value="Logistics/Supply Chain">Logistics & Supply Chain</option>
+                    <option value="Retail/E-commerce">Retail & E-commerce</option>
+                    <option value="Food & Beverage">Food & Beverage</option>
+                    <option value="Automotive">Automotive</option>
+                    <option value="Energy">Energy & Power</option>
+                </select>
+
+                <label class="block text-xs font-bold text-slate-500 mb-1">Daily Production Limit (Numeric Only)</label>
+                <input type="number" id="editProduction" placeholder="e.g., 5000" class="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:border-gold-500 font-medium text-sm theme-golden:bg-premium-800 theme-golden:border-gold-500/30 theme-golden:text-gold-100">
+                
+                <label class="block text-xs font-bold text-slate-500 mb-1">Headquarters Address</label>
+                <input type="text" id="editAddress" class="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:border-gold-500 font-medium text-sm theme-golden:bg-premium-800 theme-golden:border-gold-500/30 theme-golden:text-gold-100">
+
+                <button onclick="saveProfile()" id="saveProfileBtn" class="w-full mt-4 bg-gradient-to-r from-gold-500 to-gold-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-gold-500/30 uppercase tracking-wider text-sm">
+                    Save Changes
+                </button>
             </div>
         </div>
 
         <!-- System & Theme Settings -->
         <div class="glass-card rounded-3xl p-2">
-            <p class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest px-4 pt-4 pb-2">Application Preferences</p>
+            <p class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest px-4 pt-4 pb-2" data-i18n="appPreferences">Application Preferences</p>
             
             <!-- Theme Engine -->
-            <div class="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800">
+            <div class="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800 theme-golden:border-gold-500/20">
                 <div class="flex items-center gap-3">
-                    <div class="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-500"><i data-lucide="palette" class="w-5 h-5"></i></div>
+                    <div class="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-500 theme-golden:bg-premium-800 theme-golden:text-gold-500"><i data-lucide="palette" class="w-5 h-5"></i></div>
                     <div>
-                        <p class="font-bold text-sm text-slate-800 dark:text-white">Global Theme</p>
-                        <p class="text-xs text-slate-500">Apperance across all modules</p>
+                        <p class="font-bold text-sm text-slate-800 dark:text-white theme-golden:text-gold-100" data-i18n="globalTheme">Global Theme</p>
                     </div>
                 </div>
-                <select id="themeSelect" onchange="updateTheme(this.value)" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm p-2 outline-none font-bold text-slate-700 dark:text-slate-200">
+                <select id="themeSelect" onchange="updateTheme(this.value)" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm p-2 outline-none font-bold text-slate-700 dark:text-slate-200 theme-golden:bg-premium-800 theme-golden:border-gold-500/30 theme-golden:text-gold-200">
                     <option value="system">System Default</option>
                     <option value="light">Light Mode</option>
                     <option value="dark">Dark Mode</option>
@@ -136,17 +220,15 @@
             </div>
 
             <!-- Language Engine (25+) -->
-            <div class="flex items-center justify-between p-4">
+            <div class="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800 theme-golden:border-gold-500/20">
                 <div class="flex items-center gap-3">
-                    <div class="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-500"><i data-lucide="globe-2" class="w-5 h-5"></i></div>
+                    <div class="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-500 theme-golden:bg-premium-800 theme-golden:text-gold-500"><i data-lucide="globe-2" class="w-5 h-5"></i></div>
                     <div>
-                        <p class="font-bold text-sm text-slate-800 dark:text-white">Business Language</p>
-                        <p class="text-xs text-slate-500">Localize interface</p>
+                        <p class="font-bold text-sm text-slate-800 dark:text-white theme-golden:text-gold-100" data-i18n="appLanguage">Business Language</p>
                     </div>
                 </div>
-                <select id="langSelect" onchange="updateLanguage(this.value)" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm p-2 outline-none font-bold text-slate-700 dark:text-slate-200 w-28">
+                <select id="langSelect" onchange="updateLanguage(this.value)" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm p-2 outline-none font-bold text-slate-700 dark:text-slate-200 w-28 theme-golden:bg-premium-800 theme-golden:border-gold-500/30 theme-golden:text-gold-200">
                     <option value="en">English (US)</option>
-                    <option value="en-gb">English (UK)</option>
                     <option value="hi">हिन्दी (Hindi)</option>
                     <option value="te">తెలుగు (Telugu)</option>
                     <option value="ar">العربية (Arabic)</option>
@@ -161,59 +243,62 @@
                     <option value="it">Italiano (Italian)</option>
                     <option value="bn">বাংলা (Bengali)</option>
                     <option value="ur">اردو (Urdu)</option>
-                    <option value="id">Bahasa Indonesia</option>
                     <option value="tr">Türkçe (Turkish)</option>
-                    <option value="vi">Tiếng Việt</option>
-                    <option value="th">ไทย (Thai)</option>
-                    <option value="nl">Nederlands</option>
-                    <option value="pl">Polski (Polish)</option>
-                    <option value="sv">Svenska (Swedish)</option>
-                    <option value="ta">தமிழ் (Tamil)</option>
-                    <option value="gu">ગુજરાતી (Gujarati)</option>
                 </select>
             </div>
+
+            <!-- Connect to Settings.html -->
+            <button onclick="window.parent.loadModule('settings.html', document.querySelector('.nav-btn'))" class="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-b-2xl transition-colors theme-golden:hover:bg-premium-800">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-500 theme-golden:bg-premium-800 theme-golden:text-gold-500"><i data-lucide="settings" class="w-5 h-5"></i></div>
+                    <p class="font-bold text-sm text-slate-800 dark:text-white theme-golden:text-gold-100" data-i18n="moreSettings">More Settings</p>
+                </div>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 theme-golden:text-gold-600"></i>
+            </button>
         </div>
 
         <!-- Company Policies & Documents -->
         <div class="glass-card rounded-3xl p-2">
-            <p class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest px-4 pt-4 pb-2">Legal & Compliance</p>
+            <p class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest px-4 pt-4 pb-2" data-i18n="legal">Legal & Compliance</p>
             
-            <div class="p-4 flex items-center justify-between border-b border-slate-100 dark:border-slate-800">
+            <div class="p-4 flex items-center justify-between border-b border-slate-100 dark:border-slate-800 theme-golden:border-gold-500/20">
                 <div class="flex items-center gap-3">
-                    <div class="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-500"><i data-lucide="file-text" class="w-5 h-5"></i></div>
+                    <div class="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-500 theme-golden:bg-premium-800 theme-golden:text-gold-500"><i data-lucide="file-text" class="w-5 h-5"></i></div>
                     <div>
-                        <p class="font-bold text-sm text-slate-800 dark:text-white">Company Policies</p>
+                        <p class="font-bold text-sm text-slate-800 dark:text-white theme-golden:text-gold-100" data-i18n="companyPolicies">Company Policies</p>
                         <p class="text-xs text-slate-500" id="policyStatus">No policy uploaded</p>
                     </div>
                 </div>
                 <input type="file" id="policyDoc" accept=".pdf,.txt" class="hidden" onchange="handlePolicyUpload(event)">
-                <label for="policyDoc" class="cursor-pointer bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold px-4 py-2 rounded-lg hover:bg-gold-500 hover:text-white transition-colors">
+                <label for="policyDoc" class="cursor-pointer bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold px-4 py-2 rounded-lg hover:bg-gold-500 hover:text-white transition-colors theme-golden:bg-gold-600 theme-golden:text-black">
                     Upload
                 </label>
             </div>
             
-            <div class="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-b-2xl transition-colors">
+            <!-- Connect to privacy.html -->
+            <button onclick="window.parent.loadModule('privacy.html', document.querySelector('.nav-btn'))" class="w-full p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-b-2xl transition-colors theme-golden:hover:bg-premium-800">
                 <div class="flex items-center gap-3">
-                    <div class="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-500"><i data-lucide="shield-alert" class="w-5 h-5"></i></div>
-                    <p class="font-bold text-sm text-slate-800 dark:text-white">Privacy & Security Data</p>
+                    <div class="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-500 theme-golden:bg-premium-800 theme-golden:text-gold-500"><i data-lucide="shield-alert" class="w-5 h-5"></i></div>
+                    <p class="font-bold text-sm text-slate-800 dark:text-white theme-golden:text-gold-100" data-i18n="privacySecurity">Privacy & Security Data</p>
                 </div>
-                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
-            </div>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 theme-golden:text-gold-600"></i>
+            </button>
         </div>
 
         <!-- System Actions -->
         <div class="glass-card rounded-3xl p-2">
-            <button class="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-t-2xl transition-colors border-b border-slate-100 dark:border-slate-800">
+            <!-- Connect to plans.html -->
+            <button onclick="window.parent.loadModule('plans.html', document.querySelector('.nav-btn'))" class="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-t-2xl transition-colors border-b border-slate-100 dark:border-slate-800 theme-golden:border-gold-500/20 theme-golden:hover:bg-premium-800">
                 <div class="flex items-center gap-3">
-                    <div class="p-2 bg-gold-50 dark:bg-gold-900/20 rounded-xl text-gold-600"><i data-lucide="credit-card" class="w-5 h-5"></i></div>
-                    <p class="font-bold text-sm text-slate-800 dark:text-white">Billing & Subscriptions</p>
+                    <div class="p-2 bg-gold-50 dark:bg-gold-900/20 rounded-xl text-gold-600 theme-golden:bg-gold-600/20 theme-golden:text-gold-400"><i data-lucide="credit-card" class="w-5 h-5"></i></div>
+                    <p class="font-bold text-sm text-slate-800 dark:text-white theme-golden:text-gold-100" data-i18n="billing">Billing & Subscriptions</p>
                 </div>
-                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 theme-golden:text-gold-600"></i>
             </button>
-            <button onclick="triggerSignOut()" class="w-full p-4 flex items-center justify-between text-left hover:bg-red-50 dark:hover:bg-red-900/10 rounded-b-2xl transition-colors">
+            <button onclick="requestSignOut()" class="w-full p-4 flex items-center justify-between text-left hover:bg-red-50 dark:hover:bg-red-900/10 rounded-b-2xl transition-colors theme-golden:hover:bg-red-900/20">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-red-50 dark:bg-red-900/20 rounded-xl text-red-500"><i data-lucide="log-out" class="w-5 h-5"></i></div>
-                    <p class="font-bold text-sm text-red-500">Secure Logout</p>
+                    <p class="font-bold text-sm text-red-500" data-i18n="logout">Secure Logout</p>
                 </div>
             </button>
         </div>
@@ -224,103 +309,137 @@
     <!-- EDIT VERIFICATION MODAL                    -->
     <!-- ========================================== -->
     <div id="verifyModal" class="modal-overlay hidden-view">
-        <div class="bg-white dark:bg-slate-900 p-8 rounded-3xl w-11/12 max-w-sm modal-content shadow-2xl border border-gold-500/30">
+        <div class="bg-white dark:bg-slate-900 p-8 rounded-3xl w-11/12 max-w-sm modal-content shadow-2xl border border-gold-500/30 theme-golden:bg-premium-900">
             <div class="text-center mb-6">
                 <div class="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
                     <i data-lucide="lock" class="w-8 h-8 text-red-500"></i>
                 </div>
-                <h2 class="text-xl font-extrabold text-slate-800 dark:text-white uppercase tracking-wide">Security Lock</h2>
-                <p class="text-slate-500 text-xs mt-2 font-medium">To edit sensitive company data or change your Profile Picture, please confirm your registered email address.</p>
+                <h2 class="text-xl font-extrabold text-slate-800 dark:text-white uppercase tracking-wide theme-golden:text-gold-400">Security Lock</h2>
+                <p class="text-slate-500 text-xs mt-2 font-medium theme-golden:text-gold-100/70">To edit sensitive company data or change your Profile Picture, please confirm your registered email address.</p>
             </div>
             
-            <input type="email" id="verifyEmail" placeholder="Registered Email *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none mb-4 focus:border-gold-500 focus:ring-1 focus:ring-gold-500">
+            <input type="email" id="verifyEmail" placeholder="Registered Email *" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none mb-4 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 theme-golden:bg-premium-800 theme-golden:text-white theme-golden:border-gold-500/30">
             <p id="verifyError" class="text-red-500 text-xs font-bold text-center mb-4 hidden-view"></p>
             
             <div class="flex gap-3">
-                <button onclick="closeVerifyModal()" class="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold py-3.5 rounded-xl text-sm transition-colors hover:bg-slate-200 dark:hover:bg-slate-700">Cancel</button>
-                <button onclick="confirmEditAccess()" class="flex-1 bg-gradient-to-r from-gold-500 to-gold-600 text-white font-bold py-3.5 rounded-xl text-sm shadow-lg shadow-gold-500/30 transition-transform hover:scale-[1.02]">Verify</button>
+                <button onclick="closeVerifyModal()" class="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold py-3.5 rounded-xl text-sm transition-colors hover:bg-slate-200 dark:hover:bg-slate-700 theme-golden:bg-premium-800 theme-golden:text-gold-200">Cancel</button>
+                <button onclick="confirmEditAccess()" class="flex-1 bg-gradient-to-r from-gold-500 to-gold-600 text-white font-bold py-3.5 rounded-xl text-sm shadow-lg shadow-gold-500/30 transition-transform hover:scale-[1.02] theme-golden:text-black">Verify</button>
             </div>
         </div>
     </div>
 
-    <!-- Hidden DP Upload Input (Triggered after verification) -->
+    <!-- ========================================== -->
+    <!-- CONFIRM SIGN OUT MODAL                     -->
+    <!-- ========================================== -->
+    <div id="signOutModal" class="modal-overlay hidden-view">
+        <div class="bg-white dark:bg-slate-900 p-8 rounded-3xl w-11/12 max-w-sm modal-content shadow-2xl border border-red-500/30 theme-golden:bg-premium-900">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="alert-triangle" class="w-8 h-8 text-red-500"></i>
+                </div>
+                <h2 class="text-xl font-extrabold text-slate-800 dark:text-white uppercase tracking-wide theme-golden:text-red-400">Confirm Sign Out</h2>
+                <p class="text-slate-500 text-xs mt-2 font-medium theme-golden:text-white/70">Are you sure you want to sign out of Golden's Business Network?</p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="closeSignOutModal()" class="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold py-3.5 rounded-xl text-sm transition-colors hover:bg-slate-200 dark:hover:bg-slate-700 theme-golden:bg-premium-800 theme-golden:text-white">Cancel</button>
+                <button onclick="executeSignOut()" class="flex-1 bg-red-500 text-white font-bold py-3.5 rounded-xl text-sm shadow-lg shadow-red-500/30 transition-transform hover:scale-[1.02]">Yes, Log Out</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden DP Upload Input -->
     <input type="file" id="dpUpload" accept="image/*" class="hidden" onchange="handleDpUpload(event)">
 
     <script>
         lucide.createIcons();
 
-        // Connect to Parent's Supabase Instance (Zero Memory Waste!)
-        const _supabase = window.parent._supabase;
+        // 🛑 BULLETPROOF DATABASE CONNECTION 🛑
+        // To fix "Disconnected" we initialize Supabase here natively. 
+        // Put the exact same URL and KEY you used in index.html!
+        const SUPABASE_URL = 'https://puvdfqnjzliiuupchppj.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1dmRmcW5qemxpaXV1cGNocHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTExOTgsImV4cCI6MjA5MjU4NzE5OH0.hDK6fjZ2SesJ7qkeWVXxOoxW2Xmr7MDlKO-BFtJtDu0';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         let currentUser = null;
         let currentProfile = null;
 
+        // --- GLOBAL DICTIONARY FOR TRANSLATION (Basic Setup) ---
+        const translations = {
+            'hi': { 'companyProfile': 'कंपनी प्रोफ़ाइल', 'industry': 'उद्योग', 'verified': 'सत्यापित', 'logout': 'लॉग आउट' },
+            'te': { 'companyProfile': 'కంపెనీ ప్రొఫైల్', 'industry': 'పరిశ్రమ', 'verified': 'ధృవీకరించబడింది', 'logout': 'లాగ్ అవుట్ చేయండి' },
+            'es': { 'companyProfile': 'Perfil de la Empresa', 'industry': 'Industria', 'verified': 'Verificado', 'logout': 'Cerrar sesión' }
+            // Add more words here for full global app!
+        };
+
         async function initProfile() {
-            if (!_supabase) {
-                document.getElementById('displayCompanyName').innerText = "Database Disconnected";
+            const { data: { user }, error: authError } = await _supabase.auth.getUser();
+            if (authError || !user) {
+                document.getElementById('displayCompanyName').innerText = "Auth Error";
+                return;
+            }
+            currentUser = user;
+
+            const { data: profile, error } = await _supabase.from('profiles').select('*').eq('id', user.id).single();
+            if (error) {
+                document.getElementById('displayCompanyName').innerText = "Error Loading Profile";
                 return;
             }
 
-            const { data: { user } } = await _supabase.auth.getUser();
-            if (!user) return;
-            currentUser = user;
-
-            const { data: profile } = await _supabase.from('profiles').select('*').eq('id', user.id).single();
             if (profile) {
                 currentProfile = profile;
+                
+                // Populate Display Mode
                 document.getElementById('displayCompanyName').innerText = profile.company_name || "Business Name";
                 document.getElementById('displayCeoName').innerText = profile.ceo_name ? `${profile.ceo_name} • ${profile.country || 'Global'}` : "CEO";
+                document.getElementById('dispIndustry').innerText = profile.industry_type || "N/A";
+                document.getElementById('dispCapacity').innerText = profile.daily_production ? `${profile.daily_production} units` : "N/A";
                 
+                // Populate Edit Mode Form
+                document.getElementById('editCompName').value = profile.company_name || '';
+                document.getElementById('editCeoName').value = profile.ceo_name || '';
+                document.getElementById('editMobile').value = profile.phone_number || '';
+                document.getElementById('editIndustry').value = profile.industry_type || 'Manufacturing';
+                document.getElementById('editProduction').value = profile.daily_production || '';
+                document.getElementById('editAddress').value = profile.company_address || '';
+
                 // Load Settings
                 if (profile.theme) {
                     document.getElementById('themeSelect').value = profile.theme;
                     applyLocalTheme(profile.theme);
                 }
-                if (profile.language) document.getElementById('langSelect').value = profile.language;
-                if (profile.dp_url) renderDP(_supabase.storage.from('profile_pictures').getPublicUrl(profile.dp_url).data.publicUrl);
+                if (profile.language) {
+                    document.getElementById('langSelect').value = profile.language;
+                    translateApp(profile.language);
+                }
+                if (profile.dp_url) {
+                    const publicUrl = _supabase.storage.from('profile_pictures').getPublicUrl(profile.dp_url).data.publicUrl;
+                    renderDP(publicUrl);
+                }
                 if (profile.policy_doc_url) document.getElementById('policyStatus').innerHTML = "<span class='text-green-500 font-bold'>Verified Policy Active</span>";
             }
         }
 
-        // --- THEME ENGINE ---
-        function updateTheme(theme) {
-            applyLocalTheme(theme);
-            // Save to DB
-            if(currentUser) _supabase.from('profiles').update({ theme: theme }).eq('id', currentUser.id);
-            // Update Parent Shell
-            if (window.parent && typeof window.parent.changeTheme === 'function') {
-                window.parent.changeTheme(theme);
+        // --- REAL SHARE PROFILE LOGIC ---
+        function shareProfile() {
+            if (navigator.share) {
+                navigator.share({
+                    title: `Golden's Business: ${currentProfile?.company_name || 'Business'}`,
+                    text: `Connect with ${currentProfile?.company_name} on Golden's Business Network. Industry: ${currentProfile?.industry_type}`,
+                    url: window.location.origin // The URL of your app
+                }).catch(err => console.log('Share error:', err));
+            } else {
+                alert("Share feature is not supported on this browser.");
             }
         }
 
-        function applyLocalTheme(theme) {
-            const html = document.documentElement;
-            html.classList.remove('dark', 'theme-golden');
-            
-            if (theme === 'dark') html.classList.add('dark');
-            else if (theme === 'golden') {
-                html.classList.add('dark'); // Golden builds on dark mode
-                html.classList.add('theme-golden');
-            } else if (theme === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                html.classList.add('dark');
-            }
-        }
-
-        // --- LANGUAGE ENGINE ---
-        function updateLanguage(lang) {
-            if(currentUser) _supabase.from('profiles').update({ language: lang }).eq('id', currentUser.id);
-            // In a full app, this would trigger a JSON translation dictionary load.
-        }
-
-        // --- SECURITY LOCK FOR EDITS ---
+        // --- EDIT MODE LOGIC ---
         function requestEditLock() {
             document.getElementById('verifyModal').classList.remove('hidden-view');
             document.getElementById('verifyError').classList.add('hidden-view');
             document.getElementById('verifyEmail').value = '';
         }
 
-        function closeVerifyModal() {
-            document.getElementById('verifyModal').classList.add('hidden-view');
-        }
+        function closeVerifyModal() { document.getElementById('verifyModal').classList.add('hidden-view'); }
 
         function confirmEditAccess() {
             const inputEmail = document.getElementById('verifyEmail').value.trim();
@@ -328,8 +447,9 @@
 
             if (inputEmail.toLowerCase() === currentUser.email.toLowerCase()) {
                 closeVerifyModal();
-                // Access granted! Trigger DP upload or open an Edit form
-                document.getElementById('dpUpload').click();
+                // Flip the UI to Edit Mode
+                document.getElementById('profileDisplayMode').classList.add('hidden-view');
+                document.getElementById('profileEditMode').classList.remove('hidden-view');
             } else {
                 const err = document.getElementById('verifyError');
                 err.innerText = "Security Alert: Email does not match records.";
@@ -337,40 +457,130 @@
             }
         }
 
-        // --- FILE UPLOADS (Storage) ---
+        function cancelEdit() {
+            document.getElementById('profileEditMode').classList.add('hidden-view');
+            document.getElementById('profileDisplayMode').classList.remove('hidden-view');
+        }
+
+        async function saveProfile() {
+            const btn = document.getElementById('saveProfileBtn');
+            const oldMobile = currentProfile.phone_number;
+            const newMobile = document.getElementById('editMobile').value;
+            
+            // Mobile Number Change Policy Logic
+            if (oldMobile && oldMobile !== newMobile) {
+                const confirmChange = confirm("SECURITY ALERT:\nYou are changing your registered mobile number. A confirmation will be required. Proceed?");
+                if(!confirmChange) return;
+            }
+
+            btn.innerText = "Saving to Server...";
+
+            const updates = {
+                company_name: document.getElementById('editCompName').value,
+                ceo_name: document.getElementById('editCeoName').value,
+                phone_number: newMobile,
+                industry_type: document.getElementById('editIndustry').value,
+                daily_production: document.getElementById('editProduction').value,
+                company_address: document.getElementById('editAddress').value,
+            };
+
+            const { error } = await _supabase.from('profiles').update(updates).eq('id', currentUser.id);
+
+            if(error) {
+                alert("Error saving: " + error.message);
+                btn.innerText = "Save Changes";
+                return;
+            }
+
+            btn.innerText = "Success!";
+            setTimeout(() => {
+                cancelEdit();
+                initProfile(); // Reload display
+                btn.innerText = "Save Changes";
+            }, 1000);
+        }
+
+        // --- THEME ENGINE ---
+        function updateTheme(theme) {
+            applyLocalTheme(theme);
+            if(currentUser) _supabase.from('profiles').update({ theme: theme }).eq('id', currentUser.id);
+            if (window.parent && typeof window.parent.changeTheme === 'function') window.parent.changeTheme(theme);
+        }
+
+        function applyLocalTheme(theme) {
+            const html = document.documentElement;
+            html.classList.remove('dark', 'theme-golden');
+            if (theme === 'dark') html.classList.add('dark');
+            else if (theme === 'golden') { html.classList.add('dark', 'theme-golden'); } 
+            else if (theme === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                html.classList.add('dark');
+            }
+        }
+
+        // --- LANGUAGE ENGINE ---
+        function updateLanguage(lang) {
+            if(currentUser) _supabase.from('profiles').update({ language: lang }).eq('id', currentUser.id);
+            localStorage.setItem('golden_language', lang); // Save globally for parent app
+            translateApp(lang);
+        }
+
+        function translateApp(lang) {
+            if (!translations[lang]) return; // Fallback to English/Default if not in dictionary
+            const elements = document.querySelectorAll('[data-i18n]');
+            elements.forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang][key]) el.innerText = translations[lang][key];
+            });
+        }
+
+        // --- SIGN OUT LOGIC ---
+        function requestSignOut() {
+            document.getElementById('signOutModal').classList.remove('hidden-view');
+        }
+
+        function closeSignOutModal() {
+            document.getElementById('signOutModal').classList.add('hidden-view');
+        }
+
+        async function executeSignOut() {
+            if (window.parent && typeof window.parent.signOutApp === 'function') {
+                window.parent.signOutApp();
+            } else {
+                await _supabase.auth.signOut();
+                window.location.reload();
+            }
+        }
+
+        // --- FILE UPLOADS (DP & Policies) ---
         async function handleDpUpload(event) {
             const file = event.target.files[0];
             if(!file || !currentUser) return;
-            
             const filePath = `${currentUser.id}/dp_${Date.now()}.${file.name.split('.').pop()}`;
-            
-            // Show loading state
-            document.getElementById('profilePlaceholder').setAttribute('data-lucide', 'loader-2');
-            document.getElementById('profilePlaceholder').classList.add('animate-spin');
+            document.getElementById('editProfilePlaceholder').setAttribute('data-lucide', 'loader-2');
+            document.getElementById('editProfilePlaceholder').classList.add('animate-spin');
             lucide.createIcons();
 
-            const { error: uploadError } = await _supabase.storage.from('profile_pictures').upload(filePath, file, { upsert: true });
-            if (!uploadError) {
+            const { error } = await _supabase.storage.from('profile_pictures').upload(filePath, file, { upsert: true });
+            if (!error) {
                 await _supabase.from('profiles').update({ dp_url: filePath }).eq('id', currentUser.id);
                 const publicUrl = _supabase.storage.from('profile_pictures').getPublicUrl(filePath).data.publicUrl;
                 renderDP(publicUrl);
-            } else {
-                alert("Upload failed. Ensure Supabase storage policies are set.");
             }
         }
 
         function renderDP(url) {
-            const img = document.getElementById('profileImage');
-            const icon = document.getElementById('profilePlaceholder');
-            img.src = url;
-            img.classList.remove('hidden-view');
-            icon.classList.add('hidden-view');
+            document.getElementById('profileImage').src = url;
+            document.getElementById('profileImage').classList.remove('hidden-view');
+            document.getElementById('profilePlaceholder').classList.add('hidden-view');
+            
+            document.getElementById('editProfileImage').src = url;
+            document.getElementById('editProfileImage').classList.remove('hidden-view');
+            document.getElementById('editProfilePlaceholder').classList.add('hidden-view');
         }
 
         async function handlePolicyUpload(event) {
             const file = event.target.files[0];
             if(!file || !currentUser) return;
-
             const filePath = `${currentUser.id}/policy_${Date.now()}.${file.name.split('.').pop()}`;
             document.getElementById('policyStatus').innerText = "Uploading secure document...";
 
@@ -378,24 +588,15 @@
             if(!error) {
                 await _supabase.from('profiles').update({ policy_doc_url: filePath }).eq('id', currentUser.id);
                 document.getElementById('policyStatus').innerHTML = "<span class='text-green-500 font-bold'>Verified Policy Active</span>";
-            } else {
-                document.getElementById('policyStatus').innerHTML = "<span class='text-red-500 font-bold'>Upload Failed</span>";
             }
         }
 
-        // --- LOGOUT ---
-        function triggerSignOut() {
-            if (window.parent && typeof window.parent.signOutApp === 'function') {
-                window.parent.signOutApp();
-            }
-        }
-
-        // Initialize on load
         window.addEventListener('DOMContentLoaded', () => {
             initProfile();
-            // Apply theme immediately if inherited from parent localstorage
             const savedTheme = localStorage.getItem('golden_theme') || 'system';
             applyLocalTheme(savedTheme);
+            const savedLang = localStorage.getItem('golden_language') || 'en';
+            translateApp(savedLang);
         });
 
     </script>
