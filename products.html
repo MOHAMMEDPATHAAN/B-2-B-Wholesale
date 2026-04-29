@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Products - Golden's</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { gold: { 400: '#FACC15', 500: '#EAB308', 600: '#CA8A04' }, premium: { 900: '#0a0a0a', 800: '#171717' } } } } }
+    </script>
+    <style>
+        body { background: #f8fafc; padding-bottom: 100px; }
+        .dark body { background: #0f172a; }
+        .theme-golden body { background: #0a0a0a; color: #fef08a; }
+        .hidden-view { display: none !important; }
+        
+        .header-glass { background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .dark .header-glass { background: rgba(15,23,42,0.9); border-color: rgba(255,255,255,0.05); }
+        .theme-golden .header-glass { background: rgba(10,10,10,0.9); border-color: rgba(234,179,8,0.2); }
+
+        .btn-plus { background: #22c55e; color: white; box-shadow: 0 4px 15px rgba(34,197,94,0.3); }
+        .theme-golden .btn-plus { background: linear-gradient(135deg, #FDE047, #EAB308); color: #000; box-shadow: 0 4px 15px rgba(234,179,8,0.3); }
+
+        .form-input { width: 100%; padding: 12px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; outline: none; font-size: 14px; font-weight: 600; }
+        .dark .form-input { background: #1e293b; border-color: #334155; color: white; }
+        .theme-golden .form-input { background: #171717; border-color: rgba(234,179,8,0.3); color: #fef08a; }
+        .theme-golden .form-input:focus { border-color: #FDE047; }
+
+        .product-card { background: white; border-radius: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden; }
+        .dark .product-card { background: #1e293b; }
+        .theme-golden .product-card { background: #171717; border: 1px solid rgba(234,179,8,0.2); }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; overflow-y: auto; }
+        .modal-content { background: white; min-height: 100vh; padding: 20px; padding-bottom: 100px; animation: slideUp 0.3s ease-out; }
+        .dark .modal-content { background: #0f172a; }
+        .theme-golden .modal-content { background: #0a0a0a; border-top: 1px solid rgba(234,179,8,0.3); }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    </style>
+</head>
+<body class="transition-colors duration-300">
+
+    <!-- Header -->
+    <div class="sticky top-0 z-40 header-glass px-6 py-4 flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-extrabold uppercase tracking-wide text-slate-800 dark:text-white theme-golden:text-gold-400">Products</h1>
+            <p class="text-xs font-bold text-slate-500 theme-golden:text-gold-200/50">Total: <span id="totalCount">0</span></p>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="toggleView()" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 theme-golden:bg-premium-800 text-slate-500 theme-golden:text-gold-500">
+                <i id="viewIcon" data-lucide="layout-grid" class="w-5 h-5"></i>
+            </button>
+            <button onclick="openUploadModal()" class="btn-plus p-2 rounded-xl flex items-center justify-center transition-transform hover:scale-105">
+                <i data-lucide="plus" class="w-6 h-6"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Product Grid -->
+    <div id="productGrid" class="p-4 grid grid-cols-2 gap-4">
+        <!-- Rendered via JS -->
+    </div>
+
+    <!-- ========================================== -->
+    <!-- UPLOAD PRODUCT MODAL                       -->
+    <!-- ========================================== -->
+    <div id="uploadModal" class="modal-overlay hidden-view">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-6 sticky top-0 bg-white dark:bg-slate-900 theme-golden:bg-premium-900 py-2 z-10">
+                <h2 class="text-xl font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-400">New Product</h2>
+                <button onclick="closeUploadModal()" class="text-slate-400 hover:text-red-500"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+
+            <div class="space-y-5 max-w-lg mx-auto">
+                <!-- Media -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1 theme-golden:text-gold-500">Product Media (Images / 360° Video)</label>
+                    <input type="file" id="prodMedia" multiple accept="image/*,video/*" class="form-input">
+                </div>
+
+                <!-- Core Details -->
+                <input type="text" id="prodTitle" placeholder="Product Title *" class="form-input">
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="number" id="prodPrice" placeholder="Wholesale Price (₹) *" class="form-input">
+                    <input type="number" id="prodMinUnit" placeholder="Min. Order Qty *" class="form-input">
+                </div>
+                <textarea id="prodDesc" placeholder="Product Description..." rows="3" class="form-input"></textarea>
+
+                <!-- Dimensions & Auto-Calc -->
+                <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800 theme-golden:bg-premium-800 border border-slate-200 dark:border-slate-700 theme-golden:border-gold-500/20">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-xs font-bold text-slate-500 theme-golden:text-gold-500">Dimensions (Optional)</label>
+                        <select id="dimUnit" class="text-xs p-1 rounded bg-white dark:bg-slate-700 theme-golden:bg-premium-900 outline-none text-slate-800 dark:text-white theme-golden:text-gold-200">
+                            <option value="cm">cm</option><option value="m">m</option><option value="inch">inch</option><option value="ft">ft</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 mb-2">
+                        <input type="number" id="dimL" placeholder="L" oninput="calcVolume()" class="form-input text-center">
+                        <input type="number" id="dimB" placeholder="B" oninput="calcVolume()" class="form-input text-center">
+                        <input type="number" id="dimH" placeholder="H" oninput="calcVolume()" class="form-input text-center">
+                    </div>
+                    <p class="text-xs font-bold text-slate-400 theme-golden:text-gold-600/50">Calculated Volume: <span id="calcVol">0</span> <span id="volUnit">cm³</span></p>
+                </div>
+
+                <!-- Operations -->
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="text" id="prodWeight" placeholder="Weight (e.g. 5kg)" class="form-input">
+                    <input type="text" id="prodQuality" placeholder="Quality/Grade" class="form-input">
+                    <input type="number" id="prodStock" placeholder="Available Stock" class="form-input">
+                    <input type="number" id="prodDaily" placeholder="Daily Production" class="form-input">
+                </div>
+
+                <!-- Dynamic Colors (Max 12) -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1 theme-golden:text-gold-500">Colors Available (Max 12)</label>
+                    <div class="flex gap-2 mb-2">
+                        <input type="text" id="colorInput" placeholder="e.g. Matte Black" class="form-input">
+                        <button type="button" onclick="addColor()" class="bg-slate-200 dark:bg-slate-700 theme-golden:bg-premium-800 px-4 rounded-xl font-bold">+</button>
+                    </div>
+                    <div id="colorContainer" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <!-- Dynamic Sizes (Max 100) -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1 theme-golden:text-gold-500">Custom Sizes (Max 100)</label>
+                    <div class="flex gap-2 mb-2">
+                        <input type="text" id="sizeInput" placeholder="e.g. XL, 42, 500ml" class="form-input">
+                        <button type="button" onclick="addSize()" class="bg-slate-200 dark:bg-slate-700 theme-golden:bg-premium-800 px-4 rounded-xl font-bold">+</button>
+                    </div>
+                    <div id="sizeContainer" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <button onclick="saveProduct()" id="saveBtn" class="w-full mt-4 bg-gradient-to-r from-green-500 to-emerald-600 theme-golden:from-gold-500 theme-golden:to-gold-600 text-white theme-golden:text-black font-bold py-4 rounded-xl shadow-lg uppercase tracking-wider text-sm transition-transform hover:scale-[1.02]">
+                    Save & Publish Product
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const _supabase = window.parent._supabase;
+        let currentUser = null;
+        let isGridView = true;
+        let colors = [];
+        let sizes = [];
+
+        // Apply Theme
+        const theme = localStorage.getItem('golden_theme') || 'system';
+        const html = document.documentElement;
+        if (theme === 'dark') html.classList.add('dark');
+        else if (theme === 'golden') html.classList.add('dark', 'theme-golden');
+        else if (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) html.classList.add('dark');
+
+        async function init() {
+            if(!_supabase) return;
+            const { data: { user } } = await _supabase.auth.getUser();
+            currentUser = user;
+            fetchProducts();
+        }
+
+        async function fetchProducts() {
+            if(!currentUser) return;
+            const { data, error } = await _supabase.from('products').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+            if(data) {
+                document.getElementById('totalCount').innerText = data.length;
+                renderProducts(data);
+            }
+        }
+
+        function renderProducts(products) {
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = '';
+            grid.className = isGridView ? 'p-4 grid grid-cols-2 gap-4' : 'p-4 flex flex-col gap-4';
+            
+            products.forEach(p => {
+                const imgUrl = (p.media_urls && p.media_urls.length > 0) 
+                    ? _supabase.storage.from('product_media').getPublicUrl(p.media_urls[0]).data.publicUrl 
+                    : 'https://via.placeholder.com/150?text=No+Image';
+                
+                grid.innerHTML += `
+                    <div class="product-card flex ${isGridView ? 'flex-col' : 'flex-row items-center'}">
+                        <img src="${imgUrl}" class="${isGridView ? 'w-full h-32' : 'w-24 h-24'} object-cover" alt="Product">
+                        <div class="p-3 w-full">
+                            <h3 class="font-bold text-sm text-slate-800 dark:text-white theme-golden:text-gold-200 truncate">${p.title}</h3>
+                            <p class="text-xs text-slate-500 font-semibold theme-golden:text-gold-600">Wholesale: ₹${p.price}</p>
+                            <p class="text-[10px] text-slate-400 mt-1">Min: ${p.min_unit} | Stock: ${p.stock || 'N/A'}</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function toggleView() {
+            isGridView = !isGridView;
+            document.getElementById('viewIcon').setAttribute('data-lucide', isGridView ? 'layout-grid' : 'list');
+            lucide.createIcons();
+            fetchProducts();
+        }
+
+        function openUploadModal() { document.getElementById('uploadModal').classList.remove('hidden-view'); }
+        function closeUploadModal() { document.getElementById('uploadModal').classList.add('hidden-view'); }
+
+        // --- Auto Calculate Volume ---
+        function calcVolume() {
+            const l = parseFloat(document.getElementById('dimL').value) || 0;
+            const b = parseFloat(document.getElementById('dimB').value) || 0;
+            const h = parseFloat(document.getElementById('dimH').value) || 0;
+            const unit = document.getElementById('dimUnit').value;
+            const vol = l * b * h;
+            document.getElementById('calcVol').innerText = vol.toFixed(2);
+            document.getElementById('volUnit').innerText = unit + '³';
+        }
+
+        // --- Dynamic Arrays ---
+        function addColor() {
+            const val = document.getElementById('colorInput').value.trim();
+            if(val && colors.length < 12 && !colors.includes(val)) {
+                colors.push(val);
+                renderBadges('colorContainer', colors, 'color');
+                document.getElementById('colorInput').value = '';
+            }
+        }
+        function addSize() {
+            const val = document.getElementById('sizeInput').value.trim();
+            if(val && sizes.length < 100 && !sizes.includes(val)) {
+                sizes.push(val);
+                renderBadges('sizeContainer', sizes, 'size');
+                document.getElementById('sizeInput').value = '';
+            }
+        }
+        function removeBadge(type, val) {
+            if(type === 'color') { colors = colors.filter(c => c !== val); renderBadges('colorContainer', colors, 'color'); }
+            if(type === 'size') { sizes = sizes.filter(s => s !== val); renderBadges('sizeContainer', sizes, 'size'); }
+        }
+        function renderBadges(containerId, array, type) {
+            const cont = document.getElementById(containerId);
+            cont.innerHTML = '';
+            array.forEach(item => {
+                cont.innerHTML += `<span class="bg-slate-200 dark:bg-slate-700 theme-golden:bg-premium-800 text-xs font-bold px-2 py-1 rounded-md flex items-center gap-1">${item} <i data-lucide="x" class="w-3 h-3 cursor-pointer" onclick="removeBadge('${type}', '${item}')"></i></span>`;
+            });
+            lucide.createIcons();
+        }
+
+        // --- Save Product to Supabase ---
+        async function saveProduct() {
+            if(!currentUser) return;
+            const btn = document.getElementById('saveBtn');
+            const title = document.getElementById('prodTitle').value;
+            const price = document.getElementById('prodPrice').value;
+            const minUnit = document.getElementById('prodMinUnit').value;
+
+            if(!title || !price || !minUnit) return alert("Title, Price, and Min Unit are required.");
+
+            btn.innerText = "Processing...";
+            btn.disabled = true;
+
+            // Handle Media Uploads
+            const files = document.getElementById('prodMedia').files;
+            let mediaPaths = [];
+            for(let i=0; i<files.length; i++) {
+                const file = files[i];
+                const path = `${currentUser.id}/prod_${Date.now()}_${i}.${file.name.split('.').pop()}`;
+                const { error } = await _supabase.storage.from('product_media').upload(path, file);
+                if(!error) mediaPaths.push(path);
+            }
+
+            const productData = {
+                user_id: currentUser.id,
+                title: title, price: price, min_unit: minUnit,
+                description: document.getElementById('prodDesc').value,
+                dimensions: {
+                    l: document.getElementById('dimL').value, b: document.getElementById('dimB').value,
+                    h: document.getElementById('dimH').value, unit: document.getElementById('dimUnit').value,
+                    volume: document.getElementById('calcVol').innerText
+                },
+                weight: document.getElementById('prodWeight').value,
+                quality: document.getElementById('prodQuality').value,
+                stock: document.getElementById('prodStock').value || 0,
+                daily_production: document.getElementById('prodDaily').value || 0,
+                colors: colors, sizes: sizes, media_urls: mediaPaths
+            };
+
+            const { error } = await _supabase.from('products').insert([productData]);
+            
+            if(error) alert("Error: " + error.message);
+            else {
+                closeUploadModal();
+                fetchProducts();
+                // Reset form
+                colors = []; sizes = []; renderBadges('colorContainer', colors, 'color'); renderBadges('sizeContainer', sizes, 'size');
+                document.querySelectorAll('input, textarea').forEach(el => el.value = '');
+            }
+            btn.innerText = "Save & Publish Product";
+            btn.disabled = false;
+        }
+
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
