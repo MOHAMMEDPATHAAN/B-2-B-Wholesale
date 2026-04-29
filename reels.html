@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Reels - Golden's</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { gold: { 400: '#FACC15', 500: '#EAB308', 600: '#CA8A04' }, premium: { 900: '#0a0a0a', 800: '#171717' } } } } }
+    </script>
+    <style>
+        body { background: #f8fafc; padding-bottom: 100px; }
+        .dark body { background: #0f172a; }
+        .theme-golden body { background: #0a0a0a; color: #fef08a; }
+        .hidden-view { display: none !important; }
+        
+        .header-glass { background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .dark .header-glass { background: rgba(15,23,42,0.9); border-color: rgba(255,255,255,0.05); }
+        .theme-golden .header-glass { background: rgba(10,10,10,0.9); border-color: rgba(234,179,8,0.2); }
+
+        .btn-plus { background: #22c55e; color: white; box-shadow: 0 4px 15px rgba(34,197,94,0.3); }
+        .theme-golden .btn-plus { background: linear-gradient(135deg, #FDE047, #EAB308); color: #000; box-shadow: 0 4px 15px rgba(234,179,8,0.3); }
+
+        .form-input { width: 100%; padding: 14px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; outline: none; font-size: 14px; font-weight: 600; }
+        .dark .form-input { background: #1e293b; border-color: #334155; color: white; }
+        .theme-golden .form-input { background: #171717; border-color: rgba(234,179,8,0.3); color: #fef08a; }
+        
+        .reel-card { border-radius: 16px; overflow: hidden; position: relative; aspect-ratio: 9/16; background: #000; }
+        
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; overflow-y: auto; }
+        .modal-content { background: white; min-height: 100vh; padding: 20px; padding-bottom: 100px; animation: slideUp 0.3s ease-out; }
+        .dark .modal-content { background: #0f172a; }
+        .theme-golden .modal-content { background: #0a0a0a; border-top: 1px solid rgba(234,179,8,0.3); }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    </style>
+</head>
+<body class="transition-colors duration-300">
+
+    <!-- Header -->
+    <div class="sticky top-0 z-40 header-glass px-6 py-4 flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-extrabold uppercase tracking-wide text-slate-800 dark:text-white theme-golden:text-gold-400">Promotions</h1>
+            <p class="text-xs font-bold text-slate-500 theme-golden:text-gold-200/50">Your Total Reels: <span id="totalReels">0</span></p>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="toggleView()" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 theme-golden:bg-premium-800 text-slate-500 theme-golden:text-gold-500">
+                <i id="viewIcon" data-lucide="layout-grid" class="w-5 h-5"></i>
+            </button>
+            <button onclick="openUploadModal()" class="btn-plus p-2 rounded-xl flex items-center justify-center transition-transform hover:scale-105">
+                <i data-lucide="video" class="w-6 h-6"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Reels Grid -->
+    <div id="reelsGrid" class="p-4 grid grid-cols-2 gap-4">
+        <!-- Rendered via JS -->
+    </div>
+
+    <!-- ========================================== -->
+    <!-- UPLOAD REEL MODAL                          -->
+    <!-- ========================================== -->
+    <div id="uploadModal" class="modal-overlay hidden-view">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-6 sticky top-0 bg-white dark:bg-slate-900 theme-golden:bg-premium-900 py-2 z-10">
+                <h2 class="text-xl font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-400">Create Reel</h2>
+                <button onclick="closeUploadModal()" class="text-slate-400 hover:text-red-500"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+
+            <div class="space-y-5 max-w-lg mx-auto">
+                
+                <!-- Video Upload/Camera -->
+                <div class="p-6 border-2 border-dashed border-slate-300 dark:border-slate-700 theme-golden:border-gold-500/50 rounded-2xl text-center bg-slate-50 dark:bg-slate-800 theme-golden:bg-premium-800">
+                    <i data-lucide="video" class="w-10 h-10 mx-auto text-slate-400 theme-golden:text-gold-500 mb-2"></i>
+                    <label class="block text-sm font-bold text-slate-800 dark:text-white theme-golden:text-gold-100 cursor-pointer">
+                        Tap to Upload or Record
+                        <input type="file" id="reelMedia" accept="video/*" capture="environment" class="hidden" onchange="previewVideo(event)">
+                    </label>
+                    <video id="videoPreview" class="w-full mt-4 rounded-xl hidden-view" controls></video>
+                </div>
+
+                <input type="text" id="reelTitle" placeholder="Catchy Hook / Title *" class="form-input">
+                <textarea id="reelDesc" placeholder="Caption / Description..." rows="3" class="form-input"></textarea>
+
+                <!-- Product Linker -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1 theme-golden:text-gold-500">Connect to a Product (Optional)</label>
+                    <select id="linkedProduct" class="form-input">
+                        <option value="">-- Do not link a product --</option>
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+
+                <button onclick="saveReel()" id="saveBtn" class="w-full mt-4 bg-gradient-to-r from-green-500 to-emerald-600 theme-golden:from-gold-500 theme-golden:to-gold-600 text-white theme-golden:text-black font-bold py-4 rounded-xl shadow-lg uppercase tracking-wider text-sm transition-transform hover:scale-[1.02]">
+                    Publish Reel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const _supabase = window.parent._supabase;
+        let currentUser = null;
+        let isGridView = true;
+
+        // Apply Theme
+        const theme = localStorage.getItem('golden_theme') || 'system';
+        const html = document.documentElement;
+        if (theme === 'dark') html.classList.add('dark');
+        else if (theme === 'golden') html.classList.add('dark', 'theme-golden');
+        else if (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) html.classList.add('dark');
+
+        async function init() {
+            if(!_supabase) return;
+            const { data: { user } } = await _supabase.auth.getUser();
+            currentUser = user;
+            fetchReels();
+            fetchUserProducts();
+        }
+
+        async function fetchUserProducts() {
+            if(!currentUser) return;
+            const { data } = await _supabase.from('products').select('id, title').eq('user_id', currentUser.id);
+            if(data) {
+                const select = document.getElementById('linkedProduct');
+                data.forEach(p => {
+                    select.innerHTML += `<option value="${p.id}">📦 ${p.title}</option>`;
+                });
+            }
+        }
+
+        async function fetchReels() {
+            if(!currentUser) return;
+            const { data } = await _supabase.from('reels').select('*, products(title)').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+            if(data) {
+                document.getElementById('totalReels').innerText = data.length;
+                renderReels(data);
+            }
+        }
+
+        function renderReels(reels) {
+            const grid = document.getElementById('reelsGrid');
+            grid.innerHTML = '';
+            grid.className = isGridView ? 'p-4 grid grid-cols-2 gap-4' : 'p-4 flex flex-col gap-6';
+            
+            reels.forEach(r => {
+                const vidUrl = _supabase.storage.from('reels_media').getPublicUrl(r.video_url).data.publicUrl;
+                const linkBadge = r.products ? `<div class="absolute top-2 left-2 bg-black/60 backdrop-blur text-xs font-bold text-white px-2 py-1 rounded-md z-10 truncate max-w-[90%]">🔗 ${r.products.title}</div>` : '';
+                
+                grid.innerHTML += `
+                    <div class="reel-card">
+                        ${linkBadge}
+                        <video src="${vidUrl}" class="w-full h-full object-cover" muted loop onmouseover="this.play()" onmouseout="this.pause()"></video>
+                        <div class="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 to-transparent">
+                            <h3 class="font-bold text-sm text-white truncate">${r.title}</h3>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function toggleView() {
+            isGridView = !isGridView;
+            document.getElementById('viewIcon').setAttribute('data-lucide', isGridView ? 'layout-grid' : 'list');
+            lucide.createIcons();
+            fetchReels();
+        }
+
+        function previewVideo(event) {
+            const file = event.target.files[0];
+            if(file) {
+                const vid = document.getElementById('videoPreview');
+                vid.src = URL.createObjectURL(file);
+                vid.classList.remove('hidden-view');
+            }
+        }
+
+        function openUploadModal() { document.getElementById('uploadModal').classList.remove('hidden-view'); }
+        function closeUploadModal() { document.getElementById('uploadModal').classList.add('hidden-view'); }
+
+        async function saveReel() {
+            if(!currentUser) return;
+            const btn = document.getElementById('saveBtn');
+            const file = document.getElementById('reelMedia').files[0];
+            const title = document.getElementById('reelTitle').value;
+
+            if(!file || !title) return alert("Video and Title are required.");
+
+            btn.innerText = "Uploading Video... (Do not close)";
+            btn.disabled = true;
+
+            const path = `${currentUser.id}/reel_${Date.now()}.${file.name.split('.').pop()}`;
+            const { error: uploadError } = await _supabase.storage.from('reels_media').upload(path, file);
+            
+            if(uploadError) {
+                alert("Upload Error: " + uploadError.message);
+            } else {
+                const reelData = {
+                    user_id: currentUser.id,
+                    title: title,
+                    description: document.getElementById('reelDesc').value,
+                    video_url: path,
+                    linked_product_id: document.getElementById('linkedProduct').value || null
+                };
+
+                await _supabase.from('reels').insert([reelData]);
+                
+                closeUploadModal();
+                fetchReels();
+                // Reset form
+                document.getElementById('reelTitle').value = '';
+                document.getElementById('reelDesc').value = '';
+                document.getElementById('videoPreview').classList.add('hidden-view');
+            }
+            btn.innerText = "Publish Reel";
+            btn.disabled = false;
+        }
+
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>,
