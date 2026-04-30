@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Global Feed - Golden's</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { gold: { 400: '#FACC15', 500: '#EAB308', 600: '#CA8A04' } } } } }
+    </script>
+    <style>
+        /* Full Screen Snap Scrolling (Like TikTok) */
+        body, html { margin: 0; padding: 0; height: 100vh; background: #000; overflow: hidden; }
+        
+        .feed-container {
+            height: calc(100vh - 70px); /* Account for bottom bar in index.html */
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+        }
+        .feed-container::-webkit-scrollbar { display: none; } /* Chrome */
+
+        .reel-wrapper {
+            height: calc(100vh - 70px);
+            width: 100%;
+            scroll-snap-align: start;
+            position: relative;
+            background: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .reel-video {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+
+        /* Overlay UI Elements */
+        .overlay-bottom {
+            position: absolute; bottom: 0; left: 0; width: 80%; padding: 20px; padding-bottom: 30px;
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+            z-index: 10;
+        }
+
+        .overlay-right {
+            position: absolute; bottom: 30px; right: 10px; width: 60px;
+            display: flex; flex-direction: column; align-items: center; gap: 20px; z-index: 10;
+        }
+
+        /* Action Buttons */
+        .action-btn { display: flex; flex-direction: column; align-items: center; gap: 5px; color: white; cursor: pointer; transition: transform 0.2s; }
+        .action-btn:active { transform: scale(0.8); }
+        .action-icon { width: 35px; height: 35px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+        
+        .liked .action-icon { fill: #ef4444; color: #ef4444; animation: heartBurst 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        
+        @keyframes heartBurst { 0% { transform: scale(1); } 50% { transform: scale(1.4); } 100% { transform: scale(1); } }
+
+        /* Profile Pic & Follow */
+        .profile-container { position: relative; width: 45px; height: 45px; margin-bottom: 10px; }
+        .profile-pic { width: 100%; height: 100%; border-radius: 50%; border: 2px solid white; object-fit: cover; }
+        .follow-btn {
+            position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+            background: #EAB308; color: black; border-radius: 50%; width: 20px; height: 20px;
+            display: flex; align-items: center; justify-content: center; font-bold; cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .followed { display: none; } /* Hide '+' if already followed */
+
+        /* CTA Button */
+        .cta-button {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.4);
+            padding: 8px 16px; border-radius: 8px; color: white; font-weight: bold; font-size: 12px; margin-top: 10px;
+        }
+
+        /* Comments Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: none; align-items: flex-end; }
+        .modal-content { background: #1e293b; width: 100%; height: 60vh; border-radius: 20px 20px 0 0; padding: 20px; display: flex; flex-direction: column; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        
+        /* Heart Animation for Double Tap */
+        .floating-heart { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); color: rgba(239, 68, 68, 0.8); fill: rgba(239, 68, 68, 0.8); z-index: 20; pointer-events: none; }
+        .animate-pop { animation: popHeart 0.8s ease-out forwards; }
+        @keyframes popHeart { 0% { transform: translate(-50%, -50%) scale(0); opacity: 1; } 20% { transform: translate(-50%, -50%) scale(1.5) rotate(-15deg); opacity: 1; } 80% { transform: translate(-50%, -50%) scale(1.2) rotate(10deg); opacity: 0.8; } 100% { transform: translate(-50%, -100%) scale(1); opacity: 0; } }
+
+        .loader { border: 3px solid rgba(255,255,255,0.1); width: 30px; height: 30px; border-radius: 50%; border-left-color: #EAB308; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <!-- Main Feed Scroll Container -->
+    <div class="feed-container" id="feedContainer" onscroll="handleScroll()">
+        <!-- Reels get injected here -->
+    </div>
+
+    <!-- Loading Indicator for Pagination -->
+    <div id="loadingMore" class="absolute bottom-4 left-0 right-0 z-0 hidden">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Comments Modal -->
+    <div id="commentsModal" class="modal-overlay" onclick="closeComments(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-2">
+                <h3 class="text-white font-bold"><span id="commentCount">0</span> Comments</h3>
+                <i data-lucide="x" class="w-6 h-6 text-slate-400 cursor-pointer" onclick="closeComments(true)"></i>
+            </div>
+            
+            <div id="commentsList" class="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
+                <!-- Comments loaded here -->
+            </div>
+
+            <div class="flex gap-2 relative">
+                <input type="text" id="newCommentInput" placeholder="Add a comment..." class="w-full bg-slate-800 text-white rounded-full px-4 py-3 outline-none focus:ring-1 focus:ring-gold-500 text-sm">
+                <button onclick="postComment()" class="bg-gold-500 text-black rounded-full px-4 font-bold text-sm">Post</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 🛑 NATIVE SUPABASE CONNECTION 🛑
+        const SUPABASE_URL = 'https://puvdfqnjzliiuupchppj.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1dmRmcW5qemxpaXV1cGNocHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTExOTgsImV4cCI6MjA5MjU4NzE5OH0.hDK6fjZ2SesJ7qkeWVXxOoxW2Xmr7MDlKO-BFtJtDu0';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let currentUser = null;
+        let currentPage = 0;
+        const limit = 5; // Load 5 reels at a time (Memory Management)
+        let isFetching = false;
+        let hasMore = true;
+        let activeCommentReelId = null;
+
+        // Intersection Observer (The Memory & Playback Engine)
+        const observerOptions = { root: document.getElementById('feedContainer'), threshold: 0.6 };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const video = entry.target.querySelector('video');
+                if (entry.isIntersecting) {
+                    video.play().catch(e => console.log("Auto-play blocked, waiting for interaction"));
+                } else {
+                    video.pause();
+                    video.currentTime = 0; // Reset video to save RAM
+                }
+            });
+        }, observerOptions);
+
+        async function init() {
+            lucide.createIcons();
+            const { data: { user } } = await _supabase.auth.getUser();
+            if(user) currentUser = user;
+            loadReels();
+        }
+
+        // --- FETCH & RENDER REELS (PAGINATION) ---
+        async function loadReels() {
+            if (isFetching || !hasMore) return;
+            isFetching = true;
+            document.getElementById('loadingMore').classList.remove('hidden');
+
+            const start = currentPage * limit;
+            const end = start + limit - 1;
+
+            // Fetch Reels WITH Company Profile Data, Likes, and Comments
+            const { data, error } = await _supabase
+                .from('reels')
+                .select(`
+                    *,
+                    profiles:user_id(company_name, dp_url, is_verified),
+                    products:linked_product_id(title, price),
+                    likes(id, user_id),
+                    comments(id)
+                `)
+                .eq('status', 'published') // Only show public reels
+                .order('created_at', { ascending: false })
+                .range(start, end);
+
+            if (data) {
+                if (data.length < limit) hasMore = false;
+                renderReels(data);
+                currentPage++;
+            }
+            
+            isFetching = false;
+            document.getElementById('loadingMore').classList.add('hidden');
+        }
+
+        function renderReels(reels) {
+            const container = document.getElementById('feedContainer');
+            
+            reels.forEach(reel => {
+                const isLiked = currentUser ? reel.likes.some(l => l.user_id === currentUser.id) : false;
+                const likeCount = reel.likes.length;
+                const commentCount = reel.comments.length;
+                
+                const vidUrl = _supabase.storage.from('reels_media').getPublicUrl(reel.video_url).data.publicUrl;
+                const dpUrl = reel.profiles?.dp_url ? _supabase.storage.from('profile_pictures').getPublicUrl(reel.profiles.dp_url).data.publicUrl : 'https://via.placeholder.com/150';
+                
+                let ctaHtml = '';
+                if (reel.products) {
+                    ctaHtml = `
+                        <div class="cta-button" onclick="buyProduct('${reel.linked_product_id}')">
+                            <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+                            ${reel.cta_type || 'View Product'} • ₹${reel.products.price}
+                        </div>
+                    `;
+                }
+
+                const reelEl = document.createElement('div');
+                reelEl.className = 'reel-wrapper';
+                reelEl.id = `reel_${reel.id}`;
+                
+                reelEl.innerHTML = `
+                    <video class="reel-video" src="${vidUrl}" loop playsinline onclick="togglePlay(this)" ondblclick="triggerDoubleTapLike('${reel.id}', this)"></video>
+                    
+                    <!-- Floating Double Tap Heart -->
+                    <i data-lucide="heart" class="floating-heart w-24 h-24"></i>
+
+                    <!-- Bottom Overlay (Info) -->
+                    <div class="overlay-bottom">
+                        <h3 class="text-white font-extrabold text-lg flex items-center gap-2">
+                            @${reel.profiles?.company_name || 'Business'} 
+                            ${reel.profiles?.is_verified ? '<i data-lucide="badge-check" class="w-4 h-4 text-blue-400"></i>' : ''}
+                        </h3>
+                        <p class="text-white font-bold mt-1 shadow-black">${reel.title}</p>
+                        <p class="text-gray-200 text-xs mt-1 max-w-[90%] line-clamp-2">${reel.description || ''}</p>
+                        ${ctaHtml}
+                    </div>
+
+                    <!-- Right Overlay (Actions) -->
+                    <div class="overlay-right">
+                        <div class="profile-container" onclick="toggleFollow('${reel.user_id}', this)">
+                            <img src="${dpUrl}" class="profile-pic" alt="DP">
+                            <div class="follow-btn"><i data-lucide="plus" class="w-3 h-3"></i></div>
+                        </div>
+
+                        <div class="action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${reel.id}', this)">
+                            <i data-lucide="heart" class="action-icon"></i>
+                            <span class="text-xs font-bold like-count">${likeCount}</span>
+                        </div>
+
+                        <div class="action-btn" onclick="openComments('${reel.id}')">
+                            <i data-lucide="message-circle" class="action-icon"></i>
+                            <span class="text-xs font-bold">${commentCount}</span>
+                        </div>
+
+                        <div class="action-btn" onclick="shareReel('${reel.id}', '${reel.title}')">
+                            <i data-lucide="share-2" class="action-icon"></i>
+                            <span class="text-xs font-bold">Share</span>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(reelEl);
+                lucide.createIcons();
+                
+                // Observe the new reel for playback control
+                observer.observe(reelEl);
+            });
+        }
+
+        // --- SCROLL & PAGINATION LISTENER ---
+        function handleScroll() {
+            const container = document.getElementById('feedContainer');
+            if (container.scrollTop + container.clientHeight >= container.scrollHeight - 500) {
+                loadReels(); // Load more when 500px from the bottom
+            }
+        }
+
+        // --- VIDEO PLAYBACK CONTROL ---
+        function togglePlay(video) {
+            if (video.paused) video.play();
+            else video.pause();
+        }
+
+        // --- INTERACTIVE FEATURES ---
+        
+        async function triggerDoubleTapLike(reelId, videoElement) {
+            const wrapper = videoElement.parentElement;
+            const heartIcon = wrapper.querySelector('.floating-heart');
+            const likeBtn = wrapper.querySelector('.action-btn i[data-lucide="heart"]').parentElement;
+            
+            // Pop the animation
+            heartIcon.classList.remove('animate-pop');
+            void heartIcon.offsetWidth; // Trigger reflow
+            heartIcon.classList.add('animate-pop');
+
+            // Only act if not already liked
+            if (!likeBtn.classList.contains('liked')) {
+                toggleLike(reelId, likeBtn);
+            }
+        }
+
+        async function toggleLike(reelId, btnElement) {
+            if (!currentUser) return alert("Please log in to like this reel.");
+            
+            const isLiked = btnElement.classList.contains('liked');
+            const countSpan = btnElement.querySelector('.like-count');
+            let count = parseInt(countSpan.innerText);
+
+            if (isLiked) {
+                btnElement.classList.remove('liked');
+                countSpan.innerText = count - 1;
+                await _supabase.from('likes').delete().match({ user_id: currentUser.id, reel_id: reelId });
+            } else {
+                btnElement.classList.add('liked');
+                countSpan.innerText = count + 1;
+                await _supabase.from('likes').insert([{ user_id: currentUser.id, reel_id: reelId }]);
+            }
+        }
+
+        async function toggleFollow(companyUserId, btnElement) {
+            if (!currentUser) return alert("Please log in to follow.");
+            if (currentUser.id === companyUserId) return; // Can't follow self
+            
+            const followBtn = btnElement.querySelector('.follow-btn');
+            followBtn.classList.add('followed'); // Hide the '+' immediately for UX
+            
+            const { error } = await _supabase.from('follows').insert([{ follower_id: currentUser.id, following_id: companyUserId }]);
+            if(error) followBtn.classList.remove('followed'); // Revert if failed
+        }
+
+        function shareReel(reelId, title) {
+            const shareUrl = `${window.location.origin}/?reel=${reelId}`;
+            if (navigator.share) {
+                navigator.share({
+                    title: `Golden's Business Network`,
+                    text: `Check out this promotion: ${title}`,
+                    url: shareUrl
+                }).catch(err => console.log('Share error:', err));
+            } else {
+                navigator.clipboard.writeText(shareUrl);
+                alert("Link copied to clipboard!");
+            }
+        }
+
+        function buyProduct(productId) {
+            if(window.parent && typeof window.parent.loadModule === 'function') {
+                // Tells the master shell to open the product viewer
+                // Note: You would create a global product viewer logic here later
+                alert("Navigating to product details... (ID: " + productId + ")");
+            }
+        }
+
+        // --- COMMENTS SYSTEM ---
+        async function openComments(reelId) {
+            activeCommentReelId = reelId;
+            document.getElementById('commentsModal').style.display = 'flex';
+            document.getElementById('commentsList').innerHTML = '<div class="loader"></div>';
+            
+            const { data } = await _supabase
+                .from('comments')
+                .select(`id, comment_text, created_at, profiles:user_id(company_name, dp_url)`)
+                .eq('reel_id', reelId)
+                .order('created_at', { ascending: false });
+
+            if(data) {
+                document.getElementById('commentCount').innerText = data.length;
+                const list = document.getElementById('commentsList');
+                list.innerHTML = '';
+                
+                if(data.length === 0) list.innerHTML = '<p class="text-slate-500 text-center text-sm mt-4">Be the first to comment.</p>';
+                
+                data.forEach(c => {
+                    const dp = c.profiles?.dp_url ? _supabase.storage.from('profile_pictures').getPublicUrl(c.profiles.dp_url).data.publicUrl : 'https://via.placeholder.com/150';
+                    list.innerHTML += `
+                        <div class="flex gap-3 items-start">
+                            <img src="${dp}" class="w-8 h-8 rounded-full border border-slate-600 object-cover">
+                            <div>
+                                <p class="text-xs font-bold text-slate-400">@${c.profiles?.company_name || 'User'}</p>
+                                <p class="text-sm text-white">${c.comment_text}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        function closeComments(force) {
+            if(force === true || force.target.id === 'commentsModal') {
+                document.getElementById('commentsModal').style.display = 'none';
+                activeCommentReelId = null;
+            }
+        }
+
+        async function postComment() {
+            if (!currentUser) return alert("Please log in to comment.");
+            const input = document.getElementById('newCommentInput');
+            const text = input.value.trim();
+            if (!text || !activeCommentReelId) return;
+
+            input.value = ''; // Clear input instantly for UI
+            
+            const { error } = await _supabase.from('comments').insert([{
+                user_id: currentUser.id,
+                reel_id: activeCommentReelId,
+                comment_text: text
+            }]);
+
+            if(!error) openComments(activeCommentReelId); // Refresh comments
+            else alert("Failed to post comment.");
+        }
+
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
