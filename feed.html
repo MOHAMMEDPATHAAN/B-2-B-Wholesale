@@ -191,10 +191,7 @@
                 .from('reels')
                 .select(`
                     id, title, description, video_url, created_at, user_id, views_count, status, cta_type,
-                    profiles:user_id (
-                        company_name, dp_url, is_verified,
-                        products (id, title, price, media_urls)
-                    ),
+                    profiles!left(company_name, dp_url, is_verified),
                     likes (id, user_id),
                     comments (id)
                 `)
