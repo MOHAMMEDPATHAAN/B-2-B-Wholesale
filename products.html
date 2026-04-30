@@ -17,7 +17,7 @@
         .theme-golden body { background: radial-gradient(circle at top left, #1a1400 0%, #0a0a0a 100%); color: #fef08a; }
         .hidden-view { display: none !important; }
         
-        .header-glass { background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .header-glass { background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.05); z-index: 40;}
         .dark .header-glass { background: rgba(15,23,42,0.9); border-color: rgba(255,255,255,0.05); }
         .theme-golden .header-glass { background: rgba(10,10,10,0.9); border-color: rgba(234,179,8,0.2); }
 
@@ -97,12 +97,12 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- UPLOAD PRODUCT MODAL                       -->
+    <!-- UPLOAD / EDIT PRODUCT MODAL                -->
     <!-- ========================================== -->
     <div id="uploadModal" class="modal-overlay hidden-view">
         <div class="modal-content">
             <div class="flex justify-between items-center mb-6 sticky top-0 bg-white dark:bg-slate-900 theme-golden:bg-premium-900 py-2 z-10">
-                <h2 class="text-xl font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-400" data-i18n="newProduct">New Product</h2>
+                <h2 id="modalTitle" class="text-xl font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-400" data-i18n="newProduct">New Product</h2>
                 <button onclick="closeUploadModal()" class="text-slate-400 hover:text-red-500"><i data-lucide="x" class="w-6 h-6"></i></button>
             </div>
 
@@ -110,6 +110,7 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1 theme-golden:text-gold-500">Product Media (Max 49MB)</label>
                     <input type="file" id="prodMedia" multiple accept="image/*,video/*" class="form-input" onchange="checkFileSize(this)">
+                    <p id="mediaHint" class="text-[10px] text-slate-400 mt-1">Leave empty to keep existing media.</p>
                     <p id="sizeError" class="text-red-500 text-xs font-bold mt-1 hidden-view">File exceeds 49MB limit.</p>
                 </div>
 
@@ -120,7 +121,6 @@
                 </div>
                 <textarea id="prodDesc" placeholder="Product Description..." rows="3" class="form-input" maxlength="10000"></textarea>
 
-                <!-- Dimensions & Auto-Calc -->
                 <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800 theme-golden:bg-premium-800 border border-slate-200 dark:border-slate-700 theme-golden:border-gold-500/20">
                     <div class="flex justify-between items-center mb-2">
                         <label class="text-xs font-bold text-slate-500 theme-golden:text-gold-500">Dimensions (Optional)</label>
@@ -136,7 +136,6 @@
                     <p class="text-xs font-bold text-slate-400 theme-golden:text-gold-600/50">Calculated Volume: <span id="calcVol">0</span> <span id="volUnit">cm³</span></p>
                 </div>
 
-                <!-- Operations -->
                 <div class="grid grid-cols-2 gap-3">
                     <input type="text" id="prodWeight" placeholder="Weight (e.g. 5kg)" class="form-input">
                     <select id="prodQuality" class="form-input">
@@ -162,6 +161,7 @@
 
     <script>
         lucide.createIcons();
+        
         const SUPABASE_URL = 'https://puvdfqnjzliiuupchppj.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1dmRmcW5qemxpaXV1cGNocHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTExOTgsImV4cCI6MjA5MjU4NzE5OH0.hDK6fjZ2SesJ7qkeWVXxOoxW2Xmr7MDlKO-BFtJtDu0';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -169,26 +169,36 @@
         let currentUser = null;
         let isGridView = true;
         let allProducts = [];
+        let editingProductId = null; // Track if we are editing or creating
 
-        // --- COMPLIANCE BLOCKER (B2B Content Filter) ---
+        const translations = {
+            'en': { 'products': 'Products', 'total': 'Total', 'sortNew': 'Newest First', 'sortOld': 'Oldest First', 'sortAZ': 'A to Z', 'sortZA': 'Z to A', 'sortHigh': 'Price: High to Low', 'sortLow': 'Price: Low to High', 'newProduct': 'New Product', 'editProduct': 'Edit Product' },
+            'hi': { 'products': 'उत्पाद', 'total': 'कुल', 'sortNew': 'सबसे नया', 'sortOld': 'सबसे पुराना', 'sortAZ': 'A से Z', 'sortZA': 'Z से A', 'sortHigh': 'कीमत: अधिक से कम', 'sortLow': 'कीमत: कम से अधिक', 'newProduct': 'नया उत्पाद', 'editProduct': 'उत्पाद संपादित करें' }
+        };
+
         const illegalWords = ['scam', 'fraud', 'illegal', 'porn', 'nsfw', 'weapon', 'drugs', 'hack', 'steal'];
         function isContentSafe(text) {
             const lowerText = text.toLowerCase();
             return !illegalWords.some(word => lowerText.includes(word));
         }
 
-        // Apply Theme, Lang, and Preferences
         function applySettings() {
             const theme = localStorage.getItem('golden_theme') || 'system';
+            const lang = localStorage.getItem('golden_language') || 'en';
             if (theme === 'dark') document.documentElement.classList.add('dark');
             else if (theme === 'golden') document.documentElement.classList.add('dark', 'theme-golden');
             
-            // Load persistent view/sort
             const savedView = localStorage.getItem('golden_prod_view');
             const savedSort = localStorage.getItem('golden_prod_sort');
             if(savedView) isGridView = (savedView === 'grid');
             if(savedSort) document.getElementById('sortType').value = savedSort;
             
+            if (translations[lang]) {
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if(translations[lang][key]) el.innerText = translations[lang][key];
+                });
+            }
             document.getElementById('viewIcon').setAttribute('data-lucide', isGridView ? 'layout-grid' : 'list');
         }
 
@@ -196,14 +206,6 @@
             if(!currentUser) return;
             localStorage.setItem('golden_prod_view', isGridView ? 'grid' : 'list');
             localStorage.setItem('golden_prod_sort', document.getElementById('sortType').value);
-            
-            // Fetch existing settings to merge (so we don't overwrite other settings)
-            const { data } = await _supabase.from('profiles').select('app_settings').eq('id', currentUser.id).single();
-            let currentSettings = data?.app_settings || {};
-            currentSettings.product_view = isGridView ? 'grid' : 'list';
-            currentSettings.product_sort = document.getElementById('sortType').value;
-            
-            await _supabase.from('profiles').update({ app_settings: currentSettings }).eq('id', currentUser.id);
         }
 
         async function init() {
@@ -223,11 +225,7 @@
             }
         }
 
-        function handleSortChange() {
-            renderProducts();
-            savePreferencesToCloud();
-        }
-
+        function handleSortChange() { renderProducts(); savePreferencesToCloud(); }
         function toggleView() {
             isGridView = !isGridView;
             document.getElementById('viewIcon').setAttribute('data-lucide', isGridView ? 'layout-grid' : 'list');
@@ -254,26 +252,31 @@
             sorted.forEach(p => {
                 const imgData = p.media_urls && p.media_urls.length > 0 ? p.media_urls[0] : null;
                 const imgUrl = imgData ? _supabase.storage.from('product_media').getPublicUrl(imgData.path).data.publicUrl : 'https://via.placeholder.com/150?text=No+Image';
-                
                 const d = new Date(p.created_at);
                 const stamp = `${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-                const sizeStamp = imgData && imgData.size ? ` | ${(imgData.size / (1024*1024)).toFixed(2)} MB` : '';
 
                 grid.innerHTML += `
-                    <div class="product-card flex ${isGridView ? 'flex-col' : 'flex-row items-center'}" onclick="openInstantView('${p.id}')">
+                    <div class="product-card flex ${isGridView ? 'flex-col' : 'flex-row items-center'} group" onclick="openInstantView('${p.id}')">
+                        <!-- ACTION BUTTONS -->
+                        <div class="absolute top-2 right-2 flex gap-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="editProduct('${p.id}', event)" class="p-1.5 bg-white/80 dark:bg-black/60 backdrop-blur rounded-lg text-slate-700 dark:text-slate-300 hover:text-gold-500 shadow"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                            <button onclick="deleteProduct('${p.id}', event)" class="p-1.5 bg-white/80 dark:bg-black/60 backdrop-blur rounded-lg text-red-500 hover:text-red-700 shadow"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+
                         <img src="${imgUrl}" class="${isGridView ? 'w-full h-32' : 'w-24 h-24'} object-cover" alt="Product">
                         <div class="p-3 w-full flex flex-col justify-between">
                             <div>
-                                <h3 class="font-bold text-sm text-slate-800 dark:text-white theme-golden:text-gold-200 truncate">${p.title}</h3>
+                                <h3 class="font-bold text-sm text-slate-800 dark:text-white theme-golden:text-gold-200 truncate pr-6">${p.title}</h3>
                                 <p class="text-xs text-green-600 dark:text-green-400 font-extrabold mt-1 theme-golden:text-gold-500">₹${p.price}</p>
                             </div>
                             <div class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 theme-golden:border-gold-500/20">
-                                <p class="text-[9px] text-slate-400 font-mono tracking-tighter">${stamp}${sizeStamp}</p>
+                                <p class="text-[9px] text-slate-400 font-mono tracking-tighter">${stamp}</p>
                             </div>
                         </div>
                     </div>
                 `;
             });
+            lucide.createIcons();
         }
 
         // --- INSTANT VIEW LOGIC ---
@@ -293,10 +296,7 @@
         }
         function closeInstantView(force) { if(force === true || force.target.id === 'instantViewModal') document.getElementById('instantViewModal').classList.add('hidden-view'); }
 
-        // --- UPLOAD LOGIC ---
-        function openUploadModal() { document.getElementById('uploadModal').classList.remove('hidden-view'); }
-        function closeUploadModal() { document.getElementById('uploadModal').classList.add('hidden-view'); }
-
+        // --- CRUD LOGIC ---
         function checkFileSize(input) {
             const maxBytes = 49 * 1024 * 1024;
             for(let file of input.files) {
@@ -307,13 +307,68 @@
             }
             document.getElementById('sizeError').classList.add('hidden-view');
         }
-
         function calcVolume() {
             const l = parseFloat(document.getElementById('dimL').value) || 0;
             const b = parseFloat(document.getElementById('dimB').value) || 0;
             const h = parseFloat(document.getElementById('dimH').value) || 0;
             document.getElementById('calcVol').innerText = (l * b * h).toFixed(2);
-            document.getElementById('volUnit').innerText = document.getElementById('dimUnit').value + '³';
+        }
+
+        function openUploadModal() { 
+            editingProductId = null;
+            document.getElementById('modalTitle').innerText = "New Product";
+            document.getElementById('saveBtn').innerText = "Save & Publish Product";
+            document.querySelectorAll('input, textarea').forEach(el => el.value = ''); // Reset
+            document.getElementById('uploadModal').classList.remove('hidden-view'); 
+        }
+        function closeUploadModal() { document.getElementById('uploadModal').classList.add('hidden-view'); }
+
+        // EDIT BUTTON CLICK
+        function editProduct(id, e) {
+            e.stopPropagation(); // Stop instant view from opening
+            const p = allProducts.find(x => x.id === id);
+            editingProductId = id;
+
+            document.getElementById('prodTitle').value = p.title;
+            document.getElementById('prodPrice').value = p.price;
+            document.getElementById('prodMinUnit').value = p.min_unit;
+            document.getElementById('prodDesc').value = p.description || '';
+            document.getElementById('prodWeight').value = p.weight || '';
+            document.getElementById('prodQuality').value = p.quality || '';
+            document.getElementById('prodStock').value = p.stock || '';
+            document.getElementById('prodDaily').value = p.daily_production || '';
+            
+            if(p.dimensions) {
+                document.getElementById('dimL').value = p.dimensions.l || '';
+                document.getElementById('dimB').value = p.dimensions.b || '';
+                document.getElementById('dimH').value = p.dimensions.h || '';
+                document.getElementById('dimUnit').value = p.dimensions.unit || 'cm';
+                calcVolume();
+            }
+
+            const lang = localStorage.getItem('golden_language') || 'en';
+            document.getElementById('modalTitle').innerText = translations[lang] ? (translations[lang]['editProduct'] || "Edit Product") : "Edit Product";
+            document.getElementById('saveBtn').innerText = "Update Product";
+            document.getElementById('uploadModal').classList.remove('hidden-view');
+        }
+
+        // DELETE BUTTON CLICK
+        async function deleteProduct(id, e) {
+            e.stopPropagation();
+            if(!confirm("Are you sure you want to delete this product? This action cannot be undone.")) return;
+
+            const p = allProducts.find(x => x.id === id);
+            
+            // Delete media from storage bucket first
+            if(p.media_urls && p.media_urls.length > 0) {
+                const paths = p.media_urls.map(m => m.path);
+                await _supabase.storage.from('product_media').remove(paths);
+            }
+
+            // Delete from database
+            const { error } = await _supabase.from('products').delete().eq('id', id);
+            if(error) alert("Error deleting: " + error.message);
+            else fetchProducts(); // Refresh UI
         }
 
         async function saveProduct() {
@@ -323,11 +378,7 @@
             const price = document.getElementById('prodPrice').value;
 
             if(!title || !price) return alert("Title and Price are required.");
-            
-            // Compliance Check
-            if(!isContentSafe(title) || !isContentSafe(desc)) {
-                return alert("COMPLIANCE ALERT: Prohibited or inappropriate language detected in Title or Description. Please revise before saving.");
-            }
+            if(!isContentSafe(title) || !isContentSafe(desc)) return alert("COMPLIANCE ALERT: Prohibited language detected.");
 
             btn.innerText = "Processing & Saving...";
             btn.disabled = true;
@@ -335,11 +386,29 @@
             const files = document.getElementById('prodMedia').files;
             let mediaData = [];
 
-            for(let i=0; i<files.length; i++) {
-                const file = files[i];
-                const path = `${currentUser.id}/prod_${Date.now()}_${i}.${file.name.split('.').pop()}`;
-                const { error } = await _supabase.storage.from('product_media').upload(path, file);
-                if(!error) mediaData.push({ path: path, size: file.size });
+            // If editing, use old media by default unless new files are selected
+            if (editingProductId) {
+                const existing = allProducts.find(x => x.id === editingProductId);
+                mediaData = existing.media_urls || [];
+                
+                if (files.length > 0) {
+                    // They uploaded new files. Delete old ones from storage.
+                    if (mediaData.length > 0) {
+                        const oldPaths = mediaData.map(m => m.path);
+                        await _supabase.storage.from('product_media').remove(oldPaths);
+                    }
+                    mediaData = []; // Reset for new upload
+                }
+            }
+
+            // Upload new media if files are selected
+            if (files.length > 0) {
+                for(let i=0; i<files.length; i++) {
+                    const file = files[i];
+                    const path = `${currentUser.id}/prod_${Date.now()}_${i}.${file.name.split('.').pop()}`;
+                    const { error } = await _supabase.storage.from('product_media').upload(path, file);
+                    if(!error) mediaData.push({ path: path, size: file.size });
+                }
             }
 
             const productData = {
@@ -357,15 +426,22 @@
                 media_urls: mediaData
             };
 
-            const { error } = await _supabase.from('products').insert([productData]);
+            let dbError;
+            if (editingProductId) {
+                // UPDATE Existing
+                const { error } = await _supabase.from('products').update(productData).eq('id', editingProductId);
+                dbError = error;
+            } else {
+                // INSERT New
+                const { error } = await _supabase.from('products').insert([productData]);
+                dbError = error;
+            }
             
-            if(error) alert("Database Error: " + error.message);
+            if(dbError) alert("Database Error: " + dbError.message);
             else {
                 closeUploadModal();
                 fetchProducts();
-                document.querySelectorAll('input, textarea').forEach(el => el.value = '');
             }
-            btn.innerText = "Save & Publish Product";
             btn.disabled = false;
         }
 
