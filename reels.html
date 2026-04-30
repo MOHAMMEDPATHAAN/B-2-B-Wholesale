@@ -39,6 +39,11 @@
         
         .instant-view-content { background: black; width: 100%; height: 100vh; animation: scaleUp 0.2s ease-out; position: relative; display: flex; flex-col; justify-content: center; }
         
+        /* Delete Modal Specific */
+        .delete-modal-content { background: white; width: 85%; max-width: 350px; margin: auto; margin-top: 30vh; border-radius: 24px; padding: 24px; text-align: center; animation: scaleUp 0.3s ease-out; border: 1px solid rgba(239, 68, 68, 0.3); box-shadow: 0 20px 50px rgba(239, 68, 68, 0.15); }
+        .dark .delete-modal-content { background: #1e293b; }
+        .theme-golden .delete-modal-content { background: #171717; border-color: rgba(239, 68, 68, 0.5); }
+
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         @keyframes scaleUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
@@ -71,12 +76,37 @@
     <div id="reelsGrid" class="p-4 grid grid-cols-2 gap-4"></div>
 
     <!-- ========================================== -->
+    <!-- CUSTOM DELETE CONFIRMATION MODAL           -->
+    <!-- ========================================== -->
+    <div id="deleteModal" class="modal-overlay hidden-view" style="z-index: 200;">
+        <div class="delete-modal-content">
+            <div class="w-16 h-16 bg-red-50 dark:bg-red-900/20 theme-golden:bg-red-900/40 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="trash-2" class="w-8 h-8 text-red-500"></i>
+            </div>
+            <h2 class="text-xl font-extrabold text-slate-800 dark:text-white theme-golden:text-red-400 uppercase tracking-wide">Delete Reel?</h2>
+            <p class="text-slate-500 text-xs mt-2 font-medium theme-golden:text-white/70">Are you sure you want to permanently delete this promotional video? This cannot be undone.</p>
+            
+            <div class="flex gap-3 mt-6">
+                <button onclick="closeDeleteModal()" class="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold py-3.5 rounded-xl text-sm transition-colors hover:bg-slate-200 dark:hover:bg-slate-700 theme-golden:bg-premium-800 theme-golden:text-white">Cancel</button>
+                <button onclick="confirmDeleteReel()" id="confirmDeleteBtn" class="flex-1 bg-red-500 text-white font-bold py-3.5 rounded-xl text-sm shadow-lg shadow-red-500/30 transition-transform hover:scale-[1.02]">Yes, Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
     <!-- INSTANT VIEW MODAL (Player)                -->
     <!-- ========================================== -->
     <div id="instantViewModal" class="modal-overlay hidden-view" onclick="closeInstantView(event)">
         <div class="instant-view-content" onclick="event.stopPropagation()">
             <button onclick="closeInstantView(true)" class="absolute top-6 right-6 text-white bg-black/50 backdrop-blur p-3 rounded-full z-50 hover:bg-red-500"><i data-lucide="x" class="w-6 h-6"></i></button>
+            
             <video id="ivVideo" src="" class="w-full h-[85vh] object-cover" controls autoplay loop playsinline></video>
+            
+            <!-- Call To Action (CTA) Overlay -->
+            <button id="ivCtaBtn" class="absolute bottom-32 left-6 right-6 bg-gold-500 hover:bg-gold-400 text-black font-extrabold py-3 rounded-xl shadow-xl shadow-gold-500/50 transition-transform hover:scale-105 hidden-view z-50">
+                Buy Now
+            </button>
+
             <div class="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black via-black/80 to-transparent z-40">
                 <h2 id="ivTitle" class="text-white font-extrabold text-lg shadow-black">Title</h2>
                 <p id="ivDesc" class="text-gray-300 text-sm mt-1 max-h-24 overflow-y-auto"></p>
@@ -89,12 +119,13 @@
     <!-- ========================================== -->
     <div id="uploadModal" class="modal-overlay hidden-view">
         <div class="modal-content">
-            <div class="flex justify-between items-center mb-6 sticky top-0 bg-white dark:bg-slate-900 theme-golden:bg-premium-900 py-2 z-10">
+            <div class="flex justify-between items-center mb-6 sticky top-0 bg-white dark:bg-slate-900 theme-golden:bg-premium-900 py-2 z-10 border-b border-slate-100 dark:border-slate-800 theme-golden:border-gold-500/20">
                 <h2 id="modalTitle" class="text-xl font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-400" data-i18n="createReel">Create Reel</h2>
                 <button onclick="closeUploadModal()" class="text-slate-400 hover:text-red-500"><i data-lucide="x" class="w-6 h-6"></i></button>
             </div>
 
             <div class="space-y-5 max-w-lg mx-auto">
+                
                 <div class="grid grid-cols-2 gap-4">
                     <div class="p-6 border-2 border-dashed border-slate-300 dark:border-slate-700 theme-golden:border-gold-500/50 rounded-2xl text-center bg-slate-50 dark:bg-slate-800 theme-golden:bg-premium-800">
                         <i data-lucide="video" class="w-8 h-8 mx-auto text-slate-400 theme-golden:text-gold-500 mb-2"></i>
@@ -127,8 +158,27 @@
                     <span id="descCounter" class="absolute right-3 bottom-3 text-xs text-slate-400 font-bold">0/10000</span>
                 </div>
 
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1 theme-golden:text-gold-500">Visibility Status</label>
+                        <select id="reelStatus" class="form-input">
+                            <option value="published">🟢 Public / Published</option>
+                            <option value="draft">🟡 Private Draft</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1 theme-golden:text-gold-500">CTA Button Type</label>
+                        <select id="reelCta" class="form-input">
+                            <option value="Buy Now">Buy Now</option>
+                            <option value="Contact Sales">Contact Sales</option>
+                            <option value="Learn More">Learn More</option>
+                            <option value="Get Quote">Get Quote</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1 theme-golden:text-gold-500" data-i18n="linkProduct">Connect to a Product (Optional)</label>
+                    <label class="block text-xs font-bold text-slate-500 mb-1 theme-golden:text-gold-500" data-i18n="linkProduct">Connect to a Product (Activates CTA)</label>
                     <select id="linkedProduct" class="form-input">
                         <option value="">-- Do not link a product --</option>
                     </select>
@@ -152,10 +202,11 @@
         let isGridView = true;
         let allReels = [];
         let editingReelId = null;
+        let reelToDelete = null;
 
         const translations = {
-            'en': { 'reels': 'Promotions', 'total': 'Total Reels', 'sortNew': 'Newest First', 'sortOld': 'Oldest First', 'sortAZ': 'A to Z', 'sortZA': 'Z to A', 'createReel': 'Create Reel', 'editReel': 'Edit Reel', 'linkProduct': 'Connect to a Product (Optional)' },
-            'hi': { 'reels': 'प्रचार', 'total': 'कुल रील्स', 'sortNew': 'सबसे नया', 'sortOld': 'सबसे पुराना', 'sortAZ': 'A से Z', 'sortZA': 'Z से A', 'createReel': 'रীল बनाएं', 'editReel': 'रীল संपादित करें', 'linkProduct': 'उत्पाद से जोड़ें (वैकल्पिक)' }
+            'en': { 'reels': 'Promotions', 'total': 'Total Reels', 'sortNew': 'Newest First', 'sortOld': 'Oldest First', 'sortAZ': 'A to Z', 'sortZA': 'Z to A', 'createReel': 'Create Reel', 'editReel': 'Edit Reel', 'linkProduct': 'Connect to a Product' },
+            'hi': { 'reels': 'प्रचार', 'total': 'कुल रील्स', 'sortNew': 'सबसे नया', 'sortOld': 'सबसे पुराना', 'sortAZ': 'A से Z', 'sortZA': 'Z से A', 'createReel': 'रীল बनाएं', 'editReel': 'रীল संपादित करें', 'linkProduct': 'उत्पाद से जोड़ें' }
         };
 
         const illegalWords = ['scam', 'fraud', 'illegal', 'porn', 'nsfw', 'weapon', 'drugs', 'hack', 'steal'];
@@ -180,6 +231,12 @@
                 });
             }
             document.getElementById('viewIcon').setAttribute('data-lucide', isGridView ? 'layout-grid' : 'list');
+        }
+
+        async function savePreferencesToCloud() {
+            if(!currentUser) return;
+            localStorage.setItem('golden_reel_view', isGridView ? 'grid' : 'list');
+            localStorage.setItem('golden_reel_sort', document.getElementById('sortType').value);
         }
 
         async function init() {
@@ -208,17 +265,13 @@
             }
         }
 
-        function handleSortChange() {
-            renderReels();
-            localStorage.setItem('golden_reel_sort', document.getElementById('sortType').value);
-        }
-
+        function handleSortChange() { renderReels(); savePreferencesToCloud(); }
         function toggleView() {
             isGridView = !isGridView;
             document.getElementById('viewIcon').setAttribute('data-lucide', isGridView ? 'layout-grid' : 'list');
             lucide.createIcons();
             renderReels();
-            localStorage.setItem('golden_reel_view', isGridView ? 'grid' : 'list');
+            savePreferencesToCloud();
         }
 
         function renderReels() {
@@ -237,8 +290,10 @@
             sorted.forEach(r => {
                 const vidUrl = _supabase.storage.from('reels_media').getPublicUrl(r.video_url).data.publicUrl;
                 const thumbUrl = r.thumbnail_url ? _supabase.storage.from('reels_media').getPublicUrl(r.thumbnail_url).data.publicUrl : '';
-                const linkBadge = r.products ? `<div class="absolute top-2 right-2 bg-gold-500/90 backdrop-blur text-[10px] font-bold text-black px-2 py-1 rounded-md z-10 shadow-lg"><i data-lucide="link" class="w-3 h-3 inline"></i> ${r.products.title}</div>` : '';
                 
+                const linkBadge = r.products ? `<div class="absolute top-2 right-2 bg-gold-500/90 backdrop-blur text-[10px] font-bold text-black px-2 py-1 rounded-md z-10 shadow-lg"><i data-lucide="link" class="w-3 h-3 inline"></i> ${r.products.title}</div>` : '';
+                const statusBadge = r.status === 'draft' ? `<div class="absolute top-2 left-2 bg-yellow-500/90 text-white text-[10px] font-bold px-2 py-1 rounded-md z-10">DRAFT</div>` : '';
+
                 const d = new Date(r.created_at);
                 const stamp = `${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
 
@@ -247,10 +302,10 @@
                         <!-- ACTION BUTTONS -->
                         <div class="absolute top-2 left-2 flex gap-1 z-30 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button onclick="editReel('${r.id}', event)" class="p-1.5 bg-white/80 dark:bg-black/60 backdrop-blur rounded-lg text-slate-700 dark:text-slate-300 hover:text-gold-500 shadow"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                            <button onclick="deleteReel('${r.id}', event)" class="p-1.5 bg-white/80 dark:bg-black/60 backdrop-blur rounded-lg text-red-500 hover:text-red-700 shadow"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            <button onclick="requestDeleteReel('${r.id}', event)" class="p-1.5 bg-white/80 dark:bg-black/60 backdrop-blur rounded-lg text-red-500 hover:text-red-700 shadow"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                         </div>
 
-                        ${linkBadge}
+                        ${statusBadge || linkBadge}
                         ${thumbUrl ? `<img src="${thumbUrl}" class="absolute inset-0 w-full h-full object-cover z-0">` : ''}
                         <video src="${vidUrl}" class="w-full h-full object-cover relative z-10 ${thumbUrl ? 'opacity-0 hover:opacity-100 transition-opacity' : ''}" muted loop onmouseover="this.play()" onmouseout="this.pause()"></video>
                         <div class="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-20">
@@ -272,6 +327,16 @@
             player.src = vidUrl;
             document.getElementById('ivTitle').innerText = r.title;
             document.getElementById('ivDesc').innerText = r.description || '';
+            
+            // Show CTA if product is linked
+            const ctaBtn = document.getElementById('ivCtaBtn');
+            if(r.linked_product_id) {
+                ctaBtn.innerText = r.cta_type || 'Buy Now';
+                ctaBtn.classList.remove('hidden-view');
+            } else {
+                ctaBtn.classList.add('hidden-view');
+            }
+
             document.getElementById('instantViewModal').classList.remove('hidden-view');
         }
 
@@ -282,7 +347,40 @@
             }
         }
 
-        // --- CRUD LOGIC ---
+        // --- DELETE MODAL LOGIC ---
+        function requestDeleteReel(id, e) {
+            e.stopPropagation();
+            reelToDelete = id;
+            document.getElementById('deleteModal').classList.remove('hidden-view');
+        }
+        function closeDeleteModal() {
+            reelToDelete = null;
+            document.getElementById('deleteModal').classList.add('hidden-view');
+        }
+        async function confirmDeleteReel() {
+            if(!reelToDelete) return;
+            const btn = document.getElementById('confirmDeleteBtn');
+            btn.innerText = "Deleting...";
+            btn.disabled = true;
+
+            const r = allReels.find(x => x.id === reelToDelete);
+            
+            // Delete media from storage bucket
+            if(r.video_url) await _supabase.storage.from('reels_media').remove([r.video_url]);
+            if(r.thumbnail_url) await _supabase.storage.from('reels_media').remove([r.thumbnail_url]);
+
+            // Delete from database
+            const { error } = await _supabase.from('reels').delete().eq('id', reelToDelete);
+            
+            btn.innerText = "Yes, Delete";
+            btn.disabled = false;
+            closeDeleteModal();
+
+            if(error) alert("Error deleting: " + error.message);
+            else fetchReels(); 
+        }
+
+        // --- UPLOAD / EDIT LOGIC ---
         function openUploadModal() { 
             editingReelId = null;
             document.getElementById('modalTitle').innerText = "Create Reel";
@@ -290,6 +388,8 @@
             document.getElementById('reelTitle').value = '';
             document.getElementById('reelDesc').value = '';
             document.getElementById('linkedProduct').value = '';
+            document.getElementById('reelStatus').value = 'published';
+            document.getElementById('reelCta').value = 'Buy Now';
             document.getElementById('videoPreview').classList.add('hidden-view');
             updateCounter('titleCounter', 0, 150);
             updateCounter('descCounter', 0, 10000);
@@ -297,7 +397,6 @@
         }
         function closeUploadModal() { document.getElementById('uploadModal').classList.add('hidden-view'); }
 
-        // EDIT
         function editReel(id, e) {
             e.stopPropagation();
             const r = allReels.find(x => x.id === id);
@@ -306,6 +405,8 @@
             document.getElementById('reelTitle').value = r.title;
             document.getElementById('reelDesc').value = r.description || '';
             document.getElementById('linkedProduct').value = r.linked_product_id || '';
+            document.getElementById('reelStatus').value = r.status || 'published';
+            document.getElementById('reelCta').value = r.cta_type || 'Buy Now';
             
             updateCounter('titleCounter', r.title.length, 150);
             updateCounter('descCounter', (r.description || '').length, 10000);
@@ -316,23 +417,6 @@
             document.getElementById('videoPreview').classList.add('hidden-view');
             
             document.getElementById('uploadModal').classList.remove('hidden-view');
-        }
-
-        // DELETE
-        async function deleteReel(id, e) {
-            e.stopPropagation();
-            if(!confirm("Are you sure you want to permanently delete this reel?")) return;
-
-            const r = allReels.find(x => x.id === id);
-            
-            // Delete media from storage bucket
-            if(r.video_url) await _supabase.storage.from('reels_media').remove([r.video_url]);
-            if(r.thumbnail_url) await _supabase.storage.from('reels_media').remove([r.thumbnail_url]);
-
-            // Delete from database
-            const { error } = await _supabase.from('reels').delete().eq('id', id);
-            if(error) alert("Error deleting: " + error.message);
-            else fetchReels(); 
         }
 
         function previewVideo(event) {
@@ -363,7 +447,6 @@
 
             if(!editingReelId && (!file || !title)) return alert("Video and Title are required for new reels.");
             if(editingReelId && !title) return alert("Title is required.");
-
             if(!isContentSafe(title) || !isContentSafe(desc)) return alert("COMPLIANCE ALERT: Prohibited language detected.");
 
             btn.innerText = "Processing... (Do not close)";
@@ -372,24 +455,22 @@
             let videoPath = null;
             let thumbPath = null;
             
-            // Handle Media Replacements when editing
             if (editingReelId) {
                 const existing = allReels.find(x => x.id === editingReelId);
                 videoPath = existing.video_url;
                 thumbPath = existing.thumbnail_url;
                 
                 if (file) {
-                    if (videoPath) await _supabase.storage.from('reels_media').remove([videoPath]); // Delete old
+                    if (videoPath) await _supabase.storage.from('reels_media').remove([videoPath]); 
                     videoPath = `${currentUser.id}/reel_${Date.now()}.${file.name.split('.').pop()}`;
                     await _supabase.storage.from('reels_media').upload(videoPath, file);
                 }
                 if (thumbFile) {
-                    if (thumbPath) await _supabase.storage.from('reels_media').remove([thumbPath]); // Delete old
+                    if (thumbPath) await _supabase.storage.from('reels_media').remove([thumbPath]);
                     thumbPath = `${currentUser.id}/thumb_${Date.now()}.${thumbFile.name.split('.').pop()}`;
                     await _supabase.storage.from('reels_media').upload(thumbPath, thumbFile);
                 }
             } else {
-                // New Reel
                 videoPath = `${currentUser.id}/reel_${Date.now()}.${file.name.split('.').pop()}`;
                 await _supabase.storage.from('reels_media').upload(videoPath, file);
                 if (thumbFile) {
@@ -401,6 +482,8 @@
             const reelData = {
                 user_id: currentUser.id, title: title, description: desc,
                 video_url: videoPath, thumbnail_url: thumbPath,
+                status: document.getElementById('reelStatus').value,
+                cta_type: document.getElementById('reelCta').value,
                 linked_product_id: document.getElementById('linkedProduct').value || null
             };
 
@@ -414,10 +497,7 @@
             }
 
             if(dbError) alert("Database Error: " + dbError.message);
-            else {
-                closeUploadModal();
-                fetchReels();
-            }
+            else { closeUploadModal(); fetchReels(); }
             btn.disabled = false;
         }
 
