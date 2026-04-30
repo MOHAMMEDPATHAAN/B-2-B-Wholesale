@@ -331,7 +331,7 @@
             // Show CTA if product is linked
             const ctaBtn = document.getElementById('ivCtaBtn');
             if(r.linked_product_id) {
-                ctaBtn.innerText = r.cta_type || 'Buy Now';
+                ctaBtn.innerText = r.cta_type || 'View Product';
                 ctaBtn.classList.remove('hidden-view');
             } else {
                 ctaBtn.classList.add('hidden-view');
