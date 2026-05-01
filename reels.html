@@ -28,104 +28,44 @@
         .dark .form-input { background: #1e293b; border-color: #334155; color: white; }
         .theme-golden .form-input { background: rgba(20,15,0,0.5); border-color: rgba(234,179,8,0.3); color: #fef08a; }
         
-        .reel-card { border-radius: 16px; overflow: hidden; position: relative; aspect-ratio: 9/16; background: #000; border: 1px solid transparent; cursor: pointer; transition: transform 0.2s; }
+        .reel-card { border-radius: 16px; overflow: hidden; position: relative; aspect-ratio: 9/16; background: #000; cursor: pointer; transition: transform 0.2s; }
         .reel-card:active { transform: scale(0.98); }
-        .theme-golden .reel-card { border-color: rgba(234,179,8,0.2); box-shadow: 0 4px 20px rgba(234,179,8,0.1); }
+        .theme-golden .reel-card { border: 1px solid rgba(234,179,8,0.2); box-shadow: 0 4px 20px rgba(234,179,8,0.1); }
         
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; overflow-y: auto; backdrop-filter: blur(5px); }
         .modal-content { background: white; min-height: 100vh; padding: 20px; padding-bottom: 100px; animation: slideUp 0.3s ease-out; }
         .dark .modal-content { background: #0f172a; }
         .theme-golden .modal-content { background: #0a0a0a; border-top: 1px solid rgba(234,179,8,0.3); }
         
-        .instant-view-content { background: black; width: 100%; height: 100vh; animation: scaleUp 0.2s ease-out; position: relative; display: flex; flex-col; justify-content: center; }
+        .instant-view-content { background: black; width: 100%; height: 100vh; position: relative; display: flex; flex-col; justify-content: center; }
         
-        /* Delete Modal Specific */
-        .delete-modal-content { background: white; width: 85%; max-width: 350px; margin: auto; margin-top: 30vh; border-radius: 24px; padding: 24px; text-align: center; animation: scaleUp 0.3s ease-out; border: 1px solid rgba(239, 68, 68, 0.3); box-shadow: 0 20px 50px rgba(239, 68, 68, 0.15); }
-        .dark .delete-modal-content { background: #1e293b; }
-        .theme-golden .delete-modal-content { background: #171717; border-color: rgba(239, 68, 68, 0.5); }
-
+        /* Multiple Product Checkbox List */
+        .product-checkbox-list { max-height: 140px; overflow-y: auto; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; padding: 8px; }
+        .dark .product-checkbox-list { background: #1e293b; border-color: #334155; }
+        .theme-golden .product-checkbox-list { background: rgba(20,15,0,0.5); border-color: rgba(234,179,8,0.3); }
+        
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        @keyframes scaleUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body class="transition-colors duration-300">
 
-    <!-- Header -->
     <div class="sticky top-0 z-40 header-glass px-6 py-4 flex justify-between items-center">
-        <div>
-            <h1 class="text-xl font-extrabold uppercase tracking-wide text-slate-800 dark:text-white theme-golden:text-gold-400" data-i18n="reels">Promotions</h1>
-            <p class="text-xs font-bold text-slate-500 theme-golden:text-gold-200/50"><span data-i18n="total">Total Reels</span>: <span id="totalReels">0</span></p>
-        </div>
-        <div class="flex gap-2">
-            <select id="sortType" onchange="handleSortChange()" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 theme-golden:bg-premium-800 text-xs font-bold text-slate-600 dark:text-slate-300 theme-golden:text-gold-500 outline-none border border-transparent theme-golden:border-gold-500/30">
-                <option value="newest" data-i18n="sortNew">Newest First</option>
-                <option value="oldest" data-i18n="sortOld">Oldest First</option>
-                <option value="az" data-i18n="sortAZ">A to Z</option>
-                <option value="za" data-i18n="sortZA">Z to A</option>
-            </select>
-            <button onclick="toggleView()" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 theme-golden:bg-premium-800 text-slate-500 theme-golden:text-gold-500">
-                <i id="viewIcon" data-lucide="layout-grid" class="w-5 h-5"></i>
-            </button>
-            <button onclick="openUploadModal()" class="btn-plus p-2 rounded-xl flex items-center justify-center transition-transform hover:scale-105">
-                <i data-lucide="video" class="w-6 h-6"></i>
-            </button>
-        </div>
+        <h1 class="text-xl font-extrabold uppercase tracking-wide text-slate-800 dark:text-white theme-golden:text-gold-400">Promotions</h1>
+        <button onclick="openUploadModal()" class="btn-plus p-2 rounded-xl flex items-center justify-center transition-transform hover:scale-105">
+            <i data-lucide="video" class="w-6 h-6"></i>
+        </button>
     </div>
 
-    <!-- Reels Grid -->
     <div id="reelsGrid" class="p-4 grid grid-cols-2 gap-4"></div>
 
-    <!-- ========================================== -->
-    <!-- CUSTOM DELETE CONFIRMATION MODAL           -->
-    <!-- ========================================== -->
-    <div id="deleteModal" class="modal-overlay hidden-view" style="z-index: 200;">
-        <div class="delete-modal-content">
-            <div class="w-16 h-16 bg-red-50 dark:bg-red-900/20 theme-golden:bg-red-900/40 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i data-lucide="trash-2" class="w-8 h-8 text-red-500"></i>
-            </div>
-            <h2 class="text-xl font-extrabold text-slate-800 dark:text-white theme-golden:text-red-400 uppercase tracking-wide">Delete Reel?</h2>
-            <p class="text-slate-500 text-xs mt-2 font-medium theme-golden:text-white/70">Are you sure you want to permanently delete this promotional video? This cannot be undone.</p>
-            
-            <div class="flex gap-3 mt-6">
-                <button onclick="closeDeleteModal()" class="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold py-3.5 rounded-xl text-sm transition-colors hover:bg-slate-200 dark:hover:bg-slate-700 theme-golden:bg-premium-800 theme-golden:text-white">Cancel</button>
-                <button onclick="confirmDeleteReel()" id="confirmDeleteBtn" class="flex-1 bg-red-500 text-white font-bold py-3.5 rounded-xl text-sm shadow-lg shadow-red-500/30 transition-transform hover:scale-[1.02]">Yes, Delete</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- INSTANT VIEW MODAL (Player)                -->
-    <!-- ========================================== -->
-    <div id="instantViewModal" class="modal-overlay hidden-view" onclick="closeInstantView(event)">
-        <div class="instant-view-content" onclick="event.stopPropagation()">
-            <button onclick="closeInstantView(true)" class="absolute top-6 right-6 text-white bg-black/50 backdrop-blur p-3 rounded-full z-50 hover:bg-red-500"><i data-lucide="x" class="w-6 h-6"></i></button>
-            
-            <video id="ivVideo" src="" class="w-full h-[85vh] object-cover" controls autoplay loop playsinline></video>
-            
-            <!-- Call To Action (CTA) Overlay -->
-            <button id="ivCtaBtn" class="absolute bottom-32 left-6 right-6 bg-gold-500 hover:bg-gold-400 text-black font-extrabold py-3 rounded-xl shadow-xl shadow-gold-500/50 transition-transform hover:scale-105 hidden-view z-50">
-                Buy Now
-            </button>
-
-            <div class="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black via-black/80 to-transparent z-40">
-                <h2 id="ivTitle" class="text-white font-extrabold text-lg shadow-black">Title</h2>
-                <p id="ivDesc" class="text-gray-300 text-sm mt-1 max-h-24 overflow-y-auto"></p>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- UPLOAD / EDIT REEL MODAL                   -->
-    <!-- ========================================== -->
     <div id="uploadModal" class="modal-overlay hidden-view">
         <div class="modal-content">
-            <div class="flex justify-between items-center mb-6 sticky top-0 bg-white dark:bg-slate-900 theme-golden:bg-premium-900 py-2 z-10 border-b border-slate-100 dark:border-slate-800 theme-golden:border-gold-500/20">
-                <h2 id="modalTitle" class="text-xl font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-400" data-i18n="createReel">Create Reel</h2>
+            <div class="flex justify-between items-center mb-6 sticky top-0 bg-white dark:bg-slate-900 theme-golden:bg-premium-900 py-2 z-10">
+                <h2 id="modalTitle" class="text-xl font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-400">Create Reel</h2>
                 <button onclick="closeUploadModal()" class="text-slate-400 hover:text-red-500"><i data-lucide="x" class="w-6 h-6"></i></button>
             </div>
 
             <div class="space-y-5 max-w-lg mx-auto">
-                
                 <div class="grid grid-cols-2 gap-4">
                     <div class="p-6 border-2 border-dashed border-slate-300 dark:border-slate-700 theme-golden:border-gold-500/50 rounded-2xl text-center bg-slate-50 dark:bg-slate-800 theme-golden:bg-premium-800">
                         <i data-lucide="video" class="w-8 h-8 mx-auto text-slate-400 theme-golden:text-gold-500 mb-2"></i>
@@ -134,53 +74,29 @@
                             <input type="file" id="reelMedia" accept="video/mp4,video/x-m4v,video/*" class="hidden" onchange="previewVideo(event)">
                         </label>
                     </div>
-
-                    <div class="p-6 border-2 border-dashed border-slate-300 dark:border-slate-700 theme-golden:border-gold-500/50 rounded-2xl text-center bg-slate-50 dark:bg-slate-800 theme-golden:bg-premium-800">
-                        <i data-lucide="image" class="w-8 h-8 mx-auto text-slate-400 theme-golden:text-gold-500 mb-2"></i>
-                        <label class="block text-xs font-bold text-slate-800 dark:text-white theme-golden:text-gold-100 cursor-pointer">
-                            Thumbnail Cover
-                            <input type="file" id="reelThumb" accept="image/*" class="hidden" onchange="checkThumbSize(event)">
-                        </label>
-                    </div>
                 </div>
                 
-                <p id="mediaHint" class="text-[10px] text-slate-400 text-center">Leave blank to keep existing video/thumbnail.</p>
-                <p id="mediaError" class="text-red-500 text-xs font-bold mt-2 hidden-view"></p>
                 <video id="videoPreview" class="w-full mt-4 rounded-xl hidden-view" controls></video>
+                <input type="text" id="reelTitle" placeholder="Catchy Hook / Title *" class="form-input">
+                <textarea id="reelDesc" placeholder="Caption / Description..." rows="3" class="form-input"></textarea>
 
-                <div class="relative">
-                    <input type="text" id="reelTitle" placeholder="Catchy Hook / Title (Max 150) *" class="form-input" maxlength="150" oninput="updateCounter('titleCounter', this.value.length, 150)">
-                    <span id="titleCounter" class="absolute right-3 top-3 text-xs text-slate-400 font-bold">0/150</span>
-                </div>
-
-                <div class="relative">
-                    <textarea id="reelDesc" placeholder="Caption / Description (Max 10,000)..." rows="4" class="form-input" maxlength="10000" oninput="updateCounter('descCounter', this.value.length, 10000)"></textarea>
-                    <span id="descCounter" class="absolute right-3 bottom-3 text-xs text-slate-400 font-bold">0/10000</span>
+                <!-- MULTI PRODUCT SELECTOR -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2 theme-golden:text-gold-500">Connect Products (Select Multiple)</label>
+                    <div id="linkedProductsContainer" class="product-checkbox-list space-y-2">
+                        <!-- Checkboxes injected here -->
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 mb-1 theme-golden:text-gold-500">Visibility Status</label>
-                        <select id="reelStatus" class="form-input">
-                            <option value="published">🟢 Public / Published</option>
-                            <option value="draft">🟡 Private Draft</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 mb-1 theme-golden:text-gold-500">CTA Button Type</label>
-                        <select id="reelCta" class="form-input">
-                            <option value="Buy Now">Buy Now</option>
-                            <option value="Contact Sales">Contact Sales</option>
-                            <option value="Learn More">Learn More</option>
-                            <option value="Get Quote">Get Quote</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1 theme-golden:text-gold-500" data-i18n="linkProduct">Connect to a Product (Activates CTA)</label>
-                    <select id="linkedProduct" class="form-input">
-                        <option value="">-- Do not link a product --</option>
+                    <select id="reelStatus" class="form-input">
+                        <option value="published">🟢 Public</option>
+                        <option value="draft">🟡 Private Draft</option>
+                    </select>
+                    <select id="reelCta" class="form-input">
+                        <option value="Buy Now">Buy Now</option>
+                        <option value="Contact Sales">Contact Sales</option>
+                        <option value="Learn More">Learn More</option>
                     </select>
                 </div>
 
@@ -193,124 +109,69 @@
 
     <script>
         lucide.createIcons();
-        
         const SUPABASE_URL = 'https://puvdfqnjzliiuupchppj.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1dmRmcW5qemxpaXV1cGNocHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTExOTgsImV4cCI6MjA5MjU4NzE5OH0.hDK6fjZ2SesJ7qkeWVXxOoxW2Xmr7MDlKO-BFtJtDu0';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1dmRmcW5qemxpaXV1cGNocHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTExOTgsImV4cCI6MjA5MjU4NzE5OH0.hDK6fjZ2SesJ7qkeWVXxOoxW2Xmr7MDlKO-BFtJtDu0,';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let currentUser = null;
-        let isGridView = true;
         let allReels = [];
-        let editingReelId = null;
-        let reelToDelete = null;
-
-        const translations = {
-            'en': { 'reels': 'Promotions', 'total': 'Total Reels', 'sortNew': 'Newest First', 'sortOld': 'Oldest First', 'sortAZ': 'A to Z', 'sortZA': 'Z to A', 'createReel': 'Create Reel', 'editReel': 'Edit Reel', 'linkProduct': 'Connect to a Product' },
-            'hi': { 'reels': 'प्रचार', 'total': 'कुल रील्स', 'sortNew': 'सबसे नया', 'sortOld': 'सबसे पुराना', 'sortAZ': 'A से Z', 'sortZA': 'Z से A', 'createReel': 'रীল बनाएं', 'editReel': 'रীল संपादित करें', 'linkProduct': 'उत्पाद से जोड़ें' }
-        };
-
-        const illegalWords = ['scam', 'fraud', 'illegal', 'porn', 'nsfw', 'weapon', 'drugs', 'hack', 'steal'];
-        function isContentSafe(text) { return !illegalWords.some(word => text.toLowerCase().includes(word)); }
-        function updateCounter(id, length, max) { document.getElementById(id).innerText = `${length}/${max}`; }
 
         function applySettings() {
             const theme = localStorage.getItem('golden_theme') || 'system';
-            const lang = localStorage.getItem('golden_language') || 'en';
             if (theme === 'dark') document.documentElement.classList.add('dark');
             else if (theme === 'golden') document.documentElement.classList.add('dark', 'theme-golden');
-            
-            const savedView = localStorage.getItem('golden_reel_view');
-            const savedSort = localStorage.getItem('golden_reel_sort');
-            if(savedView) isGridView = (savedView === 'grid');
-            if(savedSort) document.getElementById('sortType').value = savedSort;
-            
-            if (translations[lang]) {
-                document.querySelectorAll('[data-i18n]').forEach(el => {
-                    const key = el.getAttribute('data-i18n');
-                    if(translations[lang][key]) el.innerText = translations[lang][key];
-                });
-            }
-            document.getElementById('viewIcon').setAttribute('data-lucide', isGridView ? 'layout-grid' : 'list');
-        }
-
-        async function savePreferencesToCloud() {
-            if(!currentUser) return;
-            localStorage.setItem('golden_reel_view', isGridView ? 'grid' : 'list');
-            localStorage.setItem('golden_reel_sort', document.getElementById('sortType').value);
         }
 
         async function init() {
             applySettings();
             const { data: { user } } = await _supabase.auth.getUser();
-            if(!user) return;
-            currentUser = user;
+            if(user) currentUser = user;
             fetchReels();
             fetchUserProducts();
         }
 
         async function fetchUserProducts() {
+            if(!currentUser) return;
             const { data } = await _supabase.from('products').select('id, title').eq('user_id', currentUser.id);
             if(data) {
-                const select = document.getElementById('linkedProduct');
-                data.forEach(p => select.innerHTML += `<option value="${p.id}">📦 ${p.title}</option>`);
+                const list = document.getElementById('linkedProductsContainer');
+                list.innerHTML = '';
+                if(data.length === 0) list.innerHTML = '<p class="text-xs text-slate-400 p-2">No products created yet.</p>';
+                data.forEach(p => {
+                    list.innerHTML += `
+                        <label class="flex items-center gap-3 p-1 cursor-pointer">
+                            <input type="checkbox" name="linked_products" value="${p.id}" class="w-4 h-4 rounded text-gold-500 border-slate-300 dark:border-slate-600 focus:ring-gold-500"> 
+                            <span class="text-sm font-bold text-slate-700 dark:text-slate-200 theme-golden:text-gold-200">${p.title}</span>
+                        </label>
+                    `;
+                });
             }
         }
 
         async function fetchReels() {
-            const { data } = await _supabase.from('reels').select('*, products(title)').eq('user_id', currentUser.id);
+            if(!currentUser) return;
+            const { data } = await _supabase.from('reels').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
             if(data) {
                 allReels = data;
-                document.getElementById('totalReels').innerText = allReels.length;
                 renderReels();
             }
         }
 
-        function handleSortChange() { renderReels(); savePreferencesToCloud(); }
-        function toggleView() {
-            isGridView = !isGridView;
-            document.getElementById('viewIcon').setAttribute('data-lucide', isGridView ? 'layout-grid' : 'list');
-            lucide.createIcons();
-            renderReels();
-            savePreferencesToCloud();
-        }
-
         function renderReels() {
             const grid = document.getElementById('reelsGrid');
-            const sortType = document.getElementById('sortType').value;
-            
-            let sorted = [...allReels];
-            if(sortType === 'newest') sorted.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
-            else if(sortType === 'oldest') sorted.sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
-            else if(sortType === 'az') sorted.sort((a,b) => a.title.localeCompare(b.title));
-            else if(sortType === 'za') sorted.sort((a,b) => b.title.localeCompare(a.title));
-
             grid.innerHTML = '';
-            grid.className = isGridView ? 'p-4 grid grid-cols-2 gap-4' : 'p-4 flex flex-col gap-6';
-            
-            sorted.forEach(r => {
+            allReels.forEach(r => {
                 const vidUrl = _supabase.storage.from('reels_media').getPublicUrl(r.video_url).data.publicUrl;
-                const thumbUrl = r.thumbnail_url ? _supabase.storage.from('reels_media').getPublicUrl(r.thumbnail_url).data.publicUrl : '';
+                // UI shows multiple badge if array > 1
+                const linkedCount = (r.linked_product_ids || []).length;
+                const linkBadge = linkedCount > 0 ? `<div class="absolute top-2 right-2 bg-gold-500/90 backdrop-blur text-[10px] font-bold text-black px-2 py-1 rounded-md z-10 shadow-lg"><i data-lucide="link" class="w-3 h-3 inline"></i> ${linkedCount} Products</div>` : '';
                 
-                const linkBadge = r.products ? `<div class="absolute top-2 right-2 bg-gold-500/90 backdrop-blur text-[10px] font-bold text-black px-2 py-1 rounded-md z-10 shadow-lg"><i data-lucide="link" class="w-3 h-3 inline"></i> ${r.products.title}</div>` : '';
-                const statusBadge = r.status === 'draft' ? `<div class="absolute top-2 left-2 bg-yellow-500/90 text-white text-[10px] font-bold px-2 py-1 rounded-md z-10">DRAFT</div>` : '';
-
-                const d = new Date(r.created_at);
-                const stamp = `${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-
                 grid.innerHTML += `
-                    <div class="reel-card group" onclick="openInstantView('${r.id}')">
-                        <!-- ACTION BUTTONS -->
-                        <div class="absolute top-2 left-2 flex gap-1 z-30 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onclick="editReel('${r.id}', event)" class="p-1.5 bg-white/80 dark:bg-black/60 backdrop-blur rounded-lg text-slate-700 dark:text-slate-300 hover:text-gold-500 shadow"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                            <button onclick="requestDeleteReel('${r.id}', event)" class="p-1.5 bg-white/80 dark:bg-black/60 backdrop-blur rounded-lg text-red-500 hover:text-red-700 shadow"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                        </div>
-
-                        ${statusBadge || linkBadge}
-                        ${thumbUrl ? `<img src="${thumbUrl}" class="absolute inset-0 w-full h-full object-cover z-0">` : ''}
-                        <video src="${vidUrl}" class="w-full h-full object-cover relative z-10 ${thumbUrl ? 'opacity-0 hover:opacity-100 transition-opacity' : ''}" muted loop onmouseover="this.play()" onmouseout="this.pause()"></video>
+                    <div class="reel-card">
+                        ${linkBadge}
+                        <video src="${vidUrl}" class="w-full h-full object-cover" muted loop onmouseover="this.play()" onmouseout="this.pause()"></video>
                         <div class="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-20">
                             <h3 class="font-bold text-sm text-white truncate">${r.title}</h3>
-                            <p class="text-[9px] text-gray-300 font-mono mt-1">${stamp}</p>
                         </div>
                     </div>
                 `;
@@ -318,187 +179,48 @@
             lucide.createIcons();
         }
 
-        // --- INSTANT VIEW ---
-        function openInstantView(id) {
-            const r = allReels.find(x => x.id === id);
-            if(!r) return;
-            const vidUrl = _supabase.storage.from('reels_media').getPublicUrl(r.video_url).data.publicUrl;
-            const player = document.getElementById('ivVideo');
-            player.src = vidUrl;
-            document.getElementById('ivTitle').innerText = r.title;
-            document.getElementById('ivDesc').innerText = r.description || '';
-            
-            // Show CTA if product is linked
-            const ctaBtn = document.getElementById('ivCtaBtn');
-            if(r.linked_product_id) {
-                ctaBtn.innerText = r.cta_type || 'View Product';
-                ctaBtn.classList.remove('hidden-view');
-            } else {
-                ctaBtn.classList.add('hidden-view');
-            }
-
-            document.getElementById('instantViewModal').classList.remove('hidden-view');
-        }
-
-        function closeInstantView(force) { 
-            if(force === true || force.target.id === 'instantViewModal') {
-                document.getElementById('ivVideo').pause();
-                document.getElementById('instantViewModal').classList.add('hidden-view'); 
-            }
-        }
-
-        // --- DELETE MODAL LOGIC ---
-        function requestDeleteReel(id, e) {
-            e.stopPropagation();
-            reelToDelete = id;
-            document.getElementById('deleteModal').classList.remove('hidden-view');
-        }
-        function closeDeleteModal() {
-            reelToDelete = null;
-            document.getElementById('deleteModal').classList.add('hidden-view');
-        }
-        async function confirmDeleteReel() {
-            if(!reelToDelete) return;
-            const btn = document.getElementById('confirmDeleteBtn');
-            btn.innerText = "Deleting...";
-            btn.disabled = true;
-
-            const r = allReels.find(x => x.id === reelToDelete);
-            
-            // Delete media from storage bucket
-            if(r.video_url) await _supabase.storage.from('reels_media').remove([r.video_url]);
-            if(r.thumbnail_url) await _supabase.storage.from('reels_media').remove([r.thumbnail_url]);
-
-            // Delete from database
-            const { error } = await _supabase.from('reels').delete().eq('id', reelToDelete);
-            
-            btn.innerText = "Yes, Delete";
-            btn.disabled = false;
-            closeDeleteModal();
-
-            if(error) alert("Error deleting: " + error.message);
-            else fetchReels(); 
-        }
-
-        // --- UPLOAD / EDIT LOGIC ---
-        function openUploadModal() { 
-            editingReelId = null;
-            document.getElementById('modalTitle').innerText = "Create Reel";
-            document.getElementById('saveBtn').innerText = "Publish Reel";
-            document.getElementById('reelTitle').value = '';
-            document.getElementById('reelDesc').value = '';
-            document.getElementById('linkedProduct').value = '';
-            document.getElementById('reelStatus').value = 'published';
-            document.getElementById('reelCta').value = 'Buy Now';
-            document.getElementById('videoPreview').classList.add('hidden-view');
-            updateCounter('titleCounter', 0, 150);
-            updateCounter('descCounter', 0, 10000);
-            document.getElementById('uploadModal').classList.remove('hidden-view'); 
-        }
-        function closeUploadModal() { document.getElementById('uploadModal').classList.add('hidden-view'); }
-
-        function editReel(id, e) {
-            e.stopPropagation();
-            const r = allReels.find(x => x.id === id);
-            editingReelId = id;
-
-            document.getElementById('reelTitle').value = r.title;
-            document.getElementById('reelDesc').value = r.description || '';
-            document.getElementById('linkedProduct').value = r.linked_product_id || '';
-            document.getElementById('reelStatus').value = r.status || 'published';
-            document.getElementById('reelCta').value = r.cta_type || 'Buy Now';
-            
-            updateCounter('titleCounter', r.title.length, 150);
-            updateCounter('descCounter', (r.description || '').length, 10000);
-
-            const lang = localStorage.getItem('golden_language') || 'en';
-            document.getElementById('modalTitle').innerText = translations[lang] ? (translations[lang]['editReel'] || "Edit Reel") : "Edit Reel";
-            document.getElementById('saveBtn').innerText = "Update Reel";
-            document.getElementById('videoPreview').classList.add('hidden-view');
-            
-            document.getElementById('uploadModal').classList.remove('hidden-view');
-        }
-
         function previewVideo(event) {
             const file = event.target.files[0];
-            const errBox = document.getElementById('mediaError');
-            errBox.classList.add('hidden-view');
             if(file) {
-                if(file.size > 49 * 1024 * 1024) { errBox.innerText = "Error: Exceeds 49MB limit."; errBox.classList.remove('hidden-view'); event.target.value = ""; return; }
                 const vid = document.getElementById('videoPreview');
                 vid.src = URL.createObjectURL(file);
-                vid.onloadedmetadata = function() {
-                    if(vid.duration > 61) { errBox.innerText = `Error: Video is ${Math.round(vid.duration)}s. Max 60s.`; errBox.classList.remove('hidden-view'); event.target.value = ""; vid.classList.add('hidden-view'); } 
-                    else vid.classList.remove('hidden-view');
-                };
+                vid.classList.remove('hidden-view');
             }
         }
-        function checkThumbSize(event) {
-            const file = event.target.files[0];
-            if(file && file.size > 5 * 1024 * 1024) { document.getElementById('mediaError').innerText = "Error: Thumbnail exceeds 5MB limit."; document.getElementById('mediaError').classList.remove('hidden-view'); event.target.value = ""; }
+
+        function openUploadModal() { 
+            document.getElementById('uploadModal').classList.remove('hidden-view'); 
+            // Reset checkboxes
+            document.querySelectorAll('input[name="linked_products"]').forEach(cb => cb.checked = false);
         }
+        function closeUploadModal() { document.getElementById('uploadModal').classList.add('hidden-view'); }
 
         async function saveReel() {
             const btn = document.getElementById('saveBtn');
             const file = document.getElementById('reelMedia').files[0];
-            const thumbFile = document.getElementById('reelThumb').files[0];
             const title = document.getElementById('reelTitle').value;
-            const desc = document.getElementById('reelDesc').value;
 
-            if(!editingReelId && (!file || !title)) return alert("Video and Title are required for new reels.");
-            if(editingReelId && !title) return alert("Title is required.");
-            if(!isContentSafe(title) || !isContentSafe(desc)) return alert("COMPLIANCE ALERT: Prohibited language detected.");
+            if(!file || !title) return alert("Video and Title are required.");
+
+            // Extract all checked products
+            const selectedProductIds = Array.from(document.querySelectorAll('input[name="linked_products"]:checked')).map(cb => cb.value);
 
             btn.innerText = "Processing... (Do not close)";
             btn.disabled = true;
 
-            let videoPath = null;
-            let thumbPath = null;
+            const videoPath = `${currentUser.id}/reel_${Date.now()}.${file.name.split('.').pop()}`;
+            await _supabase.storage.from('reels_media').upload(videoPath, file);
             
-            if (editingReelId) {
-                const existing = allReels.find(x => x.id === editingReelId);
-                videoPath = existing.video_url;
-                thumbPath = existing.thumbnail_url;
-                
-                if (file) {
-                    if (videoPath) await _supabase.storage.from('reels_media').remove([videoPath]); 
-                    videoPath = `${currentUser.id}/reel_${Date.now()}.${file.name.split('.').pop()}`;
-                    await _supabase.storage.from('reels_media').upload(videoPath, file);
-                }
-                if (thumbFile) {
-                    if (thumbPath) await _supabase.storage.from('reels_media').remove([thumbPath]);
-                    thumbPath = `${currentUser.id}/thumb_${Date.now()}.${thumbFile.name.split('.').pop()}`;
-                    await _supabase.storage.from('reels_media').upload(thumbPath, thumbFile);
-                }
-            } else {
-                videoPath = `${currentUser.id}/reel_${Date.now()}.${file.name.split('.').pop()}`;
-                await _supabase.storage.from('reels_media').upload(videoPath, file);
-                if (thumbFile) {
-                    thumbPath = `${currentUser.id}/thumb_${Date.now()}.${thumbFile.name.split('.').pop()}`;
-                    await _supabase.storage.from('reels_media').upload(thumbPath, thumbFile);
-                }
-            }
-
             const reelData = {
-                user_id: currentUser.id, title: title, description: desc,
-                video_url: videoPath, thumbnail_url: thumbPath,
-                status: document.getElementById('reelStatus').value,
+                user_id: currentUser.id, title: title, description: document.getElementById('reelDesc').value,
+                video_url: videoPath, status: document.getElementById('reelStatus').value,
                 cta_type: document.getElementById('reelCta').value,
-                linked_product_id: document.getElementById('linkedProduct').value || null
+                linked_product_ids: selectedProductIds // Save array of UUIDs
             };
 
-            let dbError;
-            if (editingReelId) {
-                const { error } = await _supabase.from('reels').update(reelData).eq('id', editingReelId);
-                dbError = error;
-            } else {
-                const { error } = await _supabase.from('reels').insert([reelData]);
-                dbError = error;
-            }
-
-            if(dbError) alert("Database Error: " + dbError.message);
-            else { closeUploadModal(); fetchReels(); }
-            btn.disabled = false;
+            await _supabase.from('reels').insert([reelData]);
+            closeUploadModal(); fetchReels();
+            btn.innerText = "Publish Reel"; btn.disabled = false;
         }
 
         window.addEventListener('DOMContentLoaded', init);
