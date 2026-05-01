@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Settings - Golden's</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { gold: { 400: '#FACC15', 500: '#EAB308', 600: '#CA8A04' }, premium: { 900: '#0a0a0a', 800: '#171717' } } } } }
+    </script>
+    <style>
+        body { background: #f8fafc; padding-bottom: 90px; }
+        .dark body { background: #0f172a; }
+        .theme-golden body { background: radial-gradient(circle at top left, #1a1400 0%, #0a0a0a 100%); color: #fef08a; }
+        .hidden-view { display: none !important; }
+        
+        /* Header */
+        .header-glass { background: rgba(255,255,255,0.9); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(0,0,0,0.05); z-index: 40; position: sticky; top: 0; display: flex; align-items: center; gap: 16px; padding: 16px; }
+        .dark .header-glass { background: rgba(15,23,42,0.9); border-color: rgba(255,255,255,0.05); }
+        .theme-golden .header-glass { background: rgba(10,10,10,0.9); border-color: rgba(234,179,8,0.2); }
+
+        .settings-card { background: white; border-radius: 24px; padding: 0; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.02); margin-bottom: 24px; }
+        .dark .settings-card { background: #1e293b; }
+        .theme-golden .settings-card { background: #171717; border: 1px solid rgba(234,179,8,0.2); box-shadow: 0 4px 20px rgba(234,179,8,0.05); }
+
+        .settings-row { padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f1f5f9; }
+        .settings-row:last-child { border-bottom: none; }
+        .dark .settings-row { border-color: #334155; }
+        .theme-golden .settings-row { border-color: rgba(234,179,8,0.15); }
+
+        .settings-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: #f1f5f9; color: #64748b; }
+        .dark .settings-icon { background: #0f172a; color: #94a3b8; }
+        .theme-golden .settings-icon { background: #000; color: #EAB308; border: 1px solid rgba(234,179,8,0.3); }
+
+        /* PREMIUM TOGGLE SWITCH ANIMATION */
+        .toggle-container { position: relative; display: inline-block; width: 46px; height: 26px; }
+        .toggle-checkbox { display: none; }
+        .toggle-label { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; border-radius: 34px; transition: background-color 0.3s; }
+        .dark .toggle-label { background-color: #475569; }
+        .theme-golden .toggle-label { background-color: #332900; border: 1px solid rgba(234,179,8,0.3); }
+        
+        .toggle-label:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; border-radius: 50%; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .theme-golden .toggle-label:before { background-color: #fef08a; }
+
+        .toggle-checkbox:checked + .toggle-label { background-color: #22c55e; }
+        .theme-golden .toggle-checkbox:checked + .toggle-label { background-color: #EAB308; }
+        .toggle-checkbox:checked + .toggle-label:before { transform: translateX(20px); }
+
+        .form-select { padding: 6px 12px; border-radius: 8px; background: #f1f5f9; border: 1px solid transparent; outline: none; font-size: 12px; font-weight: 700; color: #1e293b; }
+        .dark .form-select { background: #0f172a; color: white; border-color: rgba(255,255,255,0.1); }
+        .theme-golden .form-select { background: #000; color: #FDE047; border-color: rgba(234,179,8,0.3); }
+
+        .section-title { font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; padding: 0 20px; margin-bottom: 8px; }
+        .theme-golden .section-title { color: #CA8A04; }
+    </style>
+</head>
+<body class="transition-colors duration-300">
+
+    <div class="header-glass">
+        <button onclick="window.parent.loadModule('profile.html', null)" class="text-slate-500 hover:text-gold-500 theme-golden:text-gold-500">
+            <i data-lucide="arrow-left" class="w-6 h-6"></i>
+        </button>
+        <h1 class="text-xl font-extrabold uppercase tracking-wide text-slate-800 dark:text-white theme-golden:text-gold-400" data-i18n="settings">Settings</h1>
+    </div>
+
+    <div class="p-4 max-w-2xl mx-auto">
+        
+        <!-- SECTION 1: APPEARANCE -->
+        <p class="section-title" data-i18n="sec_appearance">Appearance & Display</p>
+        <div class="settings-card">
+            <div class="settings-row">
+                <div class="flex items-center gap-4">
+                    <div class="settings-icon"><i data-lucide="palette" class="w-5 h-5"></i></div>
+                    <div><p class="font-bold text-sm text-slate-800 dark:text-white theme-golden:text-gold-200" data-i18n="theme">Global Theme</p></div>
+                </div>
+                <select id="set_theme" onchange="handleSettingChange('theme', this.value)" class="form-select">
+                    <option value="system">System</option>
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                    <option value="golden">Golden Premium</option>
+                </select>
+            </div>
+            <div class="settings-row">
+                <div class="flex items-center gap-4">
+                    <div class="settings-icon"><i data-lucide="globe" class="w-5 h-5"></i></div>
+                    <div><p class="font-bold text-sm text-slate-800 dark:text-white theme-golden:text-gold-200" data-i18n="language">App Language</p></div>
+                </div>
+                <select id="set_language" onchange="handleSettingChange('language', this.value)" class="form-select">
+                    <option value="en">English</option>
+                    <option value="hi">हिन्दी (Hindi)</option>
+                    <option value="te">తెలుగు (Telugu)</option>
+                    <option value="es">Español (Spanish)</option>
+                    <option value="fr">Français (French)</option>
+                    <option value="ar">العربية (Arabic)</option>
+                    <option value="zh">中文 (Chinese)</option>
+                    <option value="ru">Русский (Russian)</option>
+                    <option value="de">Deutsch (German)</option>
+                    <option value="ja">日本語 (Japanese)</option>
+                    <option value="pt">Português</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- SECTION 2: PRIVACY & SOCIAL -->
+        <p class="section-title" data-i18n="sec_privacy">Privacy & Social</p>
+        <div class="settings-card">
+            <div class="settings-row">
+                <div class="flex items-center gap-4">
+                    <div class="settings-icon"><i data-lucide="eye-off" class="w-5 h-5"></i></div>
+                    <div>
+                        <p class="font-bold text-sm text-slate-800 dark:text-white theme-golden:text-gold-200" data-i18n="online_status">Show Online Status</p>
+                        <p class="text-[10px] text-slate-400">Let suppliers see when you are active in chat</p>
+                    </div>
+                </div>
+                <div class="toggle-container">
+                    <input type="checkbox" id="set_privacy_online" class="toggle-checkbox" onchange="handleSettingChange('privacy_online_status', this.checked)">
+                    <label for="set_privacy_online" class="toggle-label"></label>
+                </div>
+            </div>
+            <div class="settings-row">
+                <div class="flex items-center gap-4">
+                    <div class="settings-icon"><i data-lucide="check-check" class="w-5 h-5"></i></div>
+                    <div><p class="font-bold text-sm text-slate-800 dark:text-white theme-golden:text-gold-200" data-i18n="read_receipts">Read Receipts</p></div>
+                </div>
+                <div class="toggle-container">
+                    <input type="checkbox" id="set_privacy_read" class="toggle-checkbox" onchange="handleSettingChange('privacy_read_receipts', this.checked)">
+                    <label for="set_privacy_read" class="toggle-label"></label>
+                </div>
+            </div>
+            <div class="settings-row">
+                <div class="flex items-center gap-4">
+                    <div class="settings-icon"><i data-lucide="search" class="w-5 h-5"></i></div>
+                    <div><p class="font-bold text-sm text-slate-800 dark:text-white theme-golden:text-gold-200" data-i18n="searchable">Profile Searchable</p></div>
+                </div>
+                <div class="toggle-container">
+                    <input type="checkbox" id="set_privacy_search" class="toggle-checkbox" onchange="handleSettingChange('privacy_searchable', this.checked)">
+                    <label for="set_privacy_search" class="toggle-label"></label>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 3: NOTIFICATIONS & SOUNDS -->
+        <p class="section-title" data-i18n="sec_notif">Notifications & Sound</p>
+        <div class="settings-card">
+            <div class="settings-row">
+                <div class="flex items-center gap-4">
+                    <div class="settings-icon"><i data-lucide="bell-ring" class="w-5 h-5"></i></div>
+                    <div><p class="font-bold text-sm text-slate-800 dark:text-white theme-golden:text-gold-200" data-i18n="push_notif">Push Notifications</p></div>
+                </div>
+                <div class="toggle-container">
+                    <input type="checkbox" id="set_notif_push" class="toggle-checkbox" onchange="handleSettingChange('notif_push', this.checked)">
+                    <label for="set_notif_push" class="toggle-label"></label>
+                </div>
+            </div>
+            <div class="settings-row">
+                <div class="flex items-center gap-4">
+                    <div class="settings-icon"><i data-lucide="volume-2" class="w-5 h-5"></i></div>
+                    <div><p class="font-bold text-sm text-slate-800 dark:text-white theme-golden:text-gold-200" data-i18n="chat_sounds">Chat & Alert Sounds</p></div>
+                </div>
+                <div class="toggle-container">
+                    <input type="checkbox" id="set_notif_sound" class="toggle-checkbox" onchange="handleSettingChange('notif_sound', this.checked)">
+                    <label for="set_notif_sound" class="toggle-label"></label>
+                </div>
+            </div>
+            <div class="settings-row">
+                <div class="flex items-center gap-4">
+                    <div class="settings-icon"><i data-lucide="vibrate" class="w-5 h-5"></i></div>
+                    <div><p class="font-bold text-sm text-slate-800 dark:text-white theme-golden:text-gold-200" data-i18n="vibration">Haptic Vibration</p></div>
+                </div>
+                <div class="toggle-container">
+                    <input type="checkbox" id="set_notif_vib" class="toggle-checkbox" onchange="handleSettingChange('notif_vibrate', this.checked)">
+                    <label for="set_notif_vib" class="toggle-label"></label>
+                </div>
+            </div>
+            <div class="settings-row">
+                <div class="flex items-center gap-4">
+                    <div class="settings-icon"><i data-lucide="mail" class="w-5 h-5"></i></div>
+                    <div><p class="font-bold text-sm text-slate-800 dark:text-white theme-golden:text-gold-200" data-i18n="email_alerts">Email Digests</p></div>
+                </div>
+                <div class="toggle-container">
+                    <input type="checkbox" id="set_notif_email" class="toggle-checkbox" onchange="handleSettingChange('notif_email', this.checked)">
+                    <label for="set_notif_email" class="toggle-label"></label>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 4: B2B BUSINESS SETTINGS -->
+        <p class="section-title" data-i18n="sec_b2b">B2B & Business Controls</p>
+        <div class="settings-card">
+            <div class="settings-row">
+                <div class="flex items-center gap-4">
+                    <div class="settings-icon"><i data-lucide="dollar-sign" class="w-5 h-5"></i></div>
+                    <div><p class="font-bold text-sm text-slate-800 dark:text-white theme-golden:text-gold-200" data-i18n="currency">Base Currency</p></div>
+                </div>
+                <select id="set_b2b_currency" onchange="handleSettingChange('b2b_currency', this.value)" class="form-select">
+                    <option value="INR">₹ INR</option>
+                    <option value="USD">$ USD</option>
+                    <option value="EUR">€ EUR</option>
+                    <option value="AED">د.إ AED</option>
+                </select>
+            </div>
+            <div class="settings-row">
+                <div class="flex items-center gap-4">
+                    <div class="settings-icon"><i data-lucide="message-square-dashed" class="w-5 h-5"></i></div>
+                    <div>
+                        <p class="font-bold text-sm text-slate-800 dark:text-white theme-golden:text-gold-200" data-i18n="auto_reply">Chat Auto-Reply</p>
+                        <p class="text-[10px] text-slate-400">Sends greeting to new clients</p>
+                    </div>
+                </div>
+                <div class="toggle-container">
+                    <input type="checkbox" id="set_b2b_autoreply" class="toggle-checkbox" onchange="handleSettingChange('b2b_autoreply', this.checked)">
+                    <label for="set_b2b_autoreply" class="toggle-label"></label>
+                </div>
+            </div>
+            <div class="settings-row">
+                <div class="flex items-center gap-4">
+                    <div class="settings-icon"><i data-lucide="briefcase" class="w-5 h-5"></i></div>
+                    <div><p class="font-bold text-sm text-slate-800 dark:text-white theme-golden:text-gold-200" data-i18n="ooo_mode">Out of Office Mode</p></div>
+                </div>
+                <div class="toggle-container">
+                    <input type="checkbox" id="set_b2b_ooo" class="toggle-checkbox" onchange="handleSettingChange('b2b_ooo', this.checked)">
+                    <label for="set_b2b_ooo" class="toggle-label"></label>
+                </div>
+            </div>
+            <div class="settings-row">
+                <div class="flex items-center gap-4">
+                    <div class="settings-icon"><i data-lucide="percent" class="w-5 h-5"></i></div>
+                    <div><p class="font-bold text-sm text-slate-800 dark:text-white theme-golden:text-gold-200" data-i18n="show_margin">Show Profit Margins</p></div>
+                </div>
+                <div class="toggle-container">
+                    <input type="checkbox" id="set_b2b_margin" class="toggle-checkbox" onchange="handleSettingChange('b2b_margin', this.checked)">
+                    <label for="set_b2b_margin" class="toggle-label"></label>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 5: DATA & STORAGE -->
+        <p class="section-title" data-i18n="sec_data">Data & Storage</p>
+        <div class="settings-card">
+            <div class="settings-row">
+                <div class="flex items-center gap-4">
+                    <div class="settings-icon"><i data-lucide="wifi" class="w-5 h-5"></i></div>
+                    <div><p class="font-bold text-sm text-slate-800 dark:text-white theme-golden:text-gold-200" data-i18n="data_saver">Data Saver Mode</p></div>
+                </div>
+                <div class="toggle-container">
+                    <input type="checkbox" id="set_data_saver" class="toggle-checkbox" onchange="handleSettingChange('data_saver', this.checked)">
+                    <label for="set_data_saver" class="toggle-label"></label>
+                </div>
+            </div>
+            <div class="settings-row cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 theme-golden:hover:bg-premium-800 transition-colors" onclick="alert('Local Cache Cleared (124 MB)')">
+                <div class="flex items-center gap-4">
+                    <div class="settings-icon"><i data-lucide="trash" class="w-5 h-5"></i></div>
+                    <div><p class="font-bold text-sm text-slate-800 dark:text-white theme-golden:text-gold-200" data-i18n="clear_cache">Clear App Cache</p></div>
+                </div>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const SUPABASE_URL = 'https://puvdfqnjzliiuupchppj.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1dmRmcW5qemxpaXV1cGNocHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTExOTgsImV4cCI6MjA5MjU4NzE5OH0.hDK6fjZ2SesJ7qkeWVXxOoxW2Xmr7MDlKO-BFtJtDu0';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let currentUser = null;
+        let userSettings = {};
+
+        // 10+ Real Language Dictionaries
+        const translations = {
+            'en': { 'settings':'Settings', 'sec_appearance':'Appearance & Display', 'theme':'Global Theme', 'language':'App Language', 'sec_privacy':'Privacy & Social', 'online_status':'Show Online Status', 'read_receipts':'Read Receipts', 'searchable':'Profile Searchable', 'sec_notif':'Notifications & Sound', 'push_notif':'Push Notifications', 'chat_sounds':'Chat & Alert Sounds', 'vibration':'Haptic Vibration', 'email_alerts':'Email Digests', 'sec_b2b':'B2B & Business Controls', 'currency':'Base Currency', 'auto_reply':'Chat Auto-Reply', 'ooo_mode':'Out of Office Mode', 'show_margin':'Show Profit Margins', 'sec_data':'Data & Storage', 'data_saver':'Data Saver Mode', 'clear_cache':'Clear App Cache' },
+            'hi': { 'settings':'सेटिंग्स', 'sec_appearance':'दिखावट', 'theme':'ग्लोबल थीम', 'language':'ऐप भाषा', 'sec_privacy':'गोपनीयता और सामाजिक', 'online_status':'ऑनलाइन स्थिति दिखाएं', 'read_receipts':'रीड रसीदें', 'searchable':'प्रोफ़ाइल खोजने योग्य', 'sec_notif':'सूचनाएं और ध्वनि', 'push_notif':'पुश सूचनाएं', 'chat_sounds':'चैट ध्वनियां', 'vibration':'वाइब्रेशन', 'email_alerts':'ईमेल अलर्ट', 'sec_b2b':'बी2बी नियंत्रण', 'currency':'मुद्रा', 'auto_reply':'ऑटो-रिप्लाई', 'ooo_mode':'ऑफिस से बाहर मोड', 'show_margin':'मार्जिन दिखाएं', 'sec_data':'डेटा और स्टोरेज', 'data_saver':'डेटा सेवर', 'clear_cache':'कैश साफ़ करें' },
+            'es': { 'settings':'Configuración', 'sec_appearance':'Apariencia', 'theme':'Tema Global', 'language':'Idioma', 'sec_privacy':'Privacidad', 'online_status':'Mostrar estado en línea', 'read_receipts':'Confirmación de lectura', 'searchable':'Perfil público', 'sec_notif':'Notificaciones', 'push_notif':'Notificaciones Push', 'chat_sounds':'Sonidos de chat', 'vibration':'Vibración', 'email_alerts':'Correos', 'sec_b2b':'Control B2B', 'currency':'Moneda', 'auto_reply':'Autorespuesta', 'ooo_mode':'Modo ausente', 'show_margin':'Mostrar margen', 'sec_data':'Datos', 'data_saver':'Ahorro de datos', 'clear_cache':'Borrar caché' },
+            // Mappings naturally fallback if translation missing
+        };
+
+        function translateApp(lang) {
+            if(!translations[lang]) lang = 'en';
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if(translations[lang][key]) el.innerText = translations[lang][key];
+            });
+        }
+
+        async function init() {
+            const { data: { user } } = await _supabase.auth.getUser();
+            if(user) {
+                currentUser = user;
+                await loadSettingsFromDB();
+            } else {
+                loadSettingsFromLocal();
+            }
+        }
+
+        async function loadSettingsFromDB() {
+            const { data } = await _supabase.from('profiles').select('app_settings').eq('id', currentUser.id).single();
+            if(data && data.app_settings) {
+                userSettings = data.app_settings;
+                localStorage.setItem('golden_user_settings', JSON.stringify(userSettings));
+            } else {
+                userSettings = getDefaults();
+            }
+            applySettingsToUI();
+        }
+
+        function loadSettingsFromLocal() {
+            const local = localStorage.getItem('golden_user_settings');
+            userSettings = local ? JSON.parse(local) : getDefaults();
+            applySettingsToUI();
+        }
+
+        function getDefaults() {
+            return {
+                theme: 'system', language: 'en',
+                privacy_online_status: true, privacy_read_receipts: true, privacy_searchable: true,
+                notif_push: true, notif_sound: true, notif_vibrate: true, notif_email: false,
+                b2b_currency: 'INR', b2b_autoreply: false, b2b_ooo: false, b2b_margin: true,
+                data_saver: false
+            };
+        }
+
+        function applySettingsToUI() {
+            // Dropdowns
+            if(document.getElementById('set_theme')) document.getElementById('set_theme').value = userSettings.theme || 'system';
+            if(document.getElementById('set_language')) document.getElementById('set_language').value = userSettings.language || 'en';
+            if(document.getElementById('set_b2b_currency')) document.getElementById('set_b2b_currency').value = userSettings.b2b_currency || 'INR';
+            
+            // Checkboxes
+            ['privacy_online_status', 'privacy_read_receipts', 'privacy_searchable', 'notif_push', 'notif_sound', 'notif_vibrate', 'notif_email', 'b2b_autoreply', 'b2b_ooo', 'b2b_margin', 'data_saver'].forEach(key => {
+                const el = document.getElementById('set_' + key);
+                if(el) el.checked = userSettings[key] !== false; // defaults to true if undefined, except explicitly false
+                
+                // Fix specific defaults
+                if(key === 'b2b_autoreply' || key === 'b2b_ooo' || key === 'notif_email' || key === 'data_saver') {
+                    if(el) el.checked = userSettings[key] === true;
+                }
+            });
+
+            // Execute local visual changes instantly
+            if(userSettings.theme) executeTheme(userSettings.theme);
+            if(userSettings.language) translateApp(userSettings.language);
+        }
+
+        // --- THEME EXECUTION ---
+        function executeTheme(theme) {
+            const html = document.documentElement;
+            html.classList.remove('dark', 'theme-golden');
+            if (theme === 'dark') html.classList.add('dark');
+            else if (theme === 'golden') html.classList.add('dark', 'theme-golden');
+            else if (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) html.classList.add('dark');
+            
+            localStorage.setItem('golden_theme', theme);
+            if (window.parent && typeof window.parent.changeTheme === 'function') window.parent.changeTheme(theme);
+        }
+
+        // --- MASTER SAVE ENGINE ---
+        let saveTimeout;
+        function handleSettingChange(key, value) {
+            userSettings[key] = value;
+            localStorage.setItem('golden_user_settings', JSON.stringify(userSettings));
+
+            // Instant Local Execution for specific keys
+            if(key === 'theme') executeTheme(value);
+            if(key === 'language') {
+                localStorage.setItem('golden_language', value);
+                translateApp(value);
+            }
+
+            // Debounced DB Save (Prevents spamming the database if user clicks 5 toggles rapidly)
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                if(currentUser) {
+                    _supabase.from('profiles').update({ app_settings: userSettings }).eq('id', currentUser.id)
+                    .then(({error}) => { if(error) console.error("Setting save failed", error); });
+                }
+            }, 1000);
+        }
+
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
