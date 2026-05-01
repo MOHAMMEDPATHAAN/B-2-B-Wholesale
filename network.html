@@ -373,7 +373,7 @@
                     const isFav = myFavorites.has(p.id); const isWatch = myWatchlist.has(p.id);
 
                     return `
-                        <div class="b2b-card group" onclick="openIV('${p.id}')">
+                        <div class="b2b-card group" onclick="routeToProduct('${p.id}')">
                             <div class="img-container">
                                 <img src="${imgUrl}" alt="Product">
                                 <div class="moq-badge">MOQ: ${p.min_unit}</div>
