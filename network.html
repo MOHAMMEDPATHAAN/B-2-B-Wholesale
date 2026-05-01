@@ -17,7 +17,6 @@
         .theme-golden body { background: radial-gradient(circle at top left, #1a1400 0%, #0a0a0a 100%); color: #fef08a; }
         .hidden-view { display: none !important; }
         
-        /* Sticky Header */
         .header-glass { background: rgba(255,255,255,0.9); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(0,0,0,0.05); z-index: 40; position: sticky; top: 0; }
         .dark .header-glass { background: rgba(15,23,42,0.9); border-color: rgba(255,255,255,0.05); }
         .theme-golden .header-glass { background: rgba(10,10,10,0.9); border-color: rgba(234,179,8,0.2); }
@@ -26,11 +25,20 @@
         .dark .search-bar { background: #1e293b; color: white; border-color: rgba(255,255,255,0.1); }
         .theme-golden .search-bar { background: rgba(20,15,0,0.6); color: #FDE047; border-color: rgba(234,179,8,0.3); }
 
-        /* Row Scrolling */
+        /* Filter Modal */
+        .filter-modal { position: fixed; top: 0; right: -100%; width: 85%; max-width: 350px; height: 100vh; background: white; z-index: 100; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: -10px 0 30px rgba(0,0,0,0.1); overflow-y: auto; padding-bottom: 80px; }
+        .filter-modal.open { right: 0; }
+        .dark .filter-modal { background: #0f172a; box-shadow: -10px 0 30px rgba(0,0,0,0.5); }
+        .theme-golden .filter-modal { background: #0a0a0a; border-left: 1px solid rgba(234,179,8,0.3); }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 90; backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        .overlay.open { opacity: 1; pointer-events: auto; }
+        .form-select, .form-input { width: 100%; padding: 12px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; outline: none; font-size: 14px; font-weight: 600; margin-top: 6px; }
+        .dark .form-select, .dark .form-input { background: #1e293b; border-color: #334155; color: white; }
+        .theme-golden .form-select, .theme-golden .form-input { background: rgba(20,15,0,0.5); border-color: rgba(234,179,8,0.3); color: #fef08a; }
+
         .row-scroll { display: flex; overflow-x: auto; gap: 16px; padding: 10px 20px 20px 20px; scroll-snap-type: x mandatory; -ms-overflow-style: none; scrollbar-width: none; }
         .row-scroll::-webkit-scrollbar { display: none; }
         
-        /* B2B Card */
         .b2b-card { min-width: 240px; max-width: 240px; background: white; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); scroll-snap-align: start; flex-shrink: 0; position: relative; cursor: pointer; transition: transform 0.2s; }
         .b2b-card:active { transform: scale(0.98); }
         .dark .b2b-card { background: #1e293b; }
@@ -38,14 +46,10 @@
 
         .img-container { width: 100%; height: 160px; position: relative; border-radius: 20px 20px 0 0; overflow: hidden; }
         .img-container img { width: 100%; height: 100%; object-fit: cover; }
-        
-        /* Badges & Overlays */
         .moq-badge { position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); color: white; font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); }
         .action-badges { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; z-index: 10; }
         .icon-btn { background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; transition: all 0.2s; }
-        .icon-btn:hover { background: rgba(0,0,0,0.8); transform: scale(1.1); }
         
-        /* Active States */
         .fav-active { background: rgba(239, 68, 68, 0.2) !important; border-color: #ef4444 !important; color: #ef4444 !important; }
         .fav-active svg { fill: #ef4444; }
         .watch-active { background: rgba(59, 130, 246, 0.2) !important; border-color: #3b82f6 !important; color: #3b82f6 !important; }
@@ -53,11 +57,16 @@
         .theme-golden .fav-active { color: #EAB308 !important; border-color: #EAB308 !important; }
         .theme-golden .fav-active svg { fill: #EAB308; }
         
-        /* Full Screen Instant View Modal */
         .iv-modal { position: fixed; inset: 0; background: rgba(255,255,255,1); z-index: 200; overflow-y: auto; display: none; }
         .iv-modal.active { display: block; animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .dark .iv-modal { background: #0f172a; }
         .theme-golden .iv-modal { background: #0a0a0a; color: #fef08a; }
+
+        /* Multiple Image Carousel inside IV Modal */
+        .image-carousel { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; -ms-overflow-style: none; scrollbar-width: none; border-radius: 16px; margin-bottom: 16px; border: 1px solid rgba(0,0,0,0.1); }
+        .image-carousel::-webkit-scrollbar { display: none; }
+        .image-carousel img { width: 100%; height: 300px; flex-shrink: 0; scroll-snap-align: start; object-fit: cover; }
+        .theme-golden .image-carousel { border-color: rgba(234,179,8,0.2); }
 
         .social-btn { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 12px; background: #f1f5f9; color: #475569; transition: all 0.2s; }
         .dark .social-btn { background: #1e293b; color: #cbd5e1; }
@@ -73,9 +82,15 @@
     <div class="header-glass px-4 py-3">
         <div class="flex justify-between items-center mb-3">
             <h1 class="text-2xl font-extrabold tracking-wide uppercase text-gold-500">B2B Network</h1>
-            <button onclick="fetchNetworkProducts()" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 theme-golden:bg-premium-800 text-slate-700 dark:text-white theme-golden:text-gold-500 shadow">
-                <i data-lucide="refresh-cw" class="w-5 h-5"></i>
-            </button>
+            <div class="flex gap-2">
+                <button onclick="toggleFilters()" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 theme-golden:bg-premium-800 text-slate-700 dark:text-white theme-golden:text-gold-500 shadow relative">
+                    <i data-lucide="sliders-horizontal" class="w-5 h-5"></i>
+                    <span id="filterCount" class="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center hidden-view">0</span>
+                </button>
+                <button onclick="fetchNetworkProducts()" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 theme-golden:bg-premium-800 text-slate-700 dark:text-white theme-golden:text-gold-500 shadow">
+                    <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                </button>
+            </div>
         </div>
         
         <div class="relative">
@@ -84,9 +99,55 @@
         </div>
     </div>
 
-    <div id="errorState" class="hidden-view p-4 bg-red-100 text-red-700 m-4 rounded-xl font-bold text-xs"></div>
+    <!-- Filter Modal -->
+    <div id="filterOverlay" class="overlay" onclick="toggleFilters()"></div>
+    <div id="filterModal" class="filter-modal">
+        <div class="p-6 border-b border-slate-100 dark:border-slate-800 theme-golden:border-gold-500/20 flex justify-between items-center sticky top-0 bg-white dark:bg-slate-900 theme-golden:bg-premium-900 z-10">
+            <h2 class="text-lg font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-400">Advanced Filters</h2>
+            <button onclick="toggleFilters()" class="text-slate-400 hover:text-red-500"><i data-lucide="x" class="w-6 h-6"></i></button>
+        </div>
+        <div class="p-6 space-y-6">
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide theme-golden:text-gold-600">Wholesale Price (₹)</label>
+                <div class="flex items-center gap-2 mt-2">
+                    <input type="number" id="filterMinPrice" placeholder="Min" class="form-input">
+                    <span class="text-slate-400 font-bold">-</span>
+                    <input type="number" id="filterMaxPrice" placeholder="Max" class="form-input">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide theme-golden:text-gold-600">Supplier Industry</label>
+                <select id="filterIndustry" class="form-select">
+                    <option value="">All Industries</option>
+                    <option value="Manufacturing">Manufacturing</option>
+                    <option value="Textiles">Textiles & Apparel</option>
+                    <option value="Electronics">Electronics & Hardware</option>
+                    <option value="Agriculture">Agriculture & Farming</option>
+                    <option value="Healthcare/Pharma">Healthcare & Pharma</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide theme-golden:text-gold-600">Product Grade</label>
+                <select id="filterGrade" class="form-select">
+                    <option value="">Any Quality</option>
+                    <option value="5 Star Premium">5 Star Premium</option>
+                    <option value="Grade A+">Grade A+</option>
+                    <option value="Grade A">Grade A</option>
+                    <option value="Standard">Standard</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide theme-golden:text-gold-600">Max Minimum Order Qty (MOQ)</label>
+                <input type="number" id="filterMoq" placeholder="e.g. Show products I can buy 10 of" class="form-input">
+            </div>
+            <div class="flex gap-3 pt-4">
+                <button onclick="clearFilters()" class="flex-1 py-4 font-bold text-sm text-slate-500 bg-slate-100 dark:bg-slate-800 rounded-xl theme-golden:bg-premium-800 theme-golden:text-gold-200">Reset</button>
+                <button onclick="applyFilters()" class="flex-[2] py-4 font-bold text-sm text-white bg-gold-500 rounded-xl shadow-lg shadow-gold-500/30 theme-golden:text-black">Apply Filters</button>
+            </div>
+        </div>
+    </div>
+
     <div id="loadingState" class="loader"></div>
-    
     <div id="emptyState" class="hidden-view flex flex-col items-center justify-center mt-20 px-6 text-center">
         <i data-lucide="box-select" class="w-16 h-16 text-slate-300 dark:text-slate-700 theme-golden:text-gold-900 mb-4"></i>
         <h2 class="text-xl font-bold text-slate-800 dark:text-white theme-golden:text-gold-400">Network Expanding</h2>
@@ -105,70 +166,78 @@
             </div>
         </div>
 
-        <div class="pb-24">
-            <img id="ivImg" src="" class="w-full h-72 object-cover">
-            <div class="p-6">
-                <p id="ivTag" class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest bg-gold-50 dark:bg-gold-900/20 py-1 px-2 rounded inline-block mb-2">Category</p>
-                <h2 id="ivTitle" class="text-2xl font-black text-slate-800 dark:text-white theme-golden:text-gold-300 leading-tight">Product Title</h2>
-                
-                <div class="flex items-baseline gap-2 mt-2">
-                    <p id="ivPrice" class="text-3xl font-black text-green-600 theme-golden:text-gold-500">₹0</p>
-                    <p class="text-xs font-bold text-slate-400">/ wholesale unit</p>
-                </div>
+        <div class="pb-24 p-6">
+            <!-- Swipeable Image Carousel -->
+            <div id="ivCarousel" class="image-carousel"></div>
+            
+            <p id="ivTag" class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest bg-gold-50 dark:bg-gold-900/20 py-1 px-2 rounded inline-block mb-2">Category</p>
+            <h2 id="ivTitle" class="text-2xl font-black text-slate-800 dark:text-white theme-golden:text-gold-300 leading-tight">Product Title</h2>
+            
+            <div class="flex items-baseline gap-2 mt-2">
+                <p id="ivPrice" class="text-3xl font-black text-green-600 theme-golden:text-gold-500">₹0</p>
+                <p class="text-xs font-bold text-slate-400">/ wholesale unit</p>
+            </div>
 
-                <div class="mt-6 p-4 bg-slate-50 dark:bg-slate-800 theme-golden:bg-premium-800 rounded-2xl border border-slate-100 dark:border-slate-700 theme-golden:border-gold-500/20">
-                    <div class="flex justify-between items-center">
-                        <div class="flex items-center gap-3">
-                            <img id="ivSupplierDp" src="" class="w-12 h-12 rounded-full object-cover border-2 border-white dark:border-slate-700 theme-golden:border-gold-500">
-                            <div>
-                                <p id="ivSupplierName" class="text-sm font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-300">Supplier Name</p>
-                                <p id="ivSupplierInd" class="text-[10px] text-slate-500 font-bold uppercase tracking-widest theme-golden:text-gold-600">Industry</p>
-                            </div>
+            <!-- Supplier Profile Box -->
+            <div class="mt-6 p-4 bg-slate-50 dark:bg-slate-800 theme-golden:bg-premium-800 rounded-2xl border border-slate-100 dark:border-slate-700 theme-golden:border-gold-500/20">
+                <div class="flex justify-between items-center cursor-pointer" onclick="routeToProfile()">
+                    <div class="flex items-center gap-3">
+                        <img id="ivSupplierDp" src="" class="w-12 h-12 rounded-full object-cover border-2 border-white dark:border-slate-700 theme-golden:border-gold-500">
+                        <div>
+                            <p id="ivSupplierName" class="text-sm font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-300">Supplier Name</p>
+                            <p id="ivSupplierInd" class="text-[10px] text-slate-500 font-bold uppercase tracking-widest theme-golden:text-gold-600">Industry</p>
                         </div>
-                        <button id="ivFollowBtn" onclick="toggleFollow()" class="px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-black theme-golden:bg-gold-500 rounded-full font-bold text-xs shadow-md transition-colors flex gap-1 items-center">
-                            <i data-lucide="user-plus" class="w-3 h-3"></i> Follow
-                        </button>
                     </div>
-                    <div id="ivSocials" class="flex gap-2 mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 theme-golden:border-gold-500/20"></div>
+                    <button id="ivFollowBtn" onclick="toggleFollow(event)" class="px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-black theme-golden:bg-gold-500 rounded-full font-bold text-xs shadow-md transition-colors flex gap-1 items-center">
+                        <i data-lucide="user-plus" class="w-3 h-3"></i> Follow
+                    </button>
                 </div>
-                
-                <div class="grid grid-cols-2 gap-3 mt-6">
-                    <div class="bg-slate-50 dark:bg-slate-800 theme-golden:bg-premium-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 theme-golden:border-gold-500/20">
-                        <p class="text-[10px] text-slate-400 font-bold uppercase">Min Order (MOQ)</p>
-                        <p id="ivMin" class="text-sm font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-100">0 Units</p>
-                    </div>
-                    <div class="bg-slate-50 dark:bg-slate-800 theme-golden:bg-premium-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 theme-golden:border-gold-500/20">
-                        <p class="text-[10px] text-slate-400 font-bold uppercase">Available Stock</p>
-                        <p id="ivStock" class="text-sm font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-100">Unlimited</p>
-                    </div>
-                    <div class="bg-slate-50 dark:bg-slate-800 theme-golden:bg-premium-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 theme-golden:border-gold-500/20">
-                        <p class="text-[10px] text-slate-400 font-bold uppercase">Quality Grade</p>
-                        <p id="ivQuality" class="text-sm font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-100">N/A</p>
-                    </div>
-                    <div class="bg-slate-50 dark:bg-slate-800 theme-golden:bg-premium-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 theme-golden:border-gold-500/20">
-                        <p class="text-[10px] text-slate-400 font-bold uppercase">Dimensions</p>
-                        <p id="ivDim" class="text-sm font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-100">N/A</p>
-                    </div>
+                <div id="ivSocials" class="flex gap-2 mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 theme-golden:border-gold-500/20"></div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3 mt-6">
+                <div class="bg-slate-50 dark:bg-slate-800 theme-golden:bg-premium-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 theme-golden:border-gold-500/20">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase">Min Order (MOQ)</p>
+                    <p id="ivMin" class="text-sm font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-100">0 Units</p>
                 </div>
+                <div class="bg-slate-50 dark:bg-slate-800 theme-golden:bg-premium-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 theme-golden:border-gold-500/20">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase">Available Stock</p>
+                    <p id="ivStock" class="text-sm font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-100">Unlimited</p>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-800 theme-golden:bg-premium-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 theme-golden:border-gold-500/20">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase">Payment Mode</p>
+                    <p id="ivPayment" class="text-sm font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-100">Online & Cash</p>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-800 theme-golden:bg-premium-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 theme-golden:border-gold-500/20">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase">Delivery Time</p>
+                    <p id="ivDelivery" class="text-sm font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-100">7 Days</p>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-800 theme-golden:bg-premium-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 theme-golden:border-gold-500/20">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase">Weight</p>
+                    <p id="ivWeight" class="text-sm font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-100">N/A</p>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-800 theme-golden:bg-premium-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 theme-golden:border-gold-500/20">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase">Dimensions</p>
+                    <p id="ivDim" class="text-sm font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-100">N/A</p>
+                </div>
+            </div>
 
-                <div class="mt-6">
-                    <h3 class="text-sm font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-400 mb-2">Description</h3>
-                    <p id="ivDesc" class="text-sm text-slate-600 dark:text-slate-300 theme-golden:text-gold-100/80 leading-relaxed whitespace-pre-line"></p>
-                </div>
+            <div class="mt-6">
+                <h3 class="text-sm font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-400 mb-2">Description</h3>
+                <p id="ivDesc" class="text-sm text-slate-600 dark:text-slate-300 theme-golden:text-gold-100/80 leading-relaxed whitespace-pre-line"></p>
             </div>
         </div>
 
-        <div class="fixed bottom-0 left-0 right-0 p-4 bg-white/90 dark:bg-slate-900/90 theme-golden:bg-premium-900/90 backdrop-blur border-t border-slate-200 dark:border-slate-800 theme-golden:border-gold-500/30 flex gap-3">
-            <button onclick="alert('Routing to Direct B2B Chat...')" class="flex-1 py-4 font-extrabold text-sm text-black bg-gold-500 hover:bg-gold-400 rounded-xl shadow-lg shadow-gold-500/40 transition-colors flex items-center justify-center gap-2">
-                <i data-lucide="message-circle" class="w-5 h-5"></i> Contact Supplier
+        <div class="fixed bottom-0 left-0 right-0 p-4 bg-white/90 dark:bg-slate-900/90 theme-golden:bg-premium-900/90 backdrop-blur border-t border-slate-200 dark:border-slate-800 theme-golden:border-gold-500/30 flex gap-3 z-50">
+            <button onclick="requestQuote()" class="flex-1 py-4 font-bold text-sm text-slate-700 bg-slate-100 dark:bg-slate-800 dark:text-white rounded-xl theme-golden:bg-premium-800 theme-golden:text-gold-200 border border-slate-200 dark:border-slate-700 theme-golden:border-gold-500/30">Request Quote</button>
+            <button onclick="routeToChat()" class="flex-1 py-4 font-extrabold text-sm text-black bg-gold-500 hover:bg-gold-400 rounded-xl shadow-lg shadow-gold-500/40 transition-colors flex items-center justify-center gap-2">
+                <i data-lucide="message-square" class="w-4 h-4"></i> Contact Supplier
             </button>
         </div>
     </div>
 
     <script>
         lucide.createIcons();
-        
-        // 🛑 NATIVE SUPABASE CONNECTION 🛑
         const SUPABASE_URL = 'https://puvdfqnjzliiuupchppj.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1dmRmcW5qemxpaXV1cGNocHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTExOTgsImV4cCI6MjA5MjU4NzE5OH0.hDK6fjZ2SesJ7qkeWVXxOoxW2Xmr7MDlKO-BFtJtDu0';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -198,6 +267,19 @@
             fetchNetworkProducts();
         }
 
+        // --- ROUTING ENGINE ---
+        function routeToProfile() {
+            if(!activeSupplierId) return;
+            localStorage.setItem('view_company_id', activeSupplierId);
+            window.parent.loadModule('seeprofile.html', null);
+        }
+
+        function routeToChat() {
+            if(!activeSupplierId || !currentUser) return alert("Log in to contact supplier.");
+            localStorage.setItem('chat_supplier_id', activeSupplierId);
+            window.parent.loadModule('chat.html', null);
+        }
+
         async function fetchUserNetworkData() {
             if(!currentUser) return;
             const [{ data: favs }, { data: watch }, { data: follows }] = await Promise.all([
@@ -205,7 +287,6 @@
                 _supabase.from('watchlist').select('product_id').eq('user_id', currentUser.id),
                 _supabase.from('follows').select('following_id').eq('follower_id', currentUser.id)
             ]);
-            
             if(favs) favs.forEach(f => myFavorites.add(f.product_id));
             if(watch) watch.forEach(w => myWatchlist.add(w.product_id));
             if(follows) follows.forEach(f => myFollows.add(f.following_id));
@@ -213,52 +294,83 @@
 
         async function fetchNetworkProducts() {
             document.getElementById('loadingState').classList.remove('hidden-view');
-            document.getElementById('errorState').classList.add('hidden-view');
-            
-            // BULLETPROOF QUERY: profiles(*) ensures we fetch whatever data exists without crashing
-            const { data, error } = await _supabase
-                .from('products')
-                .select(`*, profiles (*)`)
-                .order('created_at', { ascending: false });
-
+            const { data, error } = await _supabase.from('products').select(`*, profiles (*)`).order('created_at', { ascending: false });
             document.getElementById('loadingState').classList.add('hidden-view');
 
             if(error) {
                 document.getElementById('errorState').innerText = `Sync Error: ${error.message}`;
                 document.getElementById('errorState').classList.remove('hidden-view');
-                document.getElementById('emptyState').classList.remove('hidden-view');
-                return;
-            }
-
-            if(data && data.length > 0) {
+            } else if(data && data.length > 0) {
                 allProducts = data;
                 filteredProducts = data;
                 renderNetwork();
             } else document.getElementById('emptyState').classList.remove('hidden-view');
         }
 
+        // Filters Engine Restored
+        function toggleFilters() {
+            document.getElementById('filterModal').classList.toggle('open');
+            document.getElementById('filterOverlay').classList.toggle('open');
+        }
+        function clearFilters() {
+            document.getElementById('filterMinPrice').value = '';
+            document.getElementById('filterMaxPrice').value = '';
+            document.getElementById('filterIndustry').value = '';
+            document.getElementById('filterGrade').value = '';
+            document.getElementById('filterMoq').value = '';
+            document.getElementById('filterCount').classList.add('hidden-view');
+            handleSearch();
+            toggleFilters();
+        }
+        function applyFilters() { handleSearch(); toggleFilters(); }
+
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const minP = parseFloat(document.getElementById('filterMinPrice').value) || 0;
+            const maxP = parseFloat(document.getElementById('filterMaxPrice').value) || Infinity;
+            const ind = document.getElementById('filterIndustry').value;
+            const grade = document.getElementById('filterGrade').value;
+            const moq = parseInt(document.getElementById('filterMoq').value) || Infinity;
+
+            let activeFilters = 0;
+            if(minP > 0 || maxP !== Infinity) activeFilters++;
+            if(ind) activeFilters++;
+            if(grade) activeFilters++;
+            if(moq !== Infinity) activeFilters++;
+
+            const badge = document.getElementById('filterCount');
+            if(activeFilters > 0) { badge.innerText = activeFilters; badge.classList.remove('hidden-view'); }
+            else { badge.classList.add('hidden-view'); }
+
+            filteredProducts = allProducts.filter(p => {
+                const searchable = `${p.title} ${p.description} ${p.price} ${p.profiles?.company_name}`.toLowerCase();
+                const matchesSearch = searchable.includes(query);
+                const priceMatch = p.price >= minP && p.price <= maxP;
+                const indMatch = ind ? (p.profiles?.industry_type === ind) : true;
+                const gradeMatch = grade ? (p.quality === grade) : true;
+                const moqMatch = p.min_unit <= moq;
+                return matchesSearch && priceMatch && indMatch && gradeMatch && moqMatch;
+            });
+            renderNetwork();
+        }
+
         function renderNetwork() {
             const feed = document.getElementById('networkFeed');
             feed.innerHTML = '';
-            document.getElementById('emptyState').classList.add('hidden-view');
-
             if(filteredProducts.length === 0) { document.getElementById('emptyState').classList.remove('hidden-view'); return; }
+            document.getElementById('emptyState').classList.add('hidden-view');
 
             const grouped = filteredProducts.reduce((acc, product) => {
                 const industry = product.profiles?.industry_type || 'Uncategorized B2B';
                 if(!acc[industry]) acc[industry] = [];
-                acc[industry].push(product);
-                return acc;
+                acc[industry].push(product); return acc;
             }, {});
 
             for (const [industry, products] of Object.entries(grouped)) {
                 const cardsHtml = products.map(p => {
                     const imgData = p.media_urls && p.media_urls.length > 0 ? p.media_urls[0] : null;
                     const imgUrl = imgData ? _supabase.storage.from('product_media').getPublicUrl(imgData.path).data.publicUrl : 'https://via.placeholder.com/200';
-                    const verifiedBadge = p.profiles?.is_verified ? `<i data-lucide="badge-check" class="w-3 h-3 text-blue-500 inline"></i>` : '';
-                    
-                    const isFav = myFavorites.has(p.id);
-                    const isWatch = myWatchlist.has(p.id);
+                    const isFav = myFavorites.has(p.id); const isWatch = myWatchlist.has(p.id);
 
                     return `
                         <div class="b2b-card group" onclick="openIV('${p.id}')">
@@ -277,7 +389,7 @@
                                 </div>
                                 <div class="flex items-center gap-2 mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 theme-golden:border-gold-500/20 text-[10px] font-bold text-slate-500 theme-golden:text-gold-600">
                                     <i data-lucide="building-2" class="w-3 h-3"></i>
-                                    <span class="truncate">${p.profiles?.company_name || 'Anonymous Business'}</span> ${verifiedBadge}
+                                    <span class="truncate">${p.profiles?.company_name || 'Anonymous Business'}</span>
                                 </div>
                             </div>
                         </div>
@@ -289,54 +401,42 @@
             lucide.createIcons();
         }
 
-        function handleSearch() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            filteredProducts = allProducts.filter(p => `${p.title} ${p.description} ${p.price} ${p.profiles?.company_name}`.toLowerCase().includes(query));
-            renderNetwork();
-        }
-
+        // --- NETWORK ACTIONS ---
         async function toggleFavorite(productId, e) {
             if(e) e.stopPropagation();
-            if(!currentUser) return alert("Please log in to save favorites.");
-            
+            if(!currentUser) return alert("Please log in.");
             const btnCard = document.getElementById(`card_fav_${productId}`);
             const btnModal = document.getElementById('ivFavBtn');
-            
             if(myFavorites.has(productId)) {
                 myFavorites.delete(productId);
-                if(btnCard) btnCard.classList.remove('fav-active');
-                if(btnModal) btnModal.classList.remove('fav-active');
+                if(btnCard) btnCard.classList.remove('fav-active'); if(btnModal) btnModal.classList.remove('fav-active');
                 await _supabase.from('favorites').delete().match({ user_id: currentUser.id, product_id: productId });
             } else {
                 myFavorites.add(productId);
-                if(btnCard) btnCard.classList.add('fav-active');
-                if(btnModal) btnModal.classList.add('fav-active');
+                if(btnCard) btnCard.classList.add('fav-active'); if(btnModal) btnModal.classList.add('fav-active');
                 await _supabase.from('favorites').insert([{ user_id: currentUser.id, product_id: productId }]);
             }
         }
 
         async function toggleWatchlist(productId, e) {
             if(e) e.stopPropagation();
-            if(!currentUser) return alert("Please log in to set alerts.");
-            
+            if(!currentUser) return alert("Please log in.");
             const btnCard = document.getElementById(`card_watch_${productId}`);
             const btnModal = document.getElementById('ivWatchBtn');
-            
             if(myWatchlist.has(productId)) {
                 myWatchlist.delete(productId);
-                if(btnCard) btnCard.classList.remove('watch-active');
-                if(btnModal) btnModal.classList.remove('watch-active');
+                if(btnCard) btnCard.classList.remove('watch-active'); if(btnModal) btnModal.classList.remove('watch-active');
                 await _supabase.from('watchlist').delete().match({ user_id: currentUser.id, product_id: productId });
             } else {
                 myWatchlist.add(productId);
-                if(btnCard) btnCard.classList.add('watch-active');
-                if(btnModal) btnModal.classList.add('watch-active');
+                if(btnCard) btnCard.classList.add('watch-active'); if(btnModal) btnModal.classList.add('watch-active');
                 await _supabase.from('watchlist').insert([{ user_id: currentUser.id, product_id: productId }]);
             }
         }
 
-        async function toggleFollow() {
-            if(!currentUser) return alert("Please log in to follow suppliers.");
+        async function toggleFollow(e) {
+            if(e) e.stopPropagation();
+            if(!currentUser) return alert("Please log in.");
             if(!activeSupplierId) return;
             if(currentUser.id === activeSupplierId) return alert("You cannot follow your own business.");
 
@@ -360,15 +460,20 @@
             if(!p) return;
             activeSupplierId = p.user_id;
 
-            const favBtn = document.getElementById('ivFavBtn');
-            const watchBtn = document.getElementById('ivWatchBtn');
-            favBtn.onclick = () => toggleFavorite(id);
-            watchBtn.onclick = () => toggleWatchlist(id);
+            const favBtn = document.getElementById('ivFavBtn'); const watchBtn = document.getElementById('ivWatchBtn');
+            favBtn.onclick = () => toggleFavorite(id); watchBtn.onclick = () => toggleWatchlist(id);
             myFavorites.has(id) ? favBtn.classList.add('fav-active') : favBtn.classList.remove('fav-active');
             myWatchlist.has(id) ? watchBtn.classList.add('watch-active') : watchBtn.classList.remove('watch-active');
 
-            const imgData = p.media_urls && p.media_urls.length > 0 ? p.media_urls[0] : null;
-            document.getElementById('ivImg').src = imgData ? _supabase.storage.from('product_media').getPublicUrl(imgData.path).data.publicUrl : 'https://via.placeholder.com/400';
+            // Image Carousel Logic
+            const carousel = document.getElementById('ivCarousel');
+            carousel.innerHTML = '';
+            if (p.media_urls && p.media_urls.length > 0) {
+                p.media_urls.forEach(media => {
+                    const url = _supabase.storage.from('product_media').getPublicUrl(media.path).data.publicUrl;
+                    carousel.innerHTML += `<img src="${url}">`;
+                });
+            } else { carousel.innerHTML = '<img src="https://via.placeholder.com/400?text=No+Image">'; }
             
             document.getElementById('ivTag').innerText = p.category_tag || 'Standard B2B';
             document.getElementById('ivTitle').innerText = p.title;
@@ -378,32 +483,26 @@
             document.getElementById('ivQuality').innerText = p.quality || 'N/A';
             document.getElementById('ivDesc').innerText = p.description || 'No description provided by supplier.';
             
-            if (p.dimensions && p.dimensions.l) document.getElementById('ivDim').innerText = `${p.dimensions.l}x${p.dimensions.b}x${p.dimensions.h} ${p.dimensions.unit}`;
-            else document.getElementById('ivDim').innerText = 'N/A';
+            document.getElementById('ivPayment').innerText = p.payment_mode || 'Cash & Online';
+            document.getElementById('ivDelivery').innerText = p.delivery_days ? `${p.delivery_days} Days` : 'N/A';
+            document.getElementById('ivWeight').innerText = p.weight || 'N/A';
+            document.getElementById('ivDim').innerText = p.dimensions?.l ? `${p.dimensions.l}x${p.dimensions.b}x${p.dimensions.h} ${p.dimensions.unit}` : 'N/A';
 
             const prof = p.profiles || {};
-            const dpUrl = prof.dp_url ? _supabase.storage.from('profile_pictures').getPublicUrl(prof.dp_url).data.publicUrl : 'https://via.placeholder.com/150';
-            document.getElementById('ivSupplierDp').src = dpUrl;
+            document.getElementById('ivSupplierDp').src = prof.dp_url ? _supabase.storage.from('profile_pictures').getPublicUrl(prof.dp_url).data.publicUrl : 'https://via.placeholder.com/150';
             document.getElementById('ivSupplierName').innerHTML = `${prof.company_name || 'Anonymous Business'} ${prof.is_verified ? '<i data-lucide="badge-check" class="w-3 h-3 text-blue-500 inline"></i>' : ''}`;
             document.getElementById('ivSupplierInd').innerText = `${prof.industry_type || 'B2B'} • ${prof.country || 'Global'}`;
 
             const followBtn = document.getElementById('ivFollowBtn');
-            if(myFollows.has(activeSupplierId)) {
-                followBtn.innerHTML = `<i data-lucide="user-check" class="w-3 h-3"></i> Following`;
-                followBtn.classList.add('bg-green-500', 'text-white');
-            } else {
-                followBtn.innerHTML = `<i data-lucide="user-plus" class="w-3 h-3"></i> Follow`;
-                followBtn.classList.remove('bg-green-500', 'text-white');
-            }
+            if(myFollows.has(activeSupplierId)) { followBtn.innerHTML = `<i data-lucide="user-check" class="w-3 h-3"></i> Following`; followBtn.classList.add('bg-green-500', 'text-white'); }
+            else { followBtn.innerHTML = `<i data-lucide="user-plus" class="w-3 h-3"></i> Follow`; followBtn.classList.remove('bg-green-500', 'text-white'); }
 
-            const socialBox = document.getElementById('ivSocials');
-            socialBox.innerHTML = '';
+            const socialBox = document.getElementById('ivSocials'); socialBox.innerHTML = '';
             if (prof.phone_number) socialBox.innerHTML += `<a href="https://wa.me/${prof.phone_number.replace(/\D/g,'')}" target="_blank" class="social-btn"><i data-lucide="message-circle" class="w-4 h-4"></i></a>`;
             if (prof.email) socialBox.innerHTML += `<a href="mailto:${prof.email}" class="social-btn"><i data-lucide="mail" class="w-4 h-4"></i></a>`;
             if (prof.social_links) {
                 if (prof.social_links.instagram) socialBox.innerHTML += `<a href="${prof.social_links.instagram}" target="_blank" class="social-btn"><i data-lucide="instagram" class="w-4 h-4"></i></a>`;
                 if (prof.social_links.youtube) socialBox.innerHTML += `<a href="${prof.social_links.youtube}" target="_blank" class="social-btn"><i data-lucide="youtube" class="w-4 h-4"></i></a>`;
-                if (prof.social_links.twitter) socialBox.innerHTML += `<a href="${prof.social_links.twitter}" target="_blank" class="social-btn"><i data-lucide="twitter" class="w-4 h-4"></i></a>`;
             }
             if (socialBox.innerHTML === '') socialBox.innerHTML = `<p class="text-xs text-slate-400">No public contacts listed.</p>`;
             
