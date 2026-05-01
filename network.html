@@ -70,7 +70,6 @@
 </head>
 <body class="transition-colors duration-300">
 
-    <!-- Header -->
     <div class="header-glass px-4 py-3">
         <div class="flex justify-between items-center mb-3">
             <h1 class="text-2xl font-extrabold tracking-wide uppercase text-gold-500">B2B Network</h1>
@@ -85,7 +84,6 @@
         </div>
     </div>
 
-    <!-- Feed Container -->
     <div id="errorState" class="hidden-view p-4 bg-red-100 text-red-700 m-4 rounded-xl font-bold text-xs"></div>
     <div id="loadingState" class="loader"></div>
     
@@ -95,15 +93,10 @@
         <p class="text-sm text-slate-500 mt-2">No products found matching your criteria.</p>
     </div>
 
-    <div id="networkFeed" class="pb-10">
-        <!-- Horizontal Rows Injected Here -->
-    </div>
+    <div id="networkFeed" class="pb-10"></div>
 
-    <!-- ========================================== -->
-    <!-- INSTANT VIEW MODAL (Full B2B Details)      -->
-    <!-- ========================================== -->
+    <!-- INSTANT VIEW MODAL -->
     <div id="ivModal" class="iv-modal">
-        <!-- Sticky Nav -->
         <div class="sticky top-0 bg-white/90 dark:bg-slate-900/90 theme-golden:bg-premium-900/90 backdrop-blur border-b border-slate-200 dark:border-slate-800 theme-golden:border-gold-500/30 p-4 flex justify-between items-center z-50">
             <button onclick="closeIV()" class="p-2 bg-slate-100 dark:bg-slate-800 theme-golden:bg-premium-800 rounded-full hover:bg-slate-200"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
             <div class="flex gap-2">
@@ -114,9 +107,7 @@
 
         <div class="pb-24">
             <img id="ivImg" src="" class="w-full h-72 object-cover">
-            
             <div class="p-6">
-                <!-- Title & Price -->
                 <p id="ivTag" class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest bg-gold-50 dark:bg-gold-900/20 py-1 px-2 rounded inline-block mb-2">Category</p>
                 <h2 id="ivTitle" class="text-2xl font-black text-slate-800 dark:text-white theme-golden:text-gold-300 leading-tight">Product Title</h2>
                 
@@ -125,7 +116,6 @@
                     <p class="text-xs font-bold text-slate-400">/ wholesale unit</p>
                 </div>
 
-                <!-- Supplier Profile Box -->
                 <div class="mt-6 p-4 bg-slate-50 dark:bg-slate-800 theme-golden:bg-premium-800 rounded-2xl border border-slate-100 dark:border-slate-700 theme-golden:border-gold-500/20">
                     <div class="flex justify-between items-center">
                         <div class="flex items-center gap-3">
@@ -139,14 +129,9 @@
                             <i data-lucide="user-plus" class="w-3 h-3"></i> Follow
                         </button>
                     </div>
-
-                    <!-- Social Media Links Container -->
-                    <div id="ivSocials" class="flex gap-2 mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 theme-golden:border-gold-500/20">
-                        <!-- Injected via JS -->
-                    </div>
+                    <div id="ivSocials" class="flex gap-2 mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 theme-golden:border-gold-500/20"></div>
                 </div>
                 
-                <!-- B2B Specs Grid -->
                 <div class="grid grid-cols-2 gap-3 mt-6">
                     <div class="bg-slate-50 dark:bg-slate-800 theme-golden:bg-premium-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 theme-golden:border-gold-500/20">
                         <p class="text-[10px] text-slate-400 font-bold uppercase">Min Order (MOQ)</p>
@@ -167,13 +152,12 @@
                 </div>
 
                 <div class="mt-6">
-                    <h3 class="text-sm font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-400 mb-2">Full Description</h3>
+                    <h3 class="text-sm font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-400 mb-2">Description</h3>
                     <p id="ivDesc" class="text-sm text-slate-600 dark:text-slate-300 theme-golden:text-gold-100/80 leading-relaxed whitespace-pre-line"></p>
                 </div>
             </div>
         </div>
 
-        <!-- Fixed Bottom Action Bar -->
         <div class="fixed bottom-0 left-0 right-0 p-4 bg-white/90 dark:bg-slate-900/90 theme-golden:bg-premium-900/90 backdrop-blur border-t border-slate-200 dark:border-slate-800 theme-golden:border-gold-500/30 flex gap-3">
             <button onclick="alert('Routing to Direct B2B Chat...')" class="flex-1 py-4 font-extrabold text-sm text-black bg-gold-500 hover:bg-gold-400 rounded-xl shadow-lg shadow-gold-500/40 transition-colors flex items-center justify-center gap-2">
                 <i data-lucide="message-circle" class="w-5 h-5"></i> Contact Supplier
@@ -193,7 +177,6 @@
         let allProducts = [];
         let filteredProducts = [];
         
-        // Social Network State Tracking
         let myFavorites = new Set();
         let myWatchlist = new Set();
         let myFollows = new Set();
@@ -210,48 +193,39 @@
             const { data: { user } } = await _supabase.auth.getUser();
             if(user) {
                 currentUser = user;
-                await fetchUserNetworkData(); // Load Favs/Watchlist/Follows first
+                await fetchUserNetworkData();
             }
             fetchNetworkProducts();
         }
 
-        // --- FETCH USER STATE (FAVS, WATCH, FOLLOWS) ---
         async function fetchUserNetworkData() {
             if(!currentUser) return;
-            // Favorites
-            const { data: favs } = await _supabase.from('favorites').select('product_id').eq('user_id', currentUser.id);
+            const [{ data: favs }, { data: watch }, { data: follows }] = await Promise.all([
+                _supabase.from('favorites').select('product_id').eq('user_id', currentUser.id),
+                _supabase.from('watchlist').select('product_id').eq('user_id', currentUser.id),
+                _supabase.from('follows').select('following_id').eq('follower_id', currentUser.id)
+            ]);
+            
             if(favs) favs.forEach(f => myFavorites.add(f.product_id));
-            
-            // Watchlist
-            const { data: watch } = await _supabase.from('watchlist').select('product_id').eq('user_id', currentUser.id);
             if(watch) watch.forEach(w => myWatchlist.add(w.product_id));
-            
-            // Follows
-            const { data: follows } = await _supabase.from('follows').select('following_id').eq('follower_id', currentUser.id);
             if(follows) follows.forEach(f => myFollows.add(f.following_id));
         }
 
-        // --- FETCH PRODUCTS (THE SAFE WAY) ---
         async function fetchNetworkProducts() {
             document.getElementById('loadingState').classList.remove('hidden-view');
             document.getElementById('errorState').classList.add('hidden-view');
             
-            // Notice: Using profiles(...) instead of profiles!inner(...) 
-            // This prevents the query from failing if a user has a corrupt profile.
+            // BULLETPROOF QUERY: profiles(*) ensures we fetch whatever data exists without crashing
             const { data, error } = await _supabase
                 .from('products')
-                .select(`
-                    *,
-                    profiles (company_name, dp_url, is_verified, industry_type, country, phone_number, email, social_links)
-                `)
+                .select(`*, profiles (*)`)
                 .order('created_at', { ascending: false });
 
             document.getElementById('loadingState').classList.add('hidden-view');
 
             if(error) {
-                const errBox = document.getElementById('errorState');
-                errBox.innerText = `Database Sync Error: ${error.message}. Ensure RLS policies are applied.`;
-                errBox.classList.remove('hidden-view');
+                document.getElementById('errorState').innerText = `Sync Error: ${error.message}`;
+                document.getElementById('errorState').classList.remove('hidden-view');
                 document.getElementById('emptyState').classList.remove('hidden-view');
                 return;
             }
@@ -260,23 +234,16 @@
                 allProducts = data;
                 filteredProducts = data;
                 renderNetwork();
-            } else {
-                document.getElementById('emptyState').classList.remove('hidden-view');
-            }
+            } else document.getElementById('emptyState').classList.remove('hidden-view');
         }
 
-        // --- RENDERING ENGINE ---
         function renderNetwork() {
             const feed = document.getElementById('networkFeed');
             feed.innerHTML = '';
             document.getElementById('emptyState').classList.add('hidden-view');
 
-            if(filteredProducts.length === 0) {
-                document.getElementById('emptyState').classList.remove('hidden-view');
-                return;
-            }
+            if(filteredProducts.length === 0) { document.getElementById('emptyState').classList.remove('hidden-view'); return; }
 
-            // Safe Grouping (Handles missing profiles gracefully)
             const grouped = filteredProducts.reduce((acc, product) => {
                 const industry = product.profiles?.industry_type || 'Uncategorized B2B';
                 if(!acc[industry]) acc[industry] = [];
@@ -290,7 +257,6 @@
                     const imgUrl = imgData ? _supabase.storage.from('product_media').getPublicUrl(imgData.path).data.publicUrl : 'https://via.placeholder.com/200';
                     const verifiedBadge = p.profiles?.is_verified ? `<i data-lucide="badge-check" class="w-3 h-3 text-blue-500 inline"></i>` : '';
                     
-                    // State Checks for styling
                     const isFav = myFavorites.has(p.id);
                     const isWatch = myWatchlist.has(p.id);
 
@@ -299,15 +265,9 @@
                             <div class="img-container">
                                 <img src="${imgUrl}" alt="Product">
                                 <div class="moq-badge">MOQ: ${p.min_unit}</div>
-                                
-                                <!-- Overlay Action Buttons -->
                                 <div class="action-badges">
-                                    <button onclick="toggleWatchlist('${p.id}', event)" class="icon-btn ${isWatch ? 'watch-active' : ''}" id="card_watch_${p.id}">
-                                        <i data-lucide="bell" class="w-4 h-4"></i>
-                                    </button>
-                                    <button onclick="toggleFavorite('${p.id}', event)" class="icon-btn ${isFav ? 'fav-active' : ''}" id="card_fav_${p.id}">
-                                        <i data-lucide="heart" class="w-4 h-4"></i>
-                                    </button>
+                                    <button onclick="toggleWatchlist('${p.id}', event)" class="icon-btn ${isWatch ? 'watch-active' : ''}" id="card_watch_${p.id}"><i data-lucide="bell" class="w-4 h-4"></i></button>
+                                    <button onclick="toggleFavorite('${p.id}', event)" class="icon-btn ${isFav ? 'fav-active' : ''}" id="card_fav_${p.id}"><i data-lucide="heart" class="w-4 h-4"></i></button>
                                 </div>
                             </div>
                             <div class="p-4 flex flex-col justify-between">
@@ -324,28 +284,17 @@
                     `;
                 }).join('');
 
-                feed.innerHTML += `
-                    <div class="mt-6">
-                        <div class="px-6 flex justify-between items-end mb-2">
-                            <h2 class="text-lg font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-400">${industry}</h2>
-                        </div>
-                        <div class="row-scroll">${cardsHtml}</div>
-                    </div>
-                `;
+                feed.innerHTML += `<div class="mt-6"><div class="px-6 mb-2"><h2 class="text-lg font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-400">${industry}</h2></div><div class="row-scroll">${cardsHtml}</div></div>`;
             }
             lucide.createIcons();
         }
 
         function handleSearch() {
             const query = document.getElementById('searchInput').value.toLowerCase();
-            filteredProducts = allProducts.filter(p => {
-                const searchable = `${p.title} ${p.description} ${p.price} ${p.profiles?.company_name}`.toLowerCase();
-                return searchable.includes(query);
-            });
+            filteredProducts = allProducts.filter(p => `${p.title} ${p.description} ${p.price} ${p.profiles?.company_name}`.toLowerCase().includes(query));
             renderNetwork();
         }
 
-        // --- NETWORK ACTIONS (Favs, Watchlist, Follow) ---
         async function toggleFavorite(productId, e) {
             if(e) e.stopPropagation();
             if(!currentUser) return alert("Please log in to save favorites.");
@@ -356,12 +305,12 @@
             if(myFavorites.has(productId)) {
                 myFavorites.delete(productId);
                 if(btnCard) btnCard.classList.remove('fav-active');
-                if(btnModal && activeSupplierId) btnModal.classList.remove('fav-active');
+                if(btnModal) btnModal.classList.remove('fav-active');
                 await _supabase.from('favorites').delete().match({ user_id: currentUser.id, product_id: productId });
             } else {
                 myFavorites.add(productId);
                 if(btnCard) btnCard.classList.add('fav-active');
-                if(btnModal && activeSupplierId) btnModal.classList.add('fav-active');
+                if(btnModal) btnModal.classList.add('fav-active');
                 await _supabase.from('favorites').insert([{ user_id: currentUser.id, product_id: productId }]);
             }
         }
@@ -376,12 +325,12 @@
             if(myWatchlist.has(productId)) {
                 myWatchlist.delete(productId);
                 if(btnCard) btnCard.classList.remove('watch-active');
-                if(btnModal && activeSupplierId) btnModal.classList.remove('watch-active');
+                if(btnModal) btnModal.classList.remove('watch-active');
                 await _supabase.from('watchlist').delete().match({ user_id: currentUser.id, product_id: productId });
             } else {
                 myWatchlist.add(productId);
                 if(btnCard) btnCard.classList.add('watch-active');
-                if(btnModal && activeSupplierId) btnModal.classList.add('watch-active');
+                if(btnModal) btnModal.classList.add('watch-active');
                 await _supabase.from('watchlist').insert([{ user_id: currentUser.id, product_id: productId }]);
             }
         }
@@ -392,7 +341,6 @@
             if(currentUser.id === activeSupplierId) return alert("You cannot follow your own business.");
 
             const btn = document.getElementById('ivFollowBtn');
-            
             if(myFollows.has(activeSupplierId)) {
                 myFollows.delete(activeSupplierId);
                 btn.innerHTML = `<i data-lucide="user-plus" class="w-3 h-3"></i> Follow`;
@@ -407,23 +355,18 @@
             lucide.createIcons();
         }
 
-        // --- INSTANT VIEW MODAL ---
         function openIV(id) {
             const p = allProducts.find(x => x.id === id);
             if(!p) return;
-            
             activeSupplierId = p.user_id;
 
-            // Header Buttons State
             const favBtn = document.getElementById('ivFavBtn');
             const watchBtn = document.getElementById('ivWatchBtn');
             favBtn.onclick = () => toggleFavorite(id);
             watchBtn.onclick = () => toggleWatchlist(id);
-            
             myFavorites.has(id) ? favBtn.classList.add('fav-active') : favBtn.classList.remove('fav-active');
             myWatchlist.has(id) ? watchBtn.classList.add('watch-active') : watchBtn.classList.remove('watch-active');
 
-            // Product Details
             const imgData = p.media_urls && p.media_urls.length > 0 ? p.media_urls[0] : null;
             document.getElementById('ivImg').src = imgData ? _supabase.storage.from('product_media').getPublicUrl(imgData.path).data.publicUrl : 'https://via.placeholder.com/400';
             
@@ -435,18 +378,15 @@
             document.getElementById('ivQuality').innerText = p.quality || 'N/A';
             document.getElementById('ivDesc').innerText = p.description || 'No description provided by supplier.';
             
-            if (p.dimensions && p.dimensions.l) {
-                document.getElementById('ivDim').innerText = `${p.dimensions.l}x${p.dimensions.b}x${p.dimensions.h} ${p.dimensions.unit}`;
-            } else document.getElementById('ivDim').innerText = 'N/A';
+            if (p.dimensions && p.dimensions.l) document.getElementById('ivDim').innerText = `${p.dimensions.l}x${p.dimensions.b}x${p.dimensions.h} ${p.dimensions.unit}`;
+            else document.getElementById('ivDim').innerText = 'N/A';
 
-            // Supplier Profile Logic
             const prof = p.profiles || {};
             const dpUrl = prof.dp_url ? _supabase.storage.from('profile_pictures').getPublicUrl(prof.dp_url).data.publicUrl : 'https://via.placeholder.com/150';
             document.getElementById('ivSupplierDp').src = dpUrl;
             document.getElementById('ivSupplierName').innerHTML = `${prof.company_name || 'Anonymous Business'} ${prof.is_verified ? '<i data-lucide="badge-check" class="w-3 h-3 text-blue-500 inline"></i>' : ''}`;
             document.getElementById('ivSupplierInd').innerText = `${prof.industry_type || 'B2B'} • ${prof.country || 'Global'}`;
 
-            // Follow Button State
             const followBtn = document.getElementById('ivFollowBtn');
             if(myFollows.has(activeSupplierId)) {
                 followBtn.innerHTML = `<i data-lucide="user-check" class="w-3 h-3"></i> Following`;
@@ -456,19 +396,15 @@
                 followBtn.classList.remove('bg-green-500', 'text-white');
             }
 
-            // Social Media Links Injection
             const socialBox = document.getElementById('ivSocials');
             socialBox.innerHTML = '';
-            
             if (prof.phone_number) socialBox.innerHTML += `<a href="https://wa.me/${prof.phone_number.replace(/\D/g,'')}" target="_blank" class="social-btn"><i data-lucide="message-circle" class="w-4 h-4"></i></a>`;
             if (prof.email) socialBox.innerHTML += `<a href="mailto:${prof.email}" class="social-btn"><i data-lucide="mail" class="w-4 h-4"></i></a>`;
-            
             if (prof.social_links) {
                 if (prof.social_links.instagram) socialBox.innerHTML += `<a href="${prof.social_links.instagram}" target="_blank" class="social-btn"><i data-lucide="instagram" class="w-4 h-4"></i></a>`;
                 if (prof.social_links.youtube) socialBox.innerHTML += `<a href="${prof.social_links.youtube}" target="_blank" class="social-btn"><i data-lucide="youtube" class="w-4 h-4"></i></a>`;
                 if (prof.social_links.twitter) socialBox.innerHTML += `<a href="${prof.social_links.twitter}" target="_blank" class="social-btn"><i data-lucide="twitter" class="w-4 h-4"></i></a>`;
             }
-
             if (socialBox.innerHTML === '') socialBox.innerHTML = `<p class="text-xs text-slate-400">No public contacts listed.</p>`;
             
             document.getElementById('ivModal').classList.add('active');
@@ -476,7 +412,6 @@
         }
 
         function closeIV() { document.getElementById('ivModal').classList.remove('active'); activeSupplierId = null; }
-
         window.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
