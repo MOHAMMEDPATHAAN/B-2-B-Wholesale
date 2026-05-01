@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Company - Golden's</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { gold: { 400: '#FACC15', 500: '#EAB308', 600: '#CA8A04' }, premium: { 900: '#0a0a0a', 800: '#171717' } } } } }
+    </script>
+    <style>
+        body { background: #f8fafc; padding-bottom: 100px; }
+        .dark body { background: #0f172a; }
+        .theme-golden body { background: radial-gradient(circle at top, #1a1400 0%, #0a0a0a 100%); color: #fef08a; }
+        .hidden-view { display: none !important; }
+        
+        .header-bg { height: 180px; background: linear-gradient(135deg, #1e293b, #0f172a); position: relative; }
+        .theme-golden .header-bg { background: linear-gradient(135deg, #CA8A04, #000000); }
+        .nav-back { position: absolute; top: 16px; left: 16px; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); padding: 8px; border-radius: 50%; color: white; cursor: pointer; }
+
+        .profile-card { background: white; border-radius: 32px; padding: 24px; margin-top: -40px; position: relative; z-index: 10; min-height: 50vh; box-shadow: 0 -10px 30px rgba(0,0,0,0.1); }
+        .dark .profile-card { background: #0f172a; box-shadow: 0 -10px 30px rgba(0,0,0,0.5); }
+        .theme-golden .profile-card { background: #0a0a0a; border-top: 1px solid rgba(234,179,8,0.3); }
+
+        .dp-large { width: 100px; height: 100px; border-radius: 50%; border: 4px solid white; margin-top: -50px; background: #fff; object-fit: cover; }
+        .dark .dp-large { border-color: #0f172a; background: #0f172a; }
+        .theme-golden .dp-large { border-color: #0a0a0a; background: #0a0a0a; box-shadow: 0 0 20px rgba(234,179,8,0.4); }
+
+        .stats-box { text-align: center; }
+        .stats-val { font-size: 20px; font-weight: 900; color: #1e293b; }
+        .dark .stats-val { color: white; }
+        .theme-golden .stats-val { color: #FACC15; }
+        .stats-lbl { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+
+        .tabs { display: flex; border-bottom: 1px solid #e2e8f0; margin-top: 24px; }
+        .dark .tabs { border-color: #334155; }
+        .theme-golden .tabs { border-color: rgba(234,179,8,0.2); }
+        .tab-btn { flex: 1; text-align: center; padding: 12px; font-weight: 800; font-size: 14px; color: #64748b; cursor: pointer; transition: all 0.2s; }
+        .tab-active { color: #EAB308; border-bottom: 3px solid #EAB308; }
+
+        /* Grid */
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 16px 0; }
+        .grid-item { border-radius: 16px; overflow: hidden; background: #f8fafc; border: 1px solid #e2e8f0; position: relative; }
+        .dark .grid-item { background: #1e293b; border-color: #334155; }
+        .theme-golden .grid-item { background: #171717; border-color: rgba(234,179,8,0.3); }
+        .grid-img { width: 100%; height: 140px; object-fit: cover; }
+
+        .loader { border: 3px solid rgba(255,255,255,0.1); width: 30px; height: 30px; border-radius: 50%; border-left-color: #EAB308; animation: spin 1s linear infinite; margin: 40vh auto; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="transition-colors duration-300">
+
+    <div id="loadingState" class="loader"></div>
+    
+    <div id="mainContent" class="hidden-view">
+        <div class="header-bg">
+            <button onclick="window.parent.loadModule('network.html', null)" class="nav-back"><i data-lucide="arrow-left" class="w-6 h-6"></i></button>
+        </div>
+
+        <div class="profile-card">
+            <div class="flex justify-between items-end">
+                <img id="compDp" src="" class="dp-large">
+                <button id="btnFollow" onclick="toggleFollow()" class="px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-black theme-golden:bg-gold-500 rounded-full font-extrabold text-sm shadow-md transition-colors flex gap-2 items-center">
+                    <i data-lucide="user-plus" class="w-4 h-4"></i> Follow
+                </button>
+            </div>
+
+            <div class="mt-4">
+                <h1 id="compName" class="text-2xl font-black text-slate-800 dark:text-white theme-golden:text-gold-300 flex items-center gap-2">Business</h1>
+                <p id="compInd" class="text-xs font-bold text-slate-500 theme-golden:text-gold-600 mt-1 uppercase tracking-widest">Industry • Country</p>
+            </div>
+
+            <div class="flex justify-around mt-6 bg-slate-50 dark:bg-slate-800 theme-golden:bg-premium-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 theme-golden:border-gold-500/20">
+                <div class="stats-box"><p id="statProd" class="stats-val">0</p><p class="stats-lbl">Products</p></div>
+                <div class="stats-box"><p id="statReel" class="stats-val">0</p><p class="stats-lbl">Reels</p></div>
+                <div class="stats-box"><p id="statFol" class="stats-val">0</p><p class="stats-lbl">Followers</p></div>
+            </div>
+
+            <button onclick="routeToChat()" class="w-full mt-4 py-4 font-extrabold text-sm text-black bg-gold-500 hover:bg-gold-400 rounded-xl shadow-lg shadow-gold-500/40 transition-colors flex items-center justify-center gap-2">
+                <i data-lucide="message-square" class="w-5 h-5"></i> Direct Connect
+            </button>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <div id="tabProd" class="tab-btn tab-active" onclick="switchTab('prod')">Products</div>
+                <div id="tabReel" class="tab-btn" onclick="switchTab('reel')">Promotions</div>
+            </div>
+
+            <!-- Content Grids -->
+            <div id="gridProd" class="grid-2"></div>
+            <div id="gridReel" class="grid-2 hidden-view"></div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const SUPABASE_URL = 'https://puvdfqnjzliiuupchppj.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1dmRmcW5qemxpaXV1cGNocHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTExOTgsImV4cCI6MjA5MjU4NzE5OH0.hDK6fjZ2SesJ7qkeWVXxOoxW2Xmr7MDlKO-BFtJtDu0';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let currentUser = null;
+        let viewId = null;
+
+        function applySettings() {
+            const theme = localStorage.getItem('golden_theme') || 'system';
+            if (theme === 'dark') document.documentElement.classList.add('dark');
+            else if (theme === 'golden') document.documentElement.classList.add('dark', 'theme-golden');
+        }
+
+        async function init() {
+            applySettings();
+            const { data: { user } } = await _supabase.auth.getUser();
+            if(user) currentUser = user;
+            
+            viewId = localStorage.getItem('view_company_id');
+            if(!viewId) return window.parent.loadModule('network.html', null);
+
+            fetchProfileData();
+        }
+
+        async function fetchProfileData() {
+            const [{ data: prof }, { data: prods }, { data: reels }, { data: follows }] = await Promise.all([
+                _supabase.from('profiles').select('*').eq('id', viewId).single(),
+                _supabase.from('products').select('*').eq('user_id', viewId).order('created_at', {ascending: false}),
+                _supabase.from('reels').select('*').eq('user_id', viewId).order('created_at', {ascending: false}),
+                _supabase.from('follows').select('id, follower_id').eq('following_id', viewId)
+            ]);
+
+            document.getElementById('loadingState').classList.add('hidden-view');
+            document.getElementById('mainContent').classList.remove('hidden-view');
+
+            if(prof) {
+                document.getElementById('compDp').src = prof.dp_url ? _supabase.storage.from('profile_pictures').getPublicUrl(prof.dp_url).data.publicUrl : 'https://via.placeholder.com/150';
+                document.getElementById('compName').innerHTML = `${prof.company_name} ${prof.is_verified ? '<i data-lucide="badge-check" class="w-5 h-5 text-blue-500 inline"></i>' : ''}`;
+                document.getElementById('compInd').innerText = `${prof.industry_type || 'B2B'} • ${prof.country || 'Global'}`;
+            }
+
+            document.getElementById('statProd').innerText = prods ? prods.length : 0;
+            document.getElementById('statReel').innerText = reels ? reels.length : 0;
+            document.getElementById('statFol').innerText = follows ? follows.length : 0;
+
+            if(currentUser && follows && follows.some(f => f.follower_id === currentUser.id)) {
+                const btn = document.getElementById('btnFollow');
+                btn.innerHTML = `<i data-lucide="user-check" class="w-4 h-4"></i> Following`;
+                btn.classList.add('bg-green-500', 'text-white');
+            }
+
+            // Render Products
+            const prodGrid = document.getElementById('gridProd');
+            if(prods && prods.length > 0) {
+                prods.forEach(p => {
+                    const imgUrl = p.media_urls && p.media_urls.length > 0 ? _supabase.storage.from('product_media').getPublicUrl(p.media_urls[0].path).data.publicUrl : 'https://via.placeholder.com/150';
+                    prodGrid.innerHTML += `
+                        <div class="grid-item cursor-pointer" onclick="routeToProduct('${p.id}')">
+                            <img src="${imgUrl}" class="grid-img">
+                            <div class="p-3">
+                                <p class="text-[11px] font-bold text-slate-800 dark:text-white theme-golden:text-gold-200 truncate">${p.title}</p>
+                                <p class="text-sm font-black text-green-600 theme-golden:text-gold-500 mt-1">₹${p.price}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else prodGrid.innerHTML = '<p class="text-slate-400 text-xs p-4 col-span-2 text-center">No products yet.</p>';
+
+            // Render Reels
+            const reelGrid = document.getElementById('gridReel');
+            if(reels && reels.length > 0) {
+                reels.forEach(r => {
+                    const vidUrl = _supabase.storage.from('reels_media').getPublicUrl(r.video_url).data.publicUrl;
+                    reelGrid.innerHTML += `
+                        <div class="grid-item h-48 cursor-pointer" onclick="alert('Route to video player')">
+                            <video src="${vidUrl}" class="w-full h-full object-cover" muted></video>
+                        </div>
+                    `;
+                });
+            } else reelGrid.innerHTML = '<p class="text-slate-400 text-xs p-4 col-span-2 text-center">No promotions yet.</p>';
+
+            lucide.createIcons();
+        }
+
+        function switchTab(tab) {
+            document.getElementById('tabProd').classList.remove('tab-active');
+            document.getElementById('tabReel').classList.remove('tab-active');
+            document.getElementById('gridProd').classList.add('hidden-view');
+            document.getElementById('gridReel').classList.add('hidden-view');
+
+            if(tab === 'prod') {
+                document.getElementById('tabProd').classList.add('tab-active');
+                document.getElementById('gridProd').classList.remove('hidden-view');
+            } else {
+                document.getElementById('tabReel').classList.add('tab-active');
+                document.getElementById('gridReel').classList.remove('hidden-view');
+            }
+        }
+
+        async function toggleFollow() {
+            if(!currentUser) return alert("Please log in.");
+            if(currentUser.id === viewId) return alert("Cannot follow yourself.");
+
+            const btn = document.getElementById('btnFollow');
+            const isFollowing = btn.classList.contains('bg-green-500');
+            
+            if(isFollowing) {
+                btn.innerHTML = `<i data-lucide="user-plus" class="w-4 h-4"></i> Follow`;
+                btn.classList.remove('bg-green-500', 'text-white');
+                document.getElementById('statFol').innerText = parseInt(document.getElementById('statFol').innerText) - 1;
+                await _supabase.from('follows').delete().match({ follower_id: currentUser.id, following_id: viewId });
+            } else {
+                btn.innerHTML = `<i data-lucide="user-check" class="w-4 h-4"></i> Following`;
+                btn.classList.add('bg-green-500', 'text-white');
+                document.getElementById('statFol').innerText = parseInt(document.getElementById('statFol').innerText) + 1;
+                await _supabase.from('follows').insert([{ follower_id: currentUser.id, following_id: viewId }]);
+            }
+            lucide.createIcons();
+        }
+
+        function routeToProduct(id) {
+            localStorage.setItem('view_product_id', id);
+            window.parent.loadModule('seeproduct.html', null);
+        }
+
+        function routeToChat() {
+            if(!currentUser) return alert("Log in to connect.");
+            localStorage.setItem('chat_supplier_id', viewId);
+            window.parent.loadModule('chat.html', null);
+        }
+
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
