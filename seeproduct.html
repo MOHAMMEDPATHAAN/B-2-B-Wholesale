@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Product - Golden's</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { gold: { 400: '#FACC15', 500: '#EAB308', 600: '#CA8A04' }, premium: { 900: '#0a0a0a', 800: '#171717' } } } } }
+    </script>
+    <style>
+        body { background: #f8fafc; padding-bottom: 100px; }
+        .dark body { background: #0f172a; }
+        .theme-golden body { background: radial-gradient(circle at top left, #1a1400 0%, #0a0a0a 100%); color: #fef08a; }
+        .hidden-view { display: none !important; }
+        
+        /* Sticky Transparent Nav */
+        .top-nav { position: fixed; top: 0; left: 0; right: 0; padding: 16px; display: flex; justify-content: space-between; z-index: 50; background: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent); pointer-events: none; }
+        .nav-btn { pointer-events: auto; background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border-radius: 50%; padding: 10px; color: #1e293b; transition: all 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .dark .nav-btn { background: rgba(15,23,42,0.8); color: white; }
+        .theme-golden .nav-btn { background: rgba(10,10,10,0.8); color: #FACC15; border: 1px solid rgba(234,179,8,0.3); }
+        
+        /* Horizontal Swipe Media */
+        .media-carousel { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; -ms-overflow-style: none; scrollbar-width: none; width: 100%; height: 55vh; background: #000; }
+        .media-carousel::-webkit-scrollbar { display: none; }
+        .media-item { min-width: 100%; height: 100%; scroll-snap-align: start; object-fit: cover; }
+
+        .content-card { background: white; border-radius: 32px 32px 0 0; padding: 24px; margin-top: -30px; position: relative; z-index: 10; min-height: 50vh; }
+        .dark .content-card { background: #0f172a; }
+        .theme-golden .content-card { background: #0a0a0a; border-top: 1px solid rgba(234,179,8,0.3); }
+
+        .spec-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 20px; }
+        .spec-box { background: #f1f5f9; padding: 12px; border-radius: 16px; border: 1px solid #e2e8f0; }
+        .dark .spec-box { background: #1e293b; border-color: #334155; }
+        .theme-golden .spec-box { background: #171717; border-color: rgba(234,179,8,0.2); }
+
+        .social-btn { display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 12px; background: #f1f5f9; color: #475569; transition: all 0.2s; }
+        .dark .social-btn { background: #1e293b; color: #cbd5e1; }
+        .theme-golden .social-btn { background: #171717; color: #CA8A04; border: 1px solid rgba(234,179,8,0.3); }
+
+        .fixed-bottom { position: fixed; bottom: 0; left: 0; right: 0; padding: 16px; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); z-index: 40; border-top: 1px solid rgba(0,0,0,0.05); }
+        .dark .fixed-bottom { background: rgba(15,23,42,0.9); border-color: rgba(255,255,255,0.1); }
+        .theme-golden .fixed-bottom { background: rgba(10,10,10,0.9); border-color: rgba(234,179,8,0.2); }
+
+        .loader { border: 3px solid rgba(255,255,255,0.1); width: 30px; height: 30px; border-radius: 50%; border-left-color: #EAB308; animation: spin 1s linear infinite; margin: auto; margin-top: 40vh; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="transition-colors duration-300">
+
+    <div id="loadingState" class="loader"></div>
+    <div id="mainContent" class="hidden-view">
+        
+        <div class="top-nav">
+            <button onclick="window.parent.loadModule('network.html', null)" class="nav-btn"><i data-lucide="arrow-left" class="w-6 h-6"></i></button>
+            <div class="flex gap-2">
+                <button onclick="toggleWatchlist()" id="btnWatch" class="nav-btn"><i data-lucide="bell" class="w-6 h-6"></i></button>
+                <button onclick="toggleFavorite()" id="btnFav" class="nav-btn"><i data-lucide="heart" class="w-6 h-6"></i></button>
+            </div>
+        </div>
+
+        <!-- Media Carousel -->
+        <div id="mediaCarousel" class="media-carousel">
+            <!-- Images/Videos injected here -->
+        </div>
+
+        <div class="content-card">
+            <div class="flex justify-between items-start">
+                <div>
+                    <span id="prodTag" class="bg-gold-100 dark:bg-gold-900/30 text-gold-700 dark:text-gold-400 text-[10px] font-extrabold px-2 py-1 rounded uppercase tracking-widest theme-golden:border theme-golden:border-gold-500/30">Category</span>
+                    <h1 id="prodTitle" class="text-3xl font-black mt-2 text-slate-800 dark:text-white theme-golden:text-gold-300 leading-tight">Product Title</h1>
+                </div>
+            </div>
+
+            <div class="flex items-end gap-2 mt-4">
+                <p id="prodPrice" class="text-4xl font-black text-green-600 theme-golden:text-gold-500">₹0</p>
+                <p class="text-sm font-bold text-slate-400 mb-1">/ unit</p>
+            </div>
+
+            <!-- Supplier Banner -->
+            <div class="mt-8 p-4 bg-slate-50 dark:bg-slate-800 theme-golden:bg-premium-800 rounded-2xl border border-slate-100 dark:border-slate-700 theme-golden:border-gold-500/30">
+                <div class="flex justify-between items-center cursor-pointer" onclick="routeToProfile()">
+                    <div class="flex items-center gap-3">
+                        <img id="supDp" src="" class="w-14 h-14 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700 theme-golden:border-gold-500">
+                        <div>
+                            <p id="supName" class="text-base font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-300">Supplier Name</p>
+                            <p id="supInd" class="text-[10px] text-slate-500 font-bold uppercase tracking-widest theme-golden:text-gold-600">Industry • Country</p>
+                        </div>
+                    </div>
+                    <button id="btnFollow" onclick="toggleFollow(event)" class="px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-black theme-golden:bg-gold-500 rounded-full font-bold text-xs shadow-md transition-colors flex gap-1 items-center">
+                        <i data-lucide="user-plus" class="w-4 h-4"></i> Follow
+                    </button>
+                </div>
+                <!-- Contact Links -->
+                <div id="socialLinks" class="flex gap-2 mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 theme-golden:border-gold-500/20"></div>
+            </div>
+
+            <div class="spec-grid">
+                <div class="spec-box"><p class="text-[10px] text-slate-400 font-bold uppercase">Min Order (MOQ)</p><p id="specMoq" class="text-sm font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-100">0 Units</p></div>
+                <div class="spec-box"><p class="text-[10px] text-slate-400 font-bold uppercase">Stock Availability</p><p id="specStock" class="text-sm font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-100">Unlimited</p></div>
+                <div class="spec-box"><p class="text-[10px] text-slate-400 font-bold uppercase">Quality Grade</p><p id="specQual" class="text-sm font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-100">Standard</p></div>
+                <div class="spec-box"><p class="text-[10px] text-slate-400 font-bold uppercase">Dimensions</p><p id="specDim" class="text-sm font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-100">N/A</p></div>
+                <div class="spec-box"><p class="text-[10px] text-slate-400 font-bold uppercase">Payment Mode</p><p id="specPay" class="text-sm font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-100">Online & Cash</p></div>
+                <div class="spec-box"><p class="text-[10px] text-slate-400 font-bold uppercase">Delivery Time</p><p id="specDel" class="text-sm font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-100">7 Days</p></div>
+            </div>
+
+            <div class="mt-8">
+                <h3 class="text-sm font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-400 mb-3 uppercase tracking-wide">Full Description</h3>
+                <p id="prodDesc" class="text-sm text-slate-600 dark:text-slate-300 theme-golden:text-gold-100/80 leading-relaxed whitespace-pre-line"></p>
+            </div>
+        </div>
+
+        <!-- B2B Actions -->
+        <div class="fixed-bottom flex gap-3">
+            <button onclick="requestQuote()" class="flex-1 py-4 font-bold text-sm text-slate-700 bg-slate-100 dark:bg-slate-800 dark:text-white rounded-xl theme-golden:bg-premium-800 theme-golden:text-gold-200 border border-slate-200 dark:border-slate-700 theme-golden:border-gold-500/30">Request Quote</button>
+            <button onclick="routeToChat()" class="flex-1 py-4 font-extrabold text-sm text-black bg-gold-500 hover:bg-gold-400 rounded-xl shadow-lg shadow-gold-500/40 transition-colors flex items-center justify-center gap-2">
+                <i data-lucide="message-square" class="w-5 h-5"></i> Connect Supplier
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const SUPABASE_URL = 'https://puvdfqnjzliiuupchppj.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1dmRmcW5qemxpaXV1cGNocHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTExOTgsImV4cCI6MjA5MjU4NzE5OH0.hDK6fjZ2SesJ7qkeWVXxOoxW2Xmr7MDlKO-BFtJtDu0';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let currentUser = null;
+        let productData = null;
+        let activeSupplierId = null;
+
+        function applySettings() {
+            const theme = localStorage.getItem('golden_theme') || 'system';
+            if (theme === 'dark') document.documentElement.classList.add('dark');
+            else if (theme === 'golden') document.documentElement.classList.add('dark', 'theme-golden');
+        }
+
+        async function init() {
+            applySettings();
+            const { data: { user } } = await _supabase.auth.getUser();
+            if(user) currentUser = user;
+            
+            const productId = localStorage.getItem('view_product_id');
+            if(!productId) return window.parent.loadModule('network.html', null);
+
+            fetchProduct(productId);
+        }
+
+        async function fetchProduct(id) {
+            const { data: p, error } = await _supabase.from('products').select('*, profiles(*)').eq('id', id).single();
+            document.getElementById('loadingState').classList.add('hidden-view');
+            
+            if(p) {
+                productData = p;
+                activeSupplierId = p.user_id;
+                renderProduct();
+                checkUserNetworkData(id);
+                document.getElementById('mainContent').classList.remove('hidden-view');
+            } else { alert("Product not found or removed."); }
+        }
+
+        async function checkUserNetworkData(productId) {
+            if(!currentUser) return;
+            const [{ data: fav }, { data: watch }, { data: follow }] = await Promise.all([
+                _supabase.from('favorites').select('id').match({ user_id: currentUser.id, product_id: productId }),
+                _supabase.from('watchlist').select('id').match({ user_id: currentUser.id, product_id: productId }),
+                _supabase.from('follows').select('id').match({ follower_id: currentUser.id, following_id: activeSupplierId })
+            ]);
+            
+            if(fav && fav.length > 0) document.getElementById('btnFav').classList.add('text-red-500', 'fill-red-500');
+            if(watch && watch.length > 0) document.getElementById('btnWatch').classList.add('text-blue-500', 'fill-blue-500');
+            if(follow && follow.length > 0) {
+                const btn = document.getElementById('btnFollow');
+                btn.innerHTML = `<i data-lucide="user-check" class="w-4 h-4"></i> Following`;
+                btn.classList.add('bg-green-500', 'text-white');
+            }
+            lucide.createIcons();
+        }
+
+        function renderProduct() {
+            const p = productData;
+            
+            // Render Media Carousel
+            const carousel = document.getElementById('mediaCarousel');
+            if (p.media_urls && p.media_urls.length > 0) {
+                p.media_urls.forEach(media => {
+                    const url = _supabase.storage.from('product_media').getPublicUrl(media.path).data.publicUrl;
+                    if(media.path.match(/\.(mp4|mov|webm)$/i)) carousel.innerHTML += `<video src="${url}" class="media-item" controls autoplay muted loop playsinline></video>`;
+                    else carousel.innerHTML += `<img src="${url}" class="media-item">`;
+                });
+            } else { carousel.innerHTML = '<img src="https://via.placeholder.com/600" class="media-item">'; }
+
+            // Render Info
+            document.getElementById('prodTag').innerText = p.category_tag || 'Standard';
+            document.getElementById('prodTitle').innerText = p.title;
+            document.getElementById('prodPrice').innerText = `₹${p.price}`;
+            document.getElementById('specMoq').innerText = `${p.min_unit} Units`;
+            document.getElementById('specStock').innerText = p.stock > 0 ? `${p.stock} Available` : 'Made to Order';
+            document.getElementById('specQual').innerText = p.quality || 'N/A';
+            document.getElementById('specPay').innerText = p.payment_mode || 'Online & Cash';
+            document.getElementById('specDel').innerText = p.delivery_days ? `${p.delivery_days} Days` : 'Variable';
+            document.getElementById('specDim').innerText = p.dimensions?.l ? `${p.dimensions.l}x${p.dimensions.b}x${p.dimensions.h} ${p.dimensions.unit}` : 'N/A';
+            document.getElementById('prodDesc').innerText = p.description || 'No description provided.';
+
+            // Render Supplier
+            const prof = p.profiles || {};
+            document.getElementById('supDp').src = prof.dp_url ? _supabase.storage.from('profile_pictures').getPublicUrl(prof.dp_url).data.publicUrl : 'https://via.placeholder.com/150';
+            document.getElementById('supName').innerHTML = `${prof.company_name || 'Anonymous Business'} ${prof.is_verified ? '<i data-lucide="badge-check" class="w-4 h-4 text-blue-500 inline"></i>' : ''}`;
+            document.getElementById('supInd').innerText = `${prof.industry_type || 'B2B'} • ${prof.country || 'Global'}`;
+
+            // Socials
+            const socials = document.getElementById('socialLinks');
+            if (prof.phone_number) socials.innerHTML += `<a href="https://wa.me/${prof.phone_number.replace(/\D/g,'')}" target="_blank" class="social-btn"><i data-lucide="phone" class="w-5 h-5"></i></a>`;
+            if (prof.email) socials.innerHTML += `<a href="mailto:${prof.email}" class="social-btn"><i data-lucide="mail" class="w-5 h-5"></i></a>`;
+            if (prof.social_links) {
+                if (prof.social_links.instagram) socials.innerHTML += `<a href="${prof.social_links.instagram}" target="_blank" class="social-btn"><i data-lucide="instagram" class="w-5 h-5"></i></a>`;
+                if (prof.social_links.youtube) socials.innerHTML += `<a href="${prof.social_links.youtube}" target="_blank" class="social-btn"><i data-lucide="youtube" class="w-5 h-5"></i></a>`;
+            }
+            lucide.createIcons();
+        }
+
+        // --- ACTIONS ---
+        function routeToProfile() {
+            localStorage.setItem('view_company_id', activeSupplierId);
+            window.parent.loadModule('seeprofile.html', null);
+        }
+
+        function routeToChat() {
+            if(!currentUser) return alert("Log in to connect with suppliers.");
+            localStorage.setItem('chat_supplier_id', activeSupplierId);
+            window.parent.loadModule('chat.html', null);
+        }
+
+        async function toggleFavorite() {
+            if(!currentUser) return alert("Please log in.");
+            const btn = document.getElementById('btnFav');
+            const isActive = btn.classList.contains('text-red-500');
+            
+            if(isActive) {
+                btn.classList.remove('text-red-500', 'fill-red-500');
+                await _supabase.from('favorites').delete().match({ user_id: currentUser.id, product_id: productData.id });
+            } else {
+                btn.classList.add('text-red-500', 'fill-red-500');
+                await _supabase.from('favorites').insert([{ user_id: currentUser.id, product_id: productData.id }]);
+            }
+        }
+
+        async function toggleWatchlist() {
+            if(!currentUser) return alert("Please log in.");
+            const btn = document.getElementById('btnWatch');
+            const isActive = btn.classList.contains('text-blue-500');
+            
+            if(isActive) {
+                btn.classList.remove('text-blue-500', 'fill-blue-500');
+                await _supabase.from('watchlist').delete().match({ user_id: currentUser.id, product_id: productData.id });
+            } else {
+                btn.classList.add('text-blue-500', 'fill-blue-500');
+                await _supabase.from('watchlist').insert([{ user_id: currentUser.id, product_id: productData.id }]);
+            }
+        }
+
+        async function toggleFollow(e) {
+            e.stopPropagation();
+            if(!currentUser) return alert("Please log in.");
+            if(currentUser.id === activeSupplierId) return alert("You cannot follow your own business.");
+
+            const btn = document.getElementById('btnFollow');
+            const isFollowing = btn.classList.contains('bg-green-500');
+            
+            if(isFollowing) {
+                btn.innerHTML = `<i data-lucide="user-plus" class="w-4 h-4"></i> Follow`;
+                btn.classList.remove('bg-green-500', 'text-white');
+                await _supabase.from('follows').delete().match({ follower_id: currentUser.id, following_id: activeSupplierId });
+            } else {
+                btn.innerHTML = `<i data-lucide="user-check" class="w-4 h-4"></i> Following`;
+                btn.classList.add('bg-green-500', 'text-white');
+                await _supabase.from('follows').insert([{ follower_id: currentUser.id, following_id: activeSupplierId }]);
+            }
+            lucide.createIcons();
+        }
+
+        function requestQuote() { alert("Quote request initiated! Supplier will be notified."); }
+
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
