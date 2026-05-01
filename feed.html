@@ -18,8 +18,10 @@
         .feed-container { height: calc(100vh - 70px); overflow-y: scroll; scroll-snap-type: y mandatory; scroll-behavior: smooth; -ms-overflow-style: none; scrollbar-width: none; }
         .feed-container::-webkit-scrollbar { display: none; }
 
-        .reel-wrapper { height: calc(100vh - 70px); width: 100%; scroll-snap-align: start; position: relative; background: #0a0a0a; display: flex; justify-content: center; align-items: center; }
-        .reel-video { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+        .reel-wrapper { height: calc(100vh - 70px); width: 100%; scroll-snap-align: start; position: relative; background: #000; display: flex; justify-content: center; align-items: center; }
+        
+        /* 9:16 Auto Frame Fix */
+        .reel-video { width: 100%; height: 100%; object-fit: contain; background: #000; pointer-events: none; }
         .interaction-layer { position: absolute; inset: 0; z-index: 5; cursor: pointer; }
         
         .overlay-top { position: absolute; top: 0; left: 0; right: 0; padding: 20px; background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%); z-index: 20; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none;}
@@ -57,7 +59,7 @@
 <body>
 
     <div class="overlay-top">
-        <h1 class="text-xl font-extrabold tracking-wide" style="background: linear-gradient(to right, #FDE047, #CA8A04); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Golden's Network</h1>
+        <h1 class="text-xl font-extrabold tracking-wide" style="background: linear-gradient(to right, #FDE047, #CA8A04); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Golden techS</h1>
         <button onclick="toggleGlobalAudio()" class="p-2 bg-black/40 backdrop-blur rounded-full border border-white/20 text-white pointer-events-auto">
             <i id="audioIcon" data-lucide="volume-x" class="w-5 h-5"></i>
         </button>
@@ -70,7 +72,6 @@
     </div>
     <div id="errorState" class="hidden-view absolute inset-0 z-50 flex items-center justify-center p-4 bg-red-900/90 text-white font-bold text-center"></div>
 
-    <!-- Modals (Comments & LikedBy remain identical) -->
     <div id="commentsModal" class="modal-overlay" onclick="closeModal('commentsModal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-4">
@@ -118,20 +119,16 @@
             entries.forEach(entry => {
                 const video = entry.target.querySelector('video');
                 const reelId = entry.target.id.replace('reel_', '');
-                
                 if (entry.isIntersecting) {
                     video.muted = isGlobalMuted;
                     video.play().catch(e => console.log("Waiting for user tap."));
-                    
                     if(!viewedReels.has(reelId)) {
                         viewedReels.add(reelId);
                         _supabase.rpc('increment_reel_view', { reel_uuid: reelId }).then();
                         const vCount = document.getElementById('view_count_' + reelId);
                         if(vCount) vCount.innerText = parseInt(vCount.innerText) + 1;
                     }
-                } else {
-                    video.pause(); video.currentTime = 0; 
-                }
+                } else { video.pause(); video.currentTime = 0; }
             });
         }, observerOptions);
 
@@ -148,6 +145,17 @@
             document.querySelectorAll('.reel-video').forEach(vid => vid.muted = isGlobalMuted);
         }
 
+        // --- IN-APP ROUTING ---
+        function routeToProfile(userId) {
+            localStorage.setItem('view_company_id', userId);
+            window.parent.loadModule('seeprofile.html', null);
+        }
+
+        function routeToProduct(productId) {
+            localStorage.setItem('view_product_id', productId);
+            window.parent.loadModule('seeproduct.html', null);
+        }
+
         async function loadReels() {
             if (isFetching || !hasMore) return;
             isFetching = true;
@@ -156,18 +164,16 @@
             const start = currentPage * limit;
             const end = start + limit - 1;
 
-            // BULLETPROOF QUERY: profiles (*) catches everything without crashing!
             const { data, error } = await _supabase
                 .from('reels')
-                .select(`*, profiles (*), products (*), likes (id, user_id), comments (id)`)
+                .select(`*, profiles (*), likes (id, user_id), comments (id)`)
                 .eq('status', 'published') 
                 .order('created_at', { ascending: false })
                 .range(start, end);
 
             if (error) {
-                const errBox = document.getElementById('errorState');
-                errBox.innerText = "Feed Error: " + error.message;
-                errBox.classList.remove('hidden-view');
+                document.getElementById('errorState').innerText = "Feed Error: " + error.message;
+                document.getElementById('errorState').classList.remove('hidden-view');
             } else if (data) {
                 if (data.length < limit) hasMore = false;
                 renderReels(data);
@@ -177,21 +183,44 @@
             document.getElementById('loadingMore').classList.add('hidden');
         }
 
-        function renderReels(reels) {
+        async function fetchProductsForReel(productIds) {
+            if(!productIds || productIds.length === 0) return [];
+            const { data } = await _supabase.from('products').select('id, title, price, media_urls').in('id', productIds);
+            return data || [];
+        }
+
+        async function renderReels(reels) {
             const container = document.getElementById('feedContainer');
             
-            reels.forEach(reel => {
+            for(let reel of reels) {
                 const isLiked = currentUser ? reel.likes.some(l => l.user_id === currentUser.id) : false;
                 const vidUrl = _supabase.storage.from('reels_media').getPublicUrl(reel.video_url).data.publicUrl;
                 const dpUrl = reel.profiles?.dp_url ? _supabase.storage.from('profile_pictures').getPublicUrl(reel.profiles.dp_url).data.publicUrl : 'https://via.placeholder.com/150';
                 
-                let ctaHtml = '';
-                if (reel.products) {
-                    ctaHtml = `
-                        <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur border border-white/40 px-3 py-1.5 rounded-lg text-white font-bold text-[10px] mt-2 cursor-pointer pointer-events-auto" onclick="alert('Routing to product: ${reel.products.title}')">
-                            <i data-lucide="shopping-bag" class="w-3 h-3"></i> ${reel.cta_type || 'View Product'}
-                        </div>
-                    `;
+                // Fetch linked products (now an array of IDs)
+                let productsHtml = '';
+                let linkedIds = reel.linked_product_ids || [];
+                if(reel.linked_product_id && linkedIds.length === 0) linkedIds = [reel.linked_product_id]; // Fallback for old data
+                
+                if (linkedIds.length > 0) {
+                    const products = await fetchProductsForReel(linkedIds);
+                    const cards = products.map(p => {
+                        const imgData = p.media_urls && p.media_urls.length > 0 ? p.media_urls[0] : null;
+                        const imgUrl = imgData ? _supabase.storage.from('product_media').getPublicUrl(imgData.path).data.publicUrl : 'https://via.placeholder.com/150';
+                        return `
+                            <div class="product-card-mini" onclick="routeToProduct('${p.id}')">
+                                <img src="${imgUrl}" alt="${p.title}">
+                                <div class="p-2">
+                                    <p class="text-white text-[10px] font-bold truncate">${p.title}</p>
+                                    <div class="flex justify-between items-center mt-1">
+                                        <p class="text-gold-400 text-[10px] font-extrabold">₹${p.price}</p>
+                                        <span class="bg-white/20 px-1.5 py-0.5 rounded text-[8px] font-bold text-white uppercase">${reel.cta_type || 'View'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                    productsHtml = `<div class="product-carousel">${cards}</div>`;
                 }
 
                 const reelEl = document.createElement('div');
@@ -208,18 +237,18 @@
 
                     <div class="overlay-bottom pointer-events-none">
                         <div class="px-5 pointer-events-auto">
-                            <h3 class="text-white font-extrabold text-lg flex items-center gap-2 drop-shadow-md">
+                            <h3 class="text-white font-extrabold text-lg flex items-center gap-2 drop-shadow-md cursor-pointer" onclick="routeToProfile('${reel.user_id}')">
                                 @${reel.profiles?.company_name || 'Anonymous Business'} 
                                 ${reel.profiles?.is_verified ? '<i data-lucide="badge-check" class="w-4 h-4 text-blue-400"></i>' : ''}
                             </h3>
                             <p class="text-white font-bold mt-1 shadow-black">${reel.title}</p>
                             <div class="text-gray-300 text-xs mt-1 max-w-[90%] line-clamp-2" onclick="alert('Description:\\n${reel.description}')">${reel.description || ''}</div>
-                            ${ctaHtml}
                         </div>
+                        <div class="mt-4 pointer-events-auto w-full">${productsHtml}</div>
                     </div>
 
                     <div class="overlay-right">
-                        <div class="profile-container" onclick="alert('Routing to Company Profile...')">
+                        <div class="profile-container" onclick="routeToProfile('${reel.user_id}')">
                             <img src="${dpUrl}" class="profile-pic" alt="DP">
                             <div class="follow-btn"><i data-lucide="plus" class="w-3 h-3"></i></div>
                         </div>
@@ -238,13 +267,17 @@
                             <i data-lucide="eye" class="action-icon opacity-80"></i>
                             <span class="text-[11px] font-bold text-gray-300" id="view_count_${reel.id}">${reel.views_count || 0}</span>
                         </div>
+
+                        <div class="action-btn" onclick="shareReel('${reel.id}')">
+                            <i data-lucide="share-2" class="action-icon"></i>
+                        </div>
                     </div>
                 `;
 
                 container.appendChild(reelEl);
                 lucide.createIcons();
                 observer.observe(reelEl);
-            });
+            }
         }
 
         function handleScroll() {
@@ -312,10 +345,17 @@
             } else { list.innerHTML = '<p class="text-slate-500 text-sm">No likes yet.</p>'; }
         }
 
-        // --- COMMENTS ---
+        // --- COMMENTS (FIXED) ---
         async function openComments(reelId) {
             activeReelId = reelId; document.getElementById('commentsModal').classList.add('active'); document.getElementById('commentsList').innerHTML = '<div class="loader"></div>';
-            const { data } = await _supabase.from('comments').select(`id, comment_text, profiles:user_id(company_name, dp_url)`).eq('reel_id', reelId).order('created_at', { ascending: false });
+            
+            const { data, error } = await _supabase.from('comments').select(`id, comment_text, profiles:user_id(company_name, dp_url)`).eq('reel_id', reelId).order('created_at', { ascending: false });
+            
+            if(error) {
+                document.getElementById('commentsList').innerHTML = `<p class="text-red-500 text-sm text-center">Error loading comments: ${error.message}</p>`;
+                return;
+            }
+
             if(data) {
                 document.getElementById('commentCount').innerText = data.length;
                 const list = document.getElementById('commentsList'); list.innerHTML = '';
@@ -336,9 +376,16 @@
             input.value = ''; 
             const { error } = await _supabase.from('comments').insert([{ user_id: currentUser.id, reel_id: activeReelId, comment_text: text }]);
             if(!error) openComments(activeReelId);
+            else alert("Error: " + error.message);
         }
 
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        function shareReel(id) {
+            const url = window.location.origin + "/?reel=" + id;
+            if (navigator.share) navigator.share({ title: `Golden techS`, text: `Check out this promotion!`, url: url }).catch(err => console.log(err));
+            else { navigator.clipboard.writeText(url); alert("Link copied!"); }
+        }
+
         window.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
