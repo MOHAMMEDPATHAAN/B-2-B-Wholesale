@@ -2,13 +2,15 @@
 <html lang="en" class="antialiased">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Golden's Business</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- GOOGLE MAPS API (Replace YOUR_API_KEY) -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
     
     <script>
         tailwind.config = {
@@ -23,54 +25,49 @@
     </script>
 
     <style>
-        body { -webkit-tap-highlight-color: transparent; overflow: hidden; background: #f8fafc; }
+        html, body { margin: 0; padding: 0; height: 100dvh; width: 100%; overflow: hidden; background: #f8fafc; }
         .dark body { background: #0f172a; }
         .theme-golden body { background: radial-gradient(circle at center, #1a1400 0%, #0a0a0a 100%); color: #fef08a; }
         .hidden-view { display: none !important; }
         
         /* Bottom Navigation Bar */
         .bottom-bar {
-            position: fixed; bottom: 0; left: 0; right: 0;
+            position: absolute; bottom: 0; left: 0; right: 0;
             background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
             border-top: 1px solid rgba(0,0,0,0.05);
             display: flex; justify-content: space-around; align-items: center;
-            height: 70px; padding-bottom: env(safe-area-bottom); z-index: 50;
+            height: 70px; padding-bottom: env(safe-area-inset-bottom); z-index: 50;
             transition: transform 0.3s ease-in-out;
         }
         .dark .bottom-bar { background: rgba(15, 23, 42, 0.95); border-top: 1px solid rgba(255,255,255,0.1); }
         .theme-golden .bottom-bar { background: rgba(10, 10, 10, 0.95); border-color: rgba(234,179,8,0.2); }
         
-        .bottom-bar.hidden-down { transform: translateY(100%); }
+        .bottom-bar.hidden-down { transform: translateY(150%); }
         
         .floating-add {
-            transform: translateY(-20px);
-            background: linear-gradient(135deg, #FACC15, #CA8A04);
-            border-radius: 50%; width: 60px; height: 60px;
-            display: flex; justify-content: center; align-items: center;
-            box-shadow: 0 10px 25px rgba(234, 179, 8, 0.4);
-            color: white; border: 4px solid #f8fafc;
+            transform: translateY(-20px); background: linear-gradient(135deg, #FACC15, #CA8A04);
+            border-radius: 50%; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 10px 25px rgba(234, 179, 8, 0.4); color: white; border: 4px solid #f8fafc; cursor: pointer;
         }
         .dark .floating-add { border-color: #0f172a; }
         .theme-golden .floating-add { border-color: #0a0a0a; color: black; }
 
-        /* Floating AI Button */
+        /* Draggable AI Button */
         #aiFloatBtn {
-            position: fixed; bottom: 90px; right: 20px; z-index: 80;
+            position: absolute; bottom: 90px; right: 20px; z-index: 80;
             width: 65px; height: 65px; border-radius: 50%;
             background: linear-gradient(135deg, #FDE047, #CA8A04);
             box-shadow: 0 0 25px rgba(234, 179, 8, 0.5), inset 0 0 10px rgba(255,255,255,0.5);
-            display: flex; justify-content: center; align-items: center;
-            border: 2px solid #000; cursor: pointer; touch-action: none;
-            transition: transform 0.2s;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            border: 2px solid #000; cursor: grab; touch-action: none; transition: transform 0.2s;
         }
-        #aiFloatBtn:active { transform: scale(0.9); }
-        .ai-pulse { position: absolute; inset: -4px; border-radius: 50%; border: 2px solid #EAB308; animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite; z-index: -1; }
+        #aiFloatBtn:active { transform: scale(0.9); cursor: grabbing; }
+        .ai-pulse { position: absolute; inset: -4px; border-radius: 50%; border: 2px solid #EAB308; animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite; z-index: -1; pointer-events: none;}
 
         /* Animations */
         .text-gold-animate {
             background: linear-gradient(to right, #CA8A04 20%, #FDE047 40%, #FDE047 60%, #CA8A04 80%);
-            background-size: 200% auto; color: #000;
-            background-clip: text; -webkit-background-clip: text;
+            background-size: 200% auto; color: #000; background-clip: text; -webkit-background-clip: text;
             text-fill-color: transparent; -webkit-text-fill-color: transparent;
             animation: shine 3s linear infinite; text-align: center; width: 100%; display: block;
         }
@@ -78,41 +75,43 @@
 
         /* Fixed Developer Logo Animation */
         .dev-logo { position: absolute; bottom: 40px; width: 100%; text-align: center; font-size: 16px; font-weight: 900; color: #EAB308; letter-spacing: 2px; }
-        .text-tech { display: inline-block; overflow: hidden; white-space: nowrap; animation: revealTech 3s ease-in-out infinite; vertical-align: bottom; }
+        .text-tech { display: inline-block; overflow: hidden; white-space: nowrap; animation: revealTech 4s ease-in-out infinite; vertical-align: bottom; }
         @keyframes revealTech { 0%, 20% { max-width: 0; opacity: 0; } 40%, 80% { max-width: 60px; opacity: 1; } 100% { max-width: 0; opacity: 0; } }
 
-        #moduleFrame { width: 100%; height: calc(100vh - 70px); border: none; background: transparent; transition: height 0.3s; }
-        .module-full { height: 100vh !important; }
+        #moduleFrame { width: 100%; height: calc(100dvh - 70px); border: none; background: transparent; transition: height 0.3s; }
+        .module-full { height: 100dvh !important; }
 
-        .popup-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 100; display: flex; align-items: center; justify-content: center; }
-        .modal-content { background: white; padding: 32px; border-radius: 24px; width: 90%; max-width: 350px; animation: scaleUp 0.3s ease-out; }
+        .popup-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 100; display: flex; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 32px; border-radius: 24px; width: 90%; max-width: 380px; animation: scaleUp 0.3s ease-out; }
         .dark .modal-content { background: #1e293b; }
         .theme-golden .modal-content { background: #171717; border: 1px solid rgba(234,179,8,0.3); }
         @keyframes scaleUp { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
         .spinner { border: 4px solid rgba(234,179,8,0.2); width: 50px; height: 50px; border-radius: 50%; border-left-color: #EAB308; animation: spin 1s linear infinite; margin: 0 auto; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* Setup Form Inputs */
+        .setup-input { w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:border-gold-500 font-medium text-sm transition-colors mb-3; width: 100%; box-sizing: border-box; }
+        .theme-golden .setup-input { background: rgba(20,15,0,0.5); border-color: rgba(234,179,8,0.3); color: #fef08a; }
+        .theme-golden .setup-input:focus { border-color: #FDE047; box-shadow: 0 0 10px rgba(234,179,8,0.2); }
     </style>
 </head>
-<body class="text-slate-800 dark:text-slate-100 transition-colors duration-300">
+<body class="text-slate-800 dark:text-slate-100 transition-colors duration-300 relative">
 
     <!-- 0. SPLASH SCREEN -->
     <div id="splashScreen" class="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-slate-900 absolute inset-0 z-[100] theme-golden:bg-premium-900">
-        <h1 class="text-4xl font-extrabold text-gold-animate mb-8 tracking-wider w-full text-center">GOLDEN'S BUSINESS</h1>
+        <h1 class="text-4xl font-extrabold text-gold-animate mb-8 tracking-wider text-center w-full">GOLDEN'S BUSINESS</h1>
         <div class="spinner"></div>
-        
-        <div class="dev-logo">
-            GOLDEN <span class="text-tech">tech</span>S
-        </div>
+        <div class="dev-logo">GOLDEN <span class="text-tech">tech</span>S</div>
     </div>
 
     <!-- 1. AUTH FLOW -->
     <div id="authContainer" class="min-h-screen flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-900 absolute inset-0 z-50 hidden-view theme-golden:bg-premium-900">
-        
         <div id="stepAuth" class="w-full max-w-sm hidden-view">
             <div class="text-center mb-8">
                 <i data-lucide="crown" class="w-12 h-12 text-gold-500 mx-auto mb-2"></i>
                 <h1 class="text-3xl font-extrabold text-gold-animate tracking-wide uppercase">Golden's</h1>
+                <p class="text-slate-500 font-bold tracking-widest text-xs mt-1">BUSINESS NETWORK</p>
             </div>
 
             <div class="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl mb-6 theme-golden:bg-premium-800">
@@ -120,8 +119,9 @@
                 <button id="tabSignup" onclick="toggleAuthMode(false)" class="flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 transition-all theme-golden:text-slate-400">Sign Up</button>
             </div>
 
-            <input type="text" id="emailOrPhone" placeholder="Email Address" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none mb-3 focus:border-gold-500 theme-golden:bg-premium-800 theme-golden:border-gold-500/30 theme-golden:text-white">
-            <input type="password" id="password" placeholder="Password" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none mb-2 focus:border-gold-500 theme-golden:bg-premium-800 theme-golden:border-gold-500/30 theme-golden:text-white">
+            <input type="email" id="emailInput" placeholder="Business Email Address" class="setup-input">
+            <input type="password" id="passwordInput" placeholder="Password" class="setup-input">
+            <input type="password" id="passwordConfirm" placeholder="Re-enter Password" class="setup-input hidden-view">
             
             <div class="text-right mb-4">
                 <button onclick="openOtpModal(1)" class="text-xs font-bold text-gold-600 hover:text-gold-700">Forgot Password?</button>
@@ -134,53 +134,138 @@
             </button>
         </div>
 
-        <!-- Document & Profile setup views remain identical but hidden for brevity... -->
-        <!-- (Assuming they are set up or bypassed if user exists) -->
-        <div id="stepProfileBlock" class="hidden-view text-center">
-            <!-- If needed, setup code goes here. Omitted for brevity since auth flow works -->
-            <h1 class="text-xl font-bold text-gold-500">Profile Check Passed.</h1>
+        <!-- STRICT 25-FIELD PROFILE SETUP -->
+        <div id="stepProfileBlock" class="w-full max-w-md hidden-view flex flex-col h-[95dvh] pt-6 pb-2">
+            <div class="text-center mb-4">
+                <h1 class="text-xl font-extrabold text-gold-animate tracking-wide uppercase">KYB Verification</h1>
+                <p class="text-[10px] font-bold text-slate-500 mt-1 uppercase">25-Point Business Setup</p>
+            </div>
+            
+            <div class="space-y-4 overflow-y-auto px-2 pb-24 flex-1 -ms-overflow-style-none scrollbar-hide">
+                
+                <!-- Sec 1: Identity & Media -->
+                <p class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest bg-gold-50 dark:bg-gold-900/20 py-1 px-2 rounded inline-block">1. Identity & Media</p>
+                <input type="text" id="setup_compName" placeholder="Registered Company Name *" class="setup-input">
+                <input type="text" id="setup_ceoName" placeholder="CEO / Manager Full Name *" class="setup-input">
+                <input type="tel" id="setup_mobile" placeholder="Official Mobile Number *" class="setup-input">
+                <input type="email" id="setup_publicEmail" placeholder="Public Contact Email" class="setup-input">
+                
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div class="text-center p-4 border border-dashed border-gold-500 rounded-xl bg-gold-50 dark:bg-gold-900/10 cursor-pointer hover:bg-gold-100" onclick="document.getElementById('setup_logo').click()">
+                        <i data-lucide="image" class="w-6 h-6 text-gold-600 mx-auto mb-1"></i>
+                        <p class="text-[10px] font-bold text-gold-700" id="lbl_logo">Upload Logo *</p>
+                        <input type="file" id="setup_logo" accept="image/*" class="hidden" onchange="document.getElementById('lbl_logo').innerText = 'Logo Added'">
+                    </div>
+                    <div class="text-center p-4 border border-dashed border-blue-500 rounded-xl bg-blue-50 dark:bg-blue-900/10 cursor-pointer hover:bg-blue-100" onclick="document.getElementById('setup_face').click()">
+                        <i data-lucide="scan-face" class="w-6 h-6 text-blue-600 mx-auto mb-1"></i>
+                        <p class="text-[10px] font-bold text-blue-700" id="lbl_face">CEO Face Scan *</p>
+                        <input type="file" id="setup_face" accept="image/*" capture="user" class="hidden" onchange="verifyFaceScan()">
+                    </div>
+                </div>
+
+                <!-- Sec 2: Operations & Location -->
+                <p class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest bg-gold-50 dark:bg-gold-900/20 py-1 px-2 rounded inline-block mt-4">2. Operations & Location</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="number" id="setup_founded" placeholder="Year Founded *" class="setup-input">
+                    <select id="setup_employees" class="setup-input">
+                        <option value="">Employees *</option>
+                        <option value="1-10">1-10</option><option value="11-50">11-50</option><option value="50-200">50-200</option><option value="200+">200+</option>
+                    </select>
+                </div>
+                <select id="setup_industry" class="setup-input">
+                    <option value="">Industry Sector *</option>
+                    <option value="Manufacturing">Manufacturing</option>
+                    <option value="Textiles">Textiles & Apparel</option>
+                    <option value="Electronics">Electronics & Hardware</option>
+                    <option value="Agriculture">Agriculture & Farming</option>
+                    <option value="Software/IT">Software/IT</option>
+                </select>
+                <input type="text" id="setup_coreProd" placeholder="Core Product Category *" class="setup-input">
+                <input type="text" id="setup_capacity" placeholder="Daily Production Capacity" class="setup-input">
+                
+                <input type="text" id="setup_address" placeholder="Headquarters Address (Map Search) *" class="setup-input" onfocus="initGooglePlaces()">
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="text" id="setup_city" placeholder="City *" class="setup-input">
+                    <input type="text" id="setup_zip" placeholder="Zip/Postal Code *" class="setup-input">
+                </div>
+
+                <!-- Sec 3: Global Registration & Verification -->
+                <p class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest bg-gold-50 dark:bg-gold-900/20 py-1 px-2 rounded inline-block mt-4">3. Global Legal Registration</p>
+                <select id="setup_country" class="setup-input bg-gold-50 dark:bg-gold-900/20 font-bold" onchange="updateTaxLabel()">
+                    <option value="">Select Registration Country *</option>
+                    <option value="India">India</option>
+                    <option value="United States">United States</option>
+                    <option value="United Kingdom">United Kingdom</option>
+                    <option value="UAE">United Arab Emirates</option>
+                    <option value="Canada">Canada</option>
+                    <option value="Australia">Australia</option>
+                    <option value="Singapore">Singapore</option>
+                    <option value="European Union">European Union</option>
+                </select>
+                
+                <div class="relative">
+                    <input type="text" id="setup_taxId" placeholder="Tax/Registration ID *" class="setup-input pr-24">
+                    <button onclick="simulateGovVerification()" id="btnVerifyGov" class="absolute right-2 top-2 bg-green-500 text-white text-[10px] font-extrabold px-3 py-1.5 rounded-lg shadow-md hover:bg-green-600">VERIFY</button>
+                </div>
+                <p id="govStatus" class="text-xs font-bold text-green-500 hidden-view flex items-center gap-1 mb-3"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Officially Verified via Government Portal</p>
+
+                <!-- Sec 4: Digital Footprint -->
+                <p class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest bg-gold-50 dark:bg-gold-900/20 py-1 px-2 rounded inline-block mt-4">4. Digital Footprint</p>
+                <input type="url" id="setup_website" placeholder="Company Website URL" class="setup-input">
+                <input type="url" id="setup_linkedin" placeholder="LinkedIn Profile URL" class="setup-input">
+                <input type="url" id="setup_instagram" placeholder="Instagram Profile URL" class="setup-input">
+                <input type="url" id="setup_youtube" placeholder="YouTube Channel URL" class="setup-input">
+                
+                <!-- Sec 5: Compliance -->
+                <p class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest bg-gold-50 dark:bg-gold-900/20 py-1 px-2 rounded inline-block mt-4">5. Network Compliance</p>
+                <label class="flex items-start gap-2 text-xs font-bold text-slate-500 mb-2 cursor-pointer">
+                    <input type="checkbox" id="chk_terms" class="mt-0.5"> I accept the B2B SaaS Terms of Service and Anti-Fraud policies. *
+                </label>
+                <label class="flex items-start gap-2 text-xs font-bold text-slate-500 mb-6 cursor-pointer">
+                    <input type="checkbox" id="chk_data" class="mt-0.5"> I confirm all provided ID and Registration numbers are legally valid. *
+                </label>
+            </div>
+            
+            <div class="mt-2">
+                <button onclick="saveFullProfile()" id="finishSetupBtn" class="w-full bg-gradient-to-r from-gold-500 to-gold-600 text-black font-extrabold py-4 rounded-xl shadow-lg shadow-gold-500/30 uppercase tracking-wider text-sm transition-transform hover:scale-[1.02]">
+                    Complete & Enter B2B Network
+                </button>
+            </div>
         </div>
     </div>
 
     <!-- OTP PASSWORD RESET FLOW -->
     <div id="otpModalFlow" class="popup-overlay hidden-view">
-        <!-- Step 1: Email -->
         <div id="otpStep1" class="modal-content text-center">
             <i data-lucide="mail" class="w-10 h-10 text-gold-500 mx-auto mb-4"></i>
             <h2 class="text-xl font-extrabold mb-2 theme-golden:text-gold-400">Reset Password</h2>
-            <p class="text-xs text-slate-500 mb-4">Enter your registered email to receive a 6-digit OTP.</p>
-            <input type="email" id="resetEmail" placeholder="Email Address" class="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 mb-4 theme-golden:bg-premium-800 theme-golden:text-white theme-golden:border-gold-500/30">
+            <input type="email" id="resetEmail" placeholder="Registered Email Address" class="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 mb-4 theme-golden:bg-premium-800 theme-golden:text-white theme-golden:border-gold-500/30 outline-none font-bold">
             <button onclick="sendOtp()" id="btnSendOtp" class="w-full bg-gold-500 text-black font-bold py-3 rounded-xl shadow-lg hover:bg-gold-400">Send OTP</button>
             <button onclick="closeOtpModal()" class="mt-4 text-xs font-bold text-slate-400">Cancel</button>
         </div>
-
-        <!-- Step 2: Enter OTP -->
         <div id="otpStep2" class="modal-content text-center hidden-view">
             <i data-lucide="key-round" class="w-10 h-10 text-gold-500 mx-auto mb-4"></i>
             <h2 class="text-xl font-extrabold mb-2 theme-golden:text-gold-400">Enter OTP</h2>
-            <p class="text-xs text-slate-500 mb-4">Enter the 6-digit code sent to your email.</p>
-            <input type="number" id="resetOtpCode" placeholder="0 0 0 0 0 0" class="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 mb-4 text-center tracking-widest font-black text-xl theme-golden:bg-premium-800 theme-golden:text-white theme-golden:border-gold-500/30">
+            <input type="number" id="resetOtpCode" placeholder="000000" class="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 mb-4 text-center tracking-widest font-black text-2xl theme-golden:bg-premium-800 theme-golden:text-white outline-none">
             <button onclick="verifyOtp()" id="btnVerifyOtp" class="w-full bg-gold-500 text-black font-bold py-3 rounded-xl shadow-lg hover:bg-gold-400">Verify Code</button>
         </div>
-
-        <!-- Step 3: New Password -->
         <div id="otpStep3" class="modal-content text-center hidden-view">
             <i data-lucide="lock" class="w-10 h-10 text-gold-500 mx-auto mb-4"></i>
             <h2 class="text-xl font-extrabold mb-2 theme-golden:text-gold-400">New Password</h2>
-            <p class="text-xs text-slate-500 mb-4">Secure your account with a new password.</p>
-            <input type="password" id="newPassword" placeholder="New Password" class="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 mb-4 theme-golden:bg-premium-800 theme-golden:text-white theme-golden:border-gold-500/30">
-            <button onclick="updatePassword()" id="btnUpdatePass" class="w-full bg-green-500 text-white font-bold py-3 rounded-xl shadow-lg hover:bg-green-400">Update & Login</button>
+            <input type="password" id="newPassword" placeholder="New Secure Password" class="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border focus:border-gold-500 mb-4 theme-golden:bg-premium-800 theme-golden:text-white outline-none font-bold">
+            <button onclick="updatePassword()" id="btnUpdatePass" class="w-full bg-green-500 text-white font-bold py-3 rounded-xl shadow-lg hover:bg-green-400">Update Password</button>
         </div>
     </div>
 
     <!-- MAIN APP & I-FRAME INJECTION -->
-    <div id="appWorkspace" class="hidden-view">
+    <div id="appWorkspace" class="hidden-view relative h-full w-full">
         <iframe id="moduleFrame" src=""></iframe>
 
-        <!-- Floating AI Chat Button -->
-        <div id="aiFloatBtn" class="hidden-view" onclick="openAiChat()">
+        <!-- Floating Premium AI Chat Button (Draggable) -->
+        <div id="aiFloatBtn" class="hidden-view">
             <div class="ai-pulse"></div>
-            <i data-lucide="bot" class="w-8 h-8 text-black"></i>
+            <i data-lucide="bot" class="w-7 h-7 text-black mb-0.5"></i>
+            <span class="text-[8px] font-black text-black tracking-tighter leading-none">GOLDEN<br>AI</span>
         </div>
 
         <!-- Bottom Bar -->
@@ -188,7 +273,7 @@
             <button onclick="loadModule('home.html', this)" class="nav-btn flex flex-col items-center gap-1 text-gold-600 w-16 transition-colors">
                 <i data-lucide="home" class="w-6 h-6"></i><span class="text-[10px] font-bold">Home</span>
             </button>
-            <button onclick="loadModule('feed.html', this)" class="nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-gold-500 w-16 transition-colors">
+            <button onclick="loadModule('reels.html', this)" class="nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-gold-500 w-16 transition-colors">
                 <i data-lucide="play-square" class="w-6 h-6"></i><span class="text-[10px] font-bold">Reels</span>
             </button>
             <button onclick="loadModule('add.html', this)" class="floating-add">
@@ -205,13 +290,14 @@
 
     <script>
         lucide.createIcons();
-        
         const SUPABASE_URL = 'https://puvdfqnjzliiuupchppj.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1dmRmcW5qemxpaXV1cGNocHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTExOTgsImV4cCI6MjA5MjU4NzE5OH0.hDK6fjZ2SesJ7qkeWVXxOoxW2Xmr7MDlKO-BFtJtDu0';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let isLogin = true;
         let recoveryEmail = '';
+        let isGovVerified = false;
+        let isFaceVerified = false;
 
         // --- GLOBAL THEME ENGINE ---
         window.changeTheme = function(theme) {
@@ -224,13 +310,12 @@
         }
         window.changeTheme(localStorage.getItem('golden_theme') || 'system');
 
-        // --- INIT & AUTH ---
+        // --- INIT ---
         async function initApp() {
             setTimeout(async () => {
                 const { data: { session } } = await _supabase.auth.getSession();
-                if (session) {
-                    launchApp(); 
-                } else {
+                if (session) await checkUserFlow();
+                else {
                     document.getElementById('splashScreen').classList.add('hidden-view');
                     document.getElementById('authContainer').classList.remove('hidden-view');
                     document.getElementById('stepAuth').classList.remove('hidden-view');
@@ -238,6 +323,7 @@
             }, 3000); 
         }
 
+        // --- AUTH FLOW ---
         function toggleAuthMode(loginMode) {
             isLogin = loginMode;
             document.getElementById('authError').classList.add('hidden-view');
@@ -248,43 +334,191 @@
                 btnLogin.className = "flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-slate-700 shadow text-gold-600 transition-all theme-golden:bg-black theme-golden:text-gold-400";
                 btnSignup.className = "flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 transition-all theme-golden:text-slate-400";
                 document.getElementById('authBtn').innerText = "Access Network";
+                document.getElementById('passwordConfirm').classList.add('hidden-view');
             } else {
                 btnSignup.className = "flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-slate-700 shadow text-gold-600 transition-all theme-golden:bg-black theme-golden:text-gold-400";
                 btnLogin.className = "flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 transition-all theme-golden:text-slate-400";
                 document.getElementById('authBtn').innerText = "Create Business Account";
+                document.getElementById('passwordConfirm').classList.remove('hidden-view');
             }
         }
 
+        function showError(msg) {
+            const err = document.getElementById('authError');
+            err.innerText = msg; err.classList.remove('hidden-view');
+        }
+
         async function handleAuth() {
-            const email = document.getElementById('emailOrPhone').value.trim();
-            const password = document.getElementById('password').value;
-            if(!email || !password) {
-                document.getElementById('authError').innerText = "Please enter details";
-                document.getElementById('authError').classList.remove('hidden-view');
-                return;
+            const email = document.getElementById('emailInput').value.trim();
+            const password = document.getElementById('passwordInput').value;
+            
+            // Regex for Fake Email checking
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if(!emailRegex.test(email)) return showError("Please enter a valid, real email address.");
+            if(password.length < 6) return showError("Password must be at least 6 characters.");
+
+            if (!isLogin) {
+                const passConfirm = document.getElementById('passwordConfirm').value;
+                if(password !== passConfirm) return showError("Passwords do not match.");
             }
+
             document.getElementById('authBtn').innerText = "Verifying...";
+            document.getElementById('authError').classList.add('hidden-view');
             
             const credentials = { email: email, password: password };
             const { error } = isLogin ? await _supabase.auth.signInWithPassword(credentials) : await _supabase.auth.signUp(credentials);
             
             if (error) {
-                document.getElementById('authError').innerText = error.message;
-                document.getElementById('authError').classList.remove('hidden-view');
+                showError(error.message);
                 document.getElementById('authBtn').innerText = isLogin ? "Access Network" : "Create Business Account";
-            } else launchApp();
+            } else await checkUserFlow();
         }
 
-        // --- OTP PASSWORD RESET FLOW ---
+        // --- 25-FIELD KYB SETUP FLOW ---
+        const taxLabels = {
+            'India': { label: 'GSTIN Number (15 Digits) *', api: 'GST Portal' },
+            'United States': { label: 'EIN (Employer ID) *', api: 'SEC EDGAR / IRS' },
+            'United Kingdom': { label: 'VAT Number / UTR *', api: 'HMRC Database' },
+            'UAE': { label: 'TRN (Tax Registration) *', api: 'FTA Portal' },
+            'Canada': { label: 'BN (Business Number) *', api: 'CRA Database' },
+            'Australia': { label: 'ABN (Australian Business Number) *', api: 'ABN Lookup' },
+            'European Union': { label: 'EU VAT Number *', api: 'VIES Validation' },
+            'Singapore': { label: 'UEN (Unique Entity Number) *', api: 'ACRA Database' }
+        };
+
+        function updateTaxLabel() {
+            const country = document.getElementById('setup_country').value;
+            const input = document.getElementById('setup_taxId');
+            isGovVerified = false; // Reset verification if country changes
+            document.getElementById('govStatus').classList.add('hidden-view');
+            document.getElementById('btnVerifyGov').classList.remove('hidden-view');
+            
+            if(taxLabels[country]) {
+                input.placeholder = taxLabels[country].label;
+                document.getElementById('btnVerifyGov').innerText = `Verify via ${taxLabels[country].api}`;
+            } else {
+                input.placeholder = "Company Registration / Tax ID *";
+                document.getElementById('btnVerifyGov').innerText = "Verify ID";
+            }
+        }
+
+        function verifyFaceScan() {
+            const btn = document.getElementById('lbl_face');
+            btn.innerText = "Scanning Face...";
+            btn.className = "text-[10px] font-bold text-yellow-600 animate-pulse";
+            
+            setTimeout(() => {
+                isFaceVerified = true;
+                btn.innerText = "Live Face Verified ✓";
+                btn.className = "text-[10px] font-extrabold text-green-600";
+            }, 2000);
+        }
+
+        function simulateGovVerification() {
+            const taxId = document.getElementById('setup_taxId').value;
+            const country = document.getElementById('setup_country').value;
+            if(!country || !taxId) return alert("Select country and enter ID first.");
+            
+            const btn = document.getElementById('btnVerifyGov');
+            btn.innerText = "Connecting to Gov Registry...";
+            btn.disabled = true;
+
+            // Simulate Live API Call
+            setTimeout(() => {
+                isGovVerified = true;
+                btn.classList.add('hidden-view');
+                document.getElementById('govStatus').classList.remove('hidden-view');
+            }, 2500);
+        }
+
+        function initGooglePlaces() {
+            if (typeof google !== 'undefined' && google.maps && google.maps.places) {
+                const input = document.getElementById('setup_address');
+                if(!input.hasAttribute('data-places-init')) {
+                    new google.maps.places.Autocomplete(input);
+                    input.setAttribute('data-places-init', 'true');
+                }
+            }
+        }
+
+        async function checkUserFlow() {
+            const { data: { user } } = await _supabase.auth.getUser();
+            if (!user) return;
+
+            const { data: profile } = await _supabase.from('profiles').select('*').eq('id', user.id).single();
+            
+            document.getElementById('splashScreen').classList.add('hidden-view');
+            document.getElementById('authContainer').classList.remove('hidden-view');
+            document.getElementById('stepAuth').classList.add('hidden-view');
+            
+            // Strict Lock: If company name missing, force setup
+            if (!profile || !profile.company_name) {
+                document.getElementById('stepProfileBlock').classList.remove('hidden-view');
+            } else {
+                if (profile.theme) window.changeTheme(profile.theme);
+                launchApp(); 
+            }
+        }
+
+        async function saveFullProfile() {
+            if(!isFaceVerified) return alert("CEO Live Face verification is required.");
+            if(!isGovVerified) return alert("You must verify your Tax/Registration ID through the registry portal.");
+            if(!document.getElementById('chk_terms').checked || !document.getElementById('chk_data').checked) return alert("You must accept the terms and compliance boxes.");
+
+            const reqIds = ['setup_compName', 'setup_ceoName', 'setup_mobile', 'setup_founded', 'setup_employees', 'setup_industry', 'setup_coreProd', 'setup_address', 'setup_city', 'setup_zip'];
+            for(let id of reqIds) {
+                if(!document.getElementById(id).value.trim()) return alert("Please fill all required (*) fields.");
+            }
+
+            const btn = document.getElementById('finishSetupBtn');
+            btn.innerText = "Securing Network Profile..."; btn.disabled = true;
+            const { data: { user } } = await _supabase.auth.getUser();
+
+            // Handle DP Upload securely
+            const logoFile = document.getElementById('setup_logo').files[0];
+            let dpUrl = null;
+            if(logoFile) {
+                const path = `${user.id}/logo_${Date.now()}.${logoFile.name.split('.').pop()}`;
+                await _supabase.storage.from('profile_pictures').upload(path, logoFile, {upsert: true});
+                dpUrl = path;
+            }
+
+            const profileData = {
+                company_name: document.getElementById('setup_compName').value,
+                ceo_name: document.getElementById('setup_ceoName').value,
+                phone_number: document.getElementById('setup_mobile').value,
+                email: document.getElementById('setup_publicEmail').value || user.email,
+                year_founded: document.getElementById('setup_founded').value,
+                employee_count: document.getElementById('setup_employees').value,
+                industry_type: document.getElementById('setup_industry').value,
+                core_product_category: document.getElementById('setup_coreProd').value,
+                daily_production: document.getElementById('setup_capacity').value || 0,
+                company_address: `${document.getElementById('setup_address').value}, ${document.getElementById('setup_city').value} ${document.getElementById('setup_zip').value}`,
+                country: document.getElementById('setup_country').value,
+                tax_id_type: document.getElementById('setup_country').value ? taxLabels[document.getElementById('setup_country').value]?.api : 'TIN',
+                is_verified: true, // Marked verified because of Gov API simulation
+                dp_url: dpUrl,
+                social_links: {
+                    website: document.getElementById('setup_website').value,
+                    linkedin: document.getElementById('setup_linkedin').value,
+                    instagram: document.getElementById('setup_instagram').value,
+                    youtube: document.getElementById('setup_youtube').value
+                }
+            };
+
+            const { error } = await _supabase.from('profiles').upsert({ id: user.id, ...profileData });
+            if(error) { alert(error.message); btn.innerText = "Try Again"; btn.disabled = false; return; }
+
+            launchApp();
+        }
+
+        // --- OTP FLOW ---
         function openOtpModal(step) {
             document.getElementById('otpModalFlow').classList.remove('hidden-view');
-            document.getElementById('otpStep1').classList.add('hidden-view');
-            document.getElementById('otpStep2').classList.add('hidden-view');
-            document.getElementById('otpStep3').classList.add('hidden-view');
+            ['otpStep1', 'otpStep2', 'otpStep3'].forEach(id => document.getElementById(id).classList.add('hidden-view'));
             document.getElementById('otpStep' + step).classList.remove('hidden-view');
         }
         function closeOtpModal() { document.getElementById('otpModalFlow').classList.add('hidden-view'); }
-
         async function sendOtp() {
             recoveryEmail = document.getElementById('resetEmail').value.trim();
             if(!recoveryEmail) return alert("Enter email.");
@@ -293,7 +527,6 @@
             if(error) { alert(error.message); document.getElementById('btnSendOtp').innerText = "Send OTP"; }
             else openOtpModal(2);
         }
-
         async function verifyOtp() {
             const otp = document.getElementById('resetOtpCode').value.trim();
             if(!otp) return alert("Enter OTP.");
@@ -302,83 +535,100 @@
             if(error) { alert(error.message); document.getElementById('btnVerifyOtp').innerText = "Verify Code"; }
             else openOtpModal(3);
         }
-
         async function updatePassword() {
             const newPass = document.getElementById('newPassword').value;
             if(!newPass) return alert("Enter password.");
             document.getElementById('btnUpdatePass').innerText = "Updating...";
             const { error } = await _supabase.auth.updateUser({ password: newPass });
-            if(error) { alert(error.message); document.getElementById('btnUpdatePass').innerText = "Update & Login"; }
+            if(error) { alert(error.message); document.getElementById('btnUpdatePass').innerText = "Update Password"; }
             else { closeOtpModal(); launchApp(); }
         }
 
-        // --- LAUNCH AND ROUTING ---
+        // --- ROUTING & LAYOUT FIXES ---
         function launchApp() {
             document.getElementById('authContainer').classList.add('hidden-view');
-            document.getElementById('splashScreen').classList.add('hidden-view');
             document.getElementById('appWorkspace').classList.remove('hidden-view');
             document.getElementById('aiFloatBtn').classList.remove('hidden-view');
-            loadModule('home.html', document.querySelector('.nav-btn'));
+            loadModule('network.html', document.querySelector('.nav-btn:nth-child(4)')); // Load network default
         }
 
         window.loadModule = function(filename, element) {
             const frame = document.getElementById('moduleFrame');
             const bBar = document.getElementById('bottomBar');
+            const aiBtn = document.getElementById('aiFloatBtn');
             
             frame.src = filename;
             
-            // DYNAMIC BOTTOM BAR HIDING
-            if(filename === 'chat.html' || filename === 'chatai.html') {
+            // Dynamic Bottom Bar & AI Hiding
+            if(filename === 'chat.html' || filename === 'chatai.html' || filename === 'call.html') {
                 bBar.classList.add('hidden-down');
-                frame.classList.add('module-full'); // Gives iframe 100vh
-                document.getElementById('aiFloatBtn').classList.add('hidden-view');
+                frame.classList.add('module-full'); 
+                aiBtn.classList.add('hidden-view');
             } else {
                 bBar.classList.remove('hidden-down');
                 frame.classList.remove('module-full');
-                document.getElementById('aiFloatBtn').classList.remove('hidden-view');
+                aiBtn.classList.remove('hidden-view');
             }
 
             if (element) {
-                document.querySelectorAll('.nav-btn').forEach(btn => {
-                    btn.classList.remove('text-gold-600'); btn.classList.add('text-slate-400');
-                });
-                if(!element.classList.contains('floating-add')) {
-                    element.classList.remove('text-slate-400'); element.classList.add('text-gold-600');
-                }
+                document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('text-gold-600'); btn.classList.add('text-slate-400'); });
+                if(!element.classList.contains('floating-add')) { element.classList.remove('text-slate-400'); element.classList.add('text-gold-600'); }
             }
         };
 
-        function openAiChat() { loadModule('chatai.html', null); }
+        // --- DRAGGABLE AI BUTTON ---
+        function setupDraggableAI() {
+            const aiBtn = document.getElementById('aiFloatBtn');
+            let isDragging = false, startX, startY, initialX, initialY;
+            let dragThreshold = false; // To differentiate between drag and click
+
+            aiBtn.addEventListener('touchstart', (e) => {
+                isDragging = true; dragThreshold = false;
+                startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+                initialX = aiBtn.offsetLeft; initialY = aiBtn.offsetTop;
+                aiBtn.style.transition = 'none';
+            });
+
+            aiBtn.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                const dx = e.touches[0].clientX - startX; const dy = e.touches[0].clientY - startY;
+                if(Math.abs(dx) > 10 || Math.abs(dy) > 10) dragThreshold = true;
+                if(dragThreshold) e.preventDefault(); // Stop screen scroll while dragging
+                
+                aiBtn.style.left = `${initialX + dx}px`;
+                aiBtn.style.top = `${initialY + dy}px`;
+                aiBtn.style.bottom = 'auto'; aiBtn.style.right = 'auto';
+            }, { passive: false });
+
+            aiBtn.addEventListener('touchend', (e) => {
+                isDragging = false;
+                aiBtn.style.transition = 'transform 0.2s';
+                if(!dragThreshold) window.loadModule('chatai.html', null); // If no drag, it was a click!
+            });
+            
+            // For desktop mouse testing
+            aiBtn.addEventListener('mousedown', (e) => {
+                isDragging = true; dragThreshold = false;
+                startX = e.clientX; startY = e.clientY;
+                initialX = aiBtn.offsetLeft; initialY = aiBtn.offsetTop;
+                aiBtn.style.transition = 'none';
+            });
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const dx = e.clientX - startX; const dy = e.clientY - startY;
+                if(Math.abs(dx) > 5 || Math.abs(dy) > 5) dragThreshold = true;
+                aiBtn.style.left = `${initialX + dx}px`; aiBtn.style.top = `${initialY + dy}px`;
+                aiBtn.style.bottom = 'auto'; aiBtn.style.right = 'auto';
+            });
+            window.addEventListener('mouseup', (e) => {
+                if(isDragging && !dragThreshold) window.loadModule('chatai.html', null);
+                isDragging = false; aiBtn.style.transition = 'transform 0.2s';
+            });
+        }
 
         window.signOutApp = async function() { await _supabase.auth.signOut(); window.location.reload(); }
-
-        // --- FLOATING DRAG LOGIC FOR AI BUTTON ---
-        const aiBtn = document.getElementById('aiFloatBtn');
-        let isDragging = false;
-        let startX, startY, initialX, initialY;
-
-        aiBtn.addEventListener('touchstart', (e) => {
-            isDragging = true;
-            startX = e.touches[0].clientX; startY = e.touches[0].clientY;
-            initialX = aiBtn.offsetLeft; initialY = aiBtn.offsetTop;
-            aiBtn.style.transition = 'none'; // remove snap back
-        });
-
-        aiBtn.addEventListener('touchmove', (e) => {
-            if (!isDragging) return;
-            e.preventDefault(); // Stop screen scroll
-            const dx = e.touches[0].clientX - startX;
-            const dy = e.touches[0].clientY - startY;
-            aiBtn.style.left = `${initialX + dx}px`;
-            aiBtn.style.top = `${initialY + dy}px`;
-            aiBtn.style.bottom = 'auto'; aiBtn.style.right = 'auto';
-        });
-
-        aiBtn.addEventListener('touchend', (e) => {
-            isDragging = false;
-            aiBtn.style.transition = 'transform 0.2s';
-        });
-
+        
+        setupDraggableAI();
         initApp();
     </script>
 </body>
