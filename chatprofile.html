@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Share - Golden's</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { gold: { 400: '#FACC15', 500: '#EAB308', 600: '#CA8A04' }, premium: { 900: '#0a0a0a', 800: '#171717' } } } } }
+    </script>
+    <style>
+        body { background: #f8fafc; height: 100vh; display: flex; flex-direction: column; }
+        .dark body { background: #0f172a; color: white; }
+        .theme-golden body { background: #0a0a0a; color: #fef08a; }
+        
+        .header-glass { background: rgba(255,255,255,0.9); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(0,0,0,0.05); padding: 16px; display: flex; align-items: center; justify-content: space-between; }
+        .dark .header-glass { background: rgba(15,23,42,0.9); border-color: rgba(255,255,255,0.05); }
+        .theme-golden .header-glass { background: rgba(10,10,10,0.9); border-color: rgba(234,179,8,0.2); }
+
+        .contact-row { padding: 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; transition: background 0.2s; }
+        .dark .contact-row { border-color: rgba(255,255,255,0.05); }
+        .theme-golden .contact-row { border-color: rgba(234,179,8,0.15); }
+        .contact-row:active { background: rgba(0,0,0,0.05); }
+        .theme-golden .contact-row:active { background: rgba(234,179,8,0.1); }
+
+        .btn-send { background: #EAB308; color: black; font-weight: 800; font-size: 12px; padding: 8px 20px; border-radius: 20px; box-shadow: 0 4px 10px rgba(234,179,8,0.3); }
+        .btn-send.sent { background: #22c55e; box-shadow: 0 4px 10px rgba(34,197,94,0.3); color: white; }
+
+        .other-apps-btn { margin: 20px; padding: 16px; background: white; border-radius: 16px; text-align: center; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); cursor: pointer; }
+        .dark .other-apps-btn { background: #1e293b; }
+        .theme-golden .other-apps-btn { background: #171717; border: 1px solid rgba(234,179,8,0.3); color: #FDE047; }
+    </style>
+</head>
+<body class="transition-colors duration-300">
+
+    <div class="header-glass">
+        <h1 class="text-xl font-extrabold tracking-wide text-slate-800 dark:text-white theme-golden:text-gold-400">Share to...</h1>
+        <button onclick="window.parent.loadModule('network.html', null)" class="text-slate-400 hover:text-red-500"><i data-lucide="x" class="w-6 h-6"></i></button>
+    </div>
+
+    <div class="p-4">
+        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 theme-golden:text-gold-600">Recent Chats</p>
+        <div id="recentChatsList" class="bg-white dark:bg-slate-800 theme-golden:bg-premium-800 rounded-2xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-700 theme-golden:border-gold-500/20">
+            <!-- Injected via JS -->
+            <div class="p-6 text-center text-slate-400 text-sm font-bold" id="loadingChats">Loading contacts...</div>
+        </div>
+    </div>
+
+    <div class="other-apps-btn" onclick="shareViaDevice()">
+        <i data-lucide="share-2" class="w-5 h-5"></i> Share via other apps
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const SUPABASE_URL = 'https://puvdfqnjzliiuupchppj.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1dmRmcW5qemxpaXV1cGNocHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTExOTgsImV4cCI6MjA5MjU4NzE5OH0.hDK6fjZ2SesJ7qkeWVXxOoxW2Xmr7MDlKO-BFtJtDu0';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let currentUser = null;
+        let shareType = null; // 'product' or 'reel'
+        let shareId = null;
+
+        function applySettings() {
+            const theme = localStorage.getItem('golden_theme') || 'system';
+            if (theme === 'dark') document.documentElement.classList.add('dark');
+            else if (theme === 'golden') document.documentElement.classList.add('dark', 'theme-golden');
+        }
+
+        async function init() {
+            applySettings();
+            const { data: { user } } = await _supabase.auth.getUser();
+            if(!user) return; currentUser = user;
+
+            shareType = localStorage.getItem('share_item_type');
+            shareId = localStorage.getItem('share_item_id');
+
+            if(!shareId) return document.getElementById('loadingChats').innerText = "Nothing selected to share.";
+
+            loadRecentChats();
+        }
+
+        async function loadRecentChats() {
+            // Find all chats where I am buyer OR supplier
+            const { data, error } = await _supabase.from('chats')
+                .select('id, buyer_id, supplier_id')
+                .or(`buyer_id.eq.${currentUser.id},supplier_id.eq.${currentUser.id}`)
+                .limit(10);
+
+            const list = document.getElementById('recentChatsList');
+            list.innerHTML = '';
+
+            if(!data || data.length === 0) {
+                list.innerHTML = '<div class="p-6 text-center text-slate-400 text-sm font-bold">No recent chats found.</div>';
+                return;
+            }
+
+            // Extract the "other" person's ID from each chat
+            for(let chat of data) {
+                const targetId = chat.buyer_id === currentUser.id ? chat.supplier_id : chat.buyer_id;
+                
+                const { data: profile } = await _supabase.from('profiles').select('company_name, dp_url').eq('id', targetId).single();
+                if(profile) {
+                    const dpUrl = profile.dp_url ? _supabase.storage.from('profile_pictures').getPublicUrl(profile.dp_url).data.publicUrl : 'https://via.placeholder.com/150';
+                    
+                    list.innerHTML += `
+                        <div class="contact-row" onclick="sendShare('${chat.id}', '${targetId}', this)">
+                            <div class="flex items-center gap-3">
+                                <img src="${dpUrl}" class="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-700 theme-golden:border-gold-500">
+                                <p class="font-bold text-sm text-slate-800 dark:text-white theme-golden:text-gold-200">${profile.company_name}</p>
+                            </div>
+                            <button class="btn-send">Send</button>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        async function sendShare(chatId, targetUserId, rowElement) {
+            const btn = rowElement.querySelector('button');
+            if(btn.classList.contains('sent')) return;
+
+            btn.innerText = "Sending...";
+            
+            const payload = { chat_id: chatId, sender_id: currentUser.id, content: '' };
+            if(shareType === 'product') payload.shared_product_id = shareId;
+            // if(shareType === 'reel') payload.shared_reel_id = shareId; // Setup if needed
+
+            const { error } = await _supabase.from('messages').insert([payload]);
+            if(!error) {
+                btn.classList.add('sent');
+                btn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> Sent';
+                lucide.createIcons();
+                
+                // Auto-route to chat after a second
+                setTimeout(() => {
+                    localStorage.setItem('chat_supplier_id', targetUserId);
+                    window.parent.loadModule('chat.html', null);
+                }, 1000);
+            } else { btn.innerText = "Error"; }
+        }
+
+        function shareViaDevice() {
+            const url = `${window.location.origin}/?${shareType}=${shareId}`;
+            if (navigator.share) navigator.share({ title: `Golden's Business`, text: `Check this out!`, url: url }).catch(err => console.log(err));
+            else { navigator.clipboard.writeText(url); alert("Link copied to clipboard!"); }
+        }
+
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
