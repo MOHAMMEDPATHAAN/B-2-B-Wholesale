@@ -12,23 +12,21 @@
         tailwind.config = { darkMode: 'class', theme: { extend: { colors: { gold: { 400: '#FACC15', 500: '#EAB308', 600: '#CA8A04' }, premium: { 900: '#0a0a0a', 800: '#171717' } } } } }
     </script>
     <style>
-        /* VISUAL VIEWPORT FIX FOR MOBILE KEYBOARDS */
-        html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background: #f8fafc; }
+        html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; display: flex; flex-direction: column; background: #f8fafc; }
         .dark body { background: #0f172a; }
         .theme-golden body { background: #0a0a0a; color: #fef08a; }
-        
         .hidden-view { display: none !important; }
 
-        /* The Main Wrapper dynamically resizes when keyboard opens */
-        #mainContainer { display: flex; flex-direction: column; width: 100%; max-width: 1024px; margin: 0 auto; position: absolute; top: 0; bottom: 0; left: 0; right: 0; background-size: cover; background-position: center; }
+        /* Custom Chat Background Layer */
+        #mainContainer { display: flex; flex-direction: column; width: 100%; max-width: 1024px; margin: 0 auto; position: absolute; top: 0; bottom: 0; left: 0; right: 0; background-size: cover; background-position: center; background-repeat: no-repeat; }
         
         .chat-header { flex-shrink: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.05); padding: 12px 16px; display: flex; align-items: center; gap: 12px; z-index: 40; }
         .dark .chat-header { background: rgba(15,23,42,0.95); border-color: rgba(255,255,255,0.05); }
         .theme-golden .chat-header { background: rgba(10,10,10,0.95); border-color: rgba(234,179,8,0.2); }
 
-        .chat-area { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; -ms-overflow-style: none; scrollbar-width: none; background: rgba(255,255,255,0.5); backdrop-filter: blur(5px); }
-        .dark .chat-area { background: rgba(15,23,42,0.5); }
-        .theme-golden .chat-area { background: rgba(10,10,10,0.7); }
+        .chat-area { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; -ms-overflow-style: none; scrollbar-width: none; background: rgba(255,255,255,0.6); backdrop-filter: blur(8px); scroll-behavior: smooth; }
+        .dark .chat-area { background: rgba(15,23,42,0.6); }
+        .theme-golden .chat-area { background: rgba(10,10,10,0.8); }
         .chat-area::-webkit-scrollbar { display: none; }
 
         .bubble-wrapper { display: flex; flex-direction: column; max-width: 85%; cursor: pointer; transition: opacity 0.2s; }
@@ -43,15 +41,11 @@
         .theme-golden .bubble-them { background: #171717; color: #FDE047; border-color: rgba(234,179,8,0.3); }
 
         .msg-meta { font-size: 10px; opacity: 0.7; margin-top: 4px; display: flex; gap: 6px; align-items: center; }
-        .translate-badge { font-size: 9px; font-weight: 800; background: rgba(0,0,0,0.1); padding: 2px 6px; border-radius: 4px; display: flex; align-items: center; gap: 2px; margin-bottom: 4px; }
-        .dark .translate-badge, .theme-golden .translate-badge { background: rgba(255,255,255,0.1); }
-
-        /* Shared Product Card */
+        
         .chat-product-card { background: rgba(255,255,255,0.9); border-radius: 12px; padding: 8px; margin-bottom: 8px; display: flex; gap: 10px; align-items: center; border: 1px solid rgba(0,0,0,0.1); }
         .dark .chat-product-card { background: rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.1); }
         .theme-golden .chat-product-card { background: rgba(0,0,0,0.6); border-color: rgba(234,179,8,0.3); color: white; }
 
-        /* Input Area strictly anchored */
         .input-area { flex-shrink: 0; background: white; border-top: 1px solid rgba(0,0,0,0.05); padding: 12px 16px; padding-bottom: max(16px, env(safe-area-inset-bottom)); display: flex; gap: 8px; align-items: center; z-index: 40; }
         .dark .input-area { background: #0f172a; border-color: rgba(255,255,255,0.05); }
         .theme-golden .input-area { background: #0a0a0a; border-color: rgba(234,179,8,0.2); }
@@ -60,29 +54,28 @@
         .dark .chat-input { background: #1e293b; color: white; }
         .theme-golden .chat-input { background: #171717; color: #fef08a; border-color: rgba(234,179,8,0.3); }
 
+        /* Recording UI Overlay */
+        .recording-ui { flex: 1; display: flex; justify-content: space-between; align-items: center; background: #fee2e2; padding: 10px 16px; border-radius: 24px; color: #ef4444; font-weight: 700; font-size: 14px; }
+        .dark .recording-ui, .theme-golden .recording-ui { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); }
+
         .icon-action-btn { color: #64748b; padding: 8px; border-radius: 50%; cursor: pointer; transition: background 0.2s; flex-shrink: 0; }
         .dark .icon-action-btn { color: #94a3b8; }
         .theme-golden .icon-action-btn { color: #CA8A04; }
-        .icon-action-btn:active { background: rgba(0,0,0,0.1); }
 
         .send-btn { background: #EAB308; color: black; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 10px rgba(234,179,8,0.4); flex-shrink: 0;}
         .send-btn:active { transform: scale(0.9); }
-        .recording { animation: pulseRecord 1s infinite; background: #ef4444; color: white; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.5); }
+        
+        .mic-active { animation: pulseRecord 1s infinite; background: #ef4444 !important; color: white !important; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.5); }
         @keyframes pulseRecord { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
-        /* Media Attachments */
         .attach-img { max-width: 200px; border-radius: 12px; margin-bottom: 6px; cursor: pointer; }
-        .attach-doc { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.05); padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; }
-
-        .loader { border: 3px solid rgba(255,255,255,0.1); width: 24px; height: 24px; border-radius: 50%; border-left-color: #EAB308; animation: spin 1s linear infinite; display: inline-block; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="transition-colors duration-300">
 
-<!-- Viewport boundary wrapper -->
 <div id="mainContainer">
     
+    <!-- HEADER -->
     <div class="chat-header">
         <button onclick="window.parent.loadModule('network.html', null)" class="text-slate-400 hover:text-gold-500"><i data-lucide="arrow-left" class="w-6 h-6"></i></button>
         <img id="headDp" src="https://via.placeholder.com/150" class="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-700 theme-golden:border-gold-500 cursor-pointer" onclick="routeToProfile()">
@@ -90,28 +83,35 @@
             <h2 id="headName" class="text-sm font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-300 truncate">Connecting...</h2>
             <p id="headActive" class="text-[10px] font-bold text-slate-500">...</p>
         </div>
+        <!-- Fixed Call Routing -->
         <button onclick="startCall('video')" class="text-slate-400 hover:text-gold-500"><i data-lucide="video" class="w-5 h-5"></i></button>
         <button onclick="startCall('audio')" class="text-slate-400 hover:text-gold-500"><i data-lucide="phone" class="w-5 h-5"></i></button>
     </div>
 
+    <!-- CHAT AREA -->
     <div id="chatArea" class="chat-area">
         <p class="text-center text-[10px] text-slate-400 font-bold my-4 bg-white/80 dark:bg-slate-800/80 theme-golden:bg-premium-800/80 backdrop-blur p-2 rounded-xl mx-auto w-fit">Golden techS 256-bit Encrypted</p>
     </div>
 
-    <div id="editBar" class="hidden-view px-4 py-2 bg-slate-100 dark:bg-slate-800 theme-golden:bg-premium-800 flex justify-between items-center border-t border-slate-200 dark:border-slate-700 theme-golden:border-gold-500/20 text-xs">
-        <div class="flex items-center gap-2 text-gold-600 font-bold"><i data-lucide="edit-2" class="w-4 h-4"></i> Editing Message</div>
-        <button onclick="cancelEdit()" class="text-slate-500 hover:text-red-500"><i data-lucide="x" class="w-4 h-4"></i></button>
-    </div>
-
-    <!-- Hidden File Input for attachments -->
     <input type="file" id="fileAttach" class="hidden" onchange="uploadAttachment(event)">
 
+    <!-- INPUT AREA -->
     <div class="input-area" id="inputAreaBox">
         <button class="icon-action-btn" onclick="document.getElementById('fileAttach').click()"><i data-lucide="paperclip" class="w-5 h-5"></i></button>
         
+        <!-- Standard Input -->
         <input type="text" id="msgInput" placeholder="Message..." class="chat-input" onkeypress="if(event.key === 'Enter') handleSend()">
         
-        <button id="micBtn" onclick="toggleVoiceNote()" class="icon-action-btn"><i data-lucide="mic" class="w-5 h-5"></i></button>
+        <!-- Recording UI (Hidden by default) -->
+        <div id="recordUI" class="recording-ui hidden-view">
+            <div class="flex items-center gap-2"><span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> <span id="recordTimer">00:00</span></div>
+            <div class="text-[10px] flex items-center gap-1 opacity-70 animate-pulse"><i data-lucide="chevron-left" class="w-3 h-3"></i> Slide left to cancel</div>
+        </div>
+        
+        <!-- Touch Event Listeners for Slide to Cancel -->
+        <div id="micTouchArea" style="touch-action: none;">
+            <button id="micBtn" class="icon-action-btn bg-slate-100 dark:bg-slate-800 theme-golden:bg-premium-800 rounded-full p-2.5"><i data-lucide="mic" class="w-5 h-5"></i></button>
+        </div>
         <button id="sendBtn" onclick="handleSend()" class="send-btn hidden-view"><i data-lucide="send" class="w-5 h-5 ml-1"></i></button>
     </div>
 
@@ -120,18 +120,20 @@
 <script>
     lucide.createIcons();
     const SUPABASE_URL = 'https://puvdfqnjzliiuupchppj.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1dmRmcW5qemxpaXV1cGNocHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTExOTgsImV4cCI6MjA5MjU4NzE5OH0.hDK6fjZ2SesJ7qkeWVXxOoxW2Xmr7MDlKO-BFtJtDu0,';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1dmRmcW5qemxpaXV1cGNocHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTExOTgsImV4cCI6MjA5MjU4NzE5OH0.hDK6fjZ2SesJ7qkeWVXxOoxW2Xmr7MDlKO-BFtJtDu0';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let currentUser = null; let supplierId = null; let chatId = null; let presenceInterval = null;
-    let allMessages = []; let activeMsg = null; let isEditing = false; let userSettings = {};
+    let allMessages = []; let isSending = false; let userSettings = {};
 
-    // --- VISUAL VIEWPORT KEYBOARD FIX ---
+    // Audio Engine Vars
+    let mediaRecorder; let audioChunks = []; let recordInterval; let recordSeconds = 0; let isRecording = false;
+
+    // Viewport Fix
     if (window.visualViewport) {
         window.visualViewport.addEventListener('resize', () => {
             document.getElementById('mainContainer').style.height = window.visualViewport.height + 'px';
-            const area = document.getElementById('chatArea');
-            area.scrollTop = area.scrollHeight; 
+            smoothScrollToBottom();
         });
     }
 
@@ -140,9 +142,12 @@
         if (theme === 'dark') document.documentElement.classList.add('dark');
         else if (theme === 'golden') document.documentElement.classList.add('dark', 'theme-golden');
         
-        // Chat Wallpaper Engine
+        // Custom Background!
         const bg = localStorage.getItem('golden_chat_bg');
-        if(bg) document.getElementById('mainContainer').style.backgroundImage = `url('${bg}')`;
+        if(bg) {
+            document.getElementById('mainContainer').style.backgroundImage = `url('${bg}')`;
+            document.getElementById('chatArea').style.background = 'rgba(0,0,0,0.4)'; // Darken overlay slightly for readability
+        }
     }
 
     async function init() {
@@ -153,15 +158,12 @@
         supplierId = localStorage.getItem('chat_supplier_id');
         if(!supplierId) return window.parent.loadModule('network.html', null);
 
-        const { data: pData } = await _supabase.from('profiles').select('app_settings').eq('id', currentUser.id).single();
-        userSettings = pData?.app_settings || {};
-
         document.getElementById('msgInput').addEventListener('input', function() {
             if(this.value.trim().length > 0) {
-                document.getElementById('micBtn').classList.add('hidden-view');
+                document.getElementById('micTouchArea').classList.add('hidden-view');
                 document.getElementById('sendBtn').classList.remove('hidden-view');
             } else {
-                document.getElementById('micBtn').classList.remove('hidden-view');
+                document.getElementById('micTouchArea').classList.remove('hidden-view');
                 document.getElementById('sendBtn').classList.add('hidden-view');
             }
         });
@@ -171,32 +173,21 @@
         
         presenceInterval = setInterval(updatePresenceAndCheck, 10000);
         updatePresenceAndCheck();
+        setupAudioGestures();
     }
 
-    function routeToProfile() {
-        localStorage.setItem('view_company_id', supplierId);
-        window.parent.loadModule('seeprofile.html', null);
-    }
-    
-    function routeToProduct(id) {
-        localStorage.setItem('view_product_id', id);
-        window.parent.loadModule('seeproduct.html', null);
-    }
+    // --- ROUTING ENGINE ---
+    function routeToProfile() { localStorage.setItem('view_company_id', supplierId); window.parent.loadModule('seeprofile.html', null); }
+    function routeToProduct(id) { localStorage.setItem('view_product_id', id); window.parent.loadModule('seeproduct.html', null); }
+    function startCall(type) { localStorage.setItem('call_supplier_id', supplierId); localStorage.setItem('call_type', type); window.parent.loadModule('call.html', null); }
 
-    function startCall(type) {
-        localStorage.setItem('call_supplier_id', supplierId);
-        localStorage.setItem('call_type', type);
-        window.parent.loadModule('call.html', null);
-    }
-
+    // --- PRESENCE ENGINE ---
     async function updatePresenceAndCheck() {
         _supabase.from('profiles').update({ last_active: new Date().toISOString() }).eq('id', currentUser.id).then();
         const { data } = await _supabase.from('profiles').select('last_active, app_settings').eq('id', supplierId).single();
         const actBox = document.getElementById('headActive');
         if(data) {
-            if(data.app_settings && data.app_settings.privacy_online_status === false) {
-                actBox.innerText = 'Status Hidden'; return;
-            }
+            if(data.app_settings && data.app_settings.privacy_online_status === false) { actBox.innerText = 'Status Hidden'; return; }
             if(data.last_active) {
                 const diff = Math.floor((new Date() - new Date(data.last_active)) / 60000);
                 if(diff < 2) { actBox.innerText = '🟢 Online'; actBox.className = 'text-[10px] font-bold text-green-500'; } 
@@ -214,6 +205,7 @@
         }
     }
 
+    // --- CHAT LOGIC ---
     async function setupChatEngine() {
         const [{ data: c1 }, { data: c2 }] = await Promise.all([
             _supabase.from('chats').select('id').eq('buyer_id', currentUser.id).eq('supplier_id', supplierId),
@@ -228,41 +220,29 @@
         }
 
         if(chatId) {
-            // Advanced Fetch: Include products data if message is a product share
-            const { data: history } = await _supabase.from('messages')
-                .select('*, products(title, price, media_urls)')
-                .eq('chat_id', chatId)
-                .order('created_at', { ascending: true });
-                
+            const { data: history } = await _supabase.from('messages').select('*, products(title, price, media_urls)').eq('chat_id', chatId).order('created_at', { ascending: true });
             if(history) { allMessages = history; renderAllMessages(); }
 
             _supabase.channel(`chat_${chatId}`)
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter: `chat_id=eq.${chatId}` }, async payload => {
                     if (payload.eventType === 'INSERT') {
-                        // If it has a product, fetch product details manually for realtime
                         if(payload.new.shared_product_id) {
                             const { data: p } = await _supabase.from('products').select('title, price, media_urls').eq('id', payload.new.shared_product_id).single();
                             payload.new.products = p;
                         }
-                        allMessages.push(payload.new);
-                        renderAllMessages();
-                        if(payload.new.sender_id !== currentUser.id && userSettings.notif_sound !== false) playSound();
-                    } else if (payload.eventType === 'UPDATE') {
-                        const idx = allMessages.findIndex(m => m.id === payload.new.id);
-                        if(idx > -1) { 
-                            payload.new.products = allMessages[idx].products; // preserve joined data
-                            allMessages[idx] = payload.new; 
-                            renderAllMessages(); 
+                        // Ignore my own inserts since I optimistic render them
+                        if(payload.new.sender_id !== currentUser.id) {
+                            allMessages.push(payload.new);
+                            renderAllMessages();
                         }
                     }
                 }).subscribe();
         }
     }
 
-    function playSound() {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator(); osc.type = 'sine'; osc.frequency.setValueAtTime(800, ctx.currentTime);
-        osc.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.1);
+    function smoothScrollToBottom() {
+        const area = document.getElementById('chatArea');
+        area.scrollTo({ top: area.scrollHeight, behavior: 'smooth' });
     }
 
     function renderAllMessages() {
@@ -270,138 +250,156 @@
         Array.from(area.children).forEach(child => { if(!child.classList.contains('text-center')) child.remove(); });
         
         allMessages.forEach(msg => {
-            if (msg.deleted_for && msg.deleted_for.includes(currentUser.id)) return;
-            if (msg.scheduled_for && new Date(msg.scheduled_for) > new Date()) return;
-
             const isMe = msg.sender_id === currentUser.id;
             const d = new Date(msg.created_at);
             const timeStr = `${d.getHours()}:${d.getMinutes().toString().padStart(2,'0')}`;
-            
             let contentHtml = msg.content || '';
 
-            // 1. Render Deleted
-            if (msg.is_deleted_for_everyone) {
-                contentHtml = `<i class="text-slate-400 dark:text-slate-500 flex items-center gap-1"><i data-lucide="ban" class="w-3 h-3"></i> This message was deleted</i>`;
-            } else {
-                // 2. Render Translation
-                if (!isMe && userSettings.language && userSettings.language !== 'en' && msg.content) {
-                    contentHtml = `<div class="translate-badge"><i data-lucide="languages" class="w-3 h-3"></i> Auto-Translated</div> ${msg.content}`;
-                }
-                
-                // 3. Render Voice Notes
-                if (msg.audio_url) {
-                    const volLevel = (userSettings.chat_audio_vol || 100) / 100;
-                    contentHtml = `<div class="flex items-center gap-2"><i data-lucide="mic" class="w-4 h-4 text-slate-800"></i> <audio src="${_supabase.storage.from('chat_audio').getPublicUrl(msg.audio_url).data.publicUrl}" controls class="h-8 w-48" onplay="this.volume=${volLevel}"></audio></div>`;
-                }
-
-                // 4. Render Attachments
-                if (msg.attachment_url) {
-                    const attachUrl = _supabase.storage.from('chat_attachments').getPublicUrl(msg.attachment_url).data.publicUrl;
-                    if(msg.attachment_type === 'image') {
-                        contentHtml = `<img src="${attachUrl}" class="attach-img" onclick="window.open('${attachUrl}')"> ${contentHtml}`;
-                    } else {
-                        contentHtml = `<a href="${attachUrl}" target="_blank" class="attach-doc"><i data-lucide="file" class="w-5 h-5 text-blue-500"></i> <span class="font-bold text-xs truncate w-32">Document</span></a> ${contentHtml}`;
-                    }
-                }
-
-                // 5. Render Shared Product
-                if (msg.shared_product_id && msg.products) {
-                    const imgUrl = msg.products.media_urls && msg.products.media_urls.length > 0 ? _supabase.storage.from('product_media').getPublicUrl(msg.products.media_urls[0].path).data.publicUrl : 'https://via.placeholder.com/150';
-                    contentHtml = `
-                        <div class="chat-product-card" onclick="routeToProduct('${msg.shared_product_id}')">
-                            <img src="${imgUrl}" class="w-12 h-12 rounded object-cover">
-                            <div>
-                                <p class="text-xs font-bold leading-tight line-clamp-1">${msg.products.title}</p>
-                                <p class="text-[10px] font-extrabold text-green-600 theme-golden:text-gold-400">₹${msg.products.price}</p>
-                            </div>
-                        </div>
-                        ${contentHtml}
-                    `;
-                }
+            // Voice Notes Setup
+            if (msg.audio_url) {
+                const volLevel = (userSettings.chat_audio_vol || 100) / 100;
+                let audioUrl = msg.audio_url.startsWith('blob:') ? msg.audio_url : _supabase.storage.from('chat_audio').getPublicUrl(msg.audio_url).data.publicUrl;
+                contentHtml = `<div class="flex items-center gap-2"><i data-lucide="mic" class="w-4 h-4"></i> <audio src="${audioUrl}" controls class="h-8 w-48" onplay="this.volume=${volLevel}"></audio></div>`;
             }
 
-            const editedTag = msg.is_edited && !msg.is_deleted_for_everyone ? '<span class="italic"> (edited)</span>' : '';
+            // Attachments
+            if (msg.attachment_url) {
+                const attachUrl = msg.attachment_url.startsWith('blob:') ? msg.attachment_url : _supabase.storage.from('chat_attachments').getPublicUrl(msg.attachment_url).data.publicUrl;
+                if(msg.attachment_type === 'image') contentHtml = `<img src="${attachUrl}" class="attach-img" onclick="window.open('${attachUrl}')"> ${contentHtml}`;
+                else contentHtml = `<a href="${attachUrl}" target="_blank" class="flex items-center gap-2 bg-black/10 p-2 rounded"><i data-lucide="file" class="w-4 h-4"></i> <span class="font-bold text-xs">File</span></a>`;
+            }
+
+            // Product Shares
+            if (msg.shared_product_id && msg.products) {
+                const imgUrl = msg.products.media_urls && msg.products.media_urls.length > 0 ? _supabase.storage.from('product_media').getPublicUrl(msg.products.media_urls[0].path).data.publicUrl : 'https://via.placeholder.com/150';
+                contentHtml = `<div class="chat-product-card" onclick="routeToProduct('${msg.shared_product_id}')"><img src="${imgUrl}" class="w-12 h-12 rounded object-cover"><div><p class="text-xs font-bold truncate w-32">${msg.products.title}</p><p class="text-[10px] font-extrabold text-green-600">₹${msg.products.price}</p></div></div> ${contentHtml}`;
+            }
 
             area.innerHTML += `
-                <div class="bubble-wrapper ${isMe ? 'bubble-me-wrapper' : 'bubble-them-wrapper'}" ondblclick='alert("Message Options opened")'>
-                    <div class="bubble ${isMe ? 'bubble-me' : 'bubble-them'}">
-                        ${contentHtml}
-                    </div>
-                    <div class="msg-meta ${isMe ? 'text-slate-500 theme-golden:text-gold-600' : 'text-slate-400 theme-golden:text-gold-600'}">
-                        ${timeStr} ${editedTag}
-                    </div>
+                <div class="bubble-wrapper ${isMe ? 'bubble-me-wrapper' : 'bubble-them-wrapper'}">
+                    <div class="bubble ${isMe ? 'bubble-me' : 'bubble-them'}">${contentHtml}</div>
+                    <div class="msg-meta ${isMe ? 'text-slate-500' : 'text-slate-400'}">${timeStr}</div>
                 </div>
             `;
         });
         lucide.createIcons();
-        area.scrollTop = area.scrollHeight; 
+        smoothScrollToBottom(); 
     }
 
-    // --- FILE ATTACHMENTS ---
-    async function uploadAttachment(event) {
-        const file = event.target.files[0];
-        if(!file || !chatId) return;
-        event.target.value = ''; // Reset input
-
-        const btn = document.getElementById('sendBtn');
-        const oldContent = btn.innerHTML;
-        btn.innerHTML = '<div class="loader w-4 h-4 border-2"></div>';
-        document.getElementById('micBtn').classList.add('hidden-view');
-        btn.classList.remove('hidden-view');
-
-        const isImage = file.type.startsWith('image/');
-        const path = `${currentUser.id}/attach_${Date.now()}.${file.name.split('.').pop()}`;
-        
-        const { error: uploadError } = await _supabase.storage.from('chat_attachments').upload(path, file);
-        if(!uploadError) {
-            await _supabase.from('messages').insert([{ 
-                chat_id: chatId, sender_id: currentUser.id, content: '', 
-                attachment_url: path, attachment_type: isImage ? 'image' : 'document' 
-            }]);
-        }
-        btn.innerHTML = oldContent;
-        btn.classList.add('hidden-view');
-        document.getElementById('micBtn').classList.remove('hidden-view');
-    }
-
-    // --- SEND MESSAGE ---
+    // --- DOUBLE SEND FIX & MSG UPLOAD ---
     async function handleSend() {
+        if(isSending) return; // Strict lock
         const input = document.getElementById('msgInput');
         const text = input.value.trim();
         if(!text || !chatId) return;
 
-        if(isEditing && activeMsg) {
-            input.value = ''; cancelEdit();
-            await _supabase.from('messages').update({ content: text, is_edited: true }).eq('id', activeMsg.id);
-        } else {
-            input.value = '';
-            // Optimistic rendering
-            const fakeMsg = { id: 'temp', sender_id: currentUser.id, content: text, created_at: new Date().toISOString() };
-            allMessages.push(fakeMsg); renderAllMessages();
+        isSending = true;
+        input.value = '';
+        
+        // Optimistic UI
+        const tempMsg = { id: 'temp_'+Date.now(), sender_id: currentUser.id, content: text, created_at: new Date().toISOString() };
+        allMessages.push(tempMsg);
+        renderAllMessages();
 
-            await _supabase.from('messages').insert([{ chat_id: chatId, sender_id: currentUser.id, content: text }]);
-            await _supabase.from('profiles').update({ last_active: new Date().toISOString() }).eq('id', currentUser.id);
-        }
-        document.getElementById('micBtn').classList.remove('hidden-view');
+        await _supabase.from('messages').insert([{ chat_id: chatId, sender_id: currentUser.id, content: text }]);
+        await _supabase.from('profiles').update({ last_active: new Date().toISOString() }).eq('id', currentUser.id);
+        
+        isSending = false;
+        document.getElementById('micTouchArea').classList.remove('hidden-view');
         document.getElementById('sendBtn').classList.add('hidden-view');
     }
 
-    // --- VOICE NOTES ---
-    let isRecording = false;
-    function toggleVoiceNote() {
-        const btn = document.getElementById('micBtn');
-        if(!isRecording) {
-            isRecording = true; btn.classList.add('recording'); btn.innerHTML = '<i data-lucide="square" class="w-5 h-5"></i>';
-            document.getElementById('msgInput').placeholder = "Recording... (Tap to stop)"; document.getElementById('msgInput').disabled = true;
-        } else {
-            isRecording = false; btn.classList.remove('recording'); btn.innerHTML = '<i data-lucide="mic" class="w-5 h-5"></i>';
-            document.getElementById('msgInput').placeholder = "Secure message..."; document.getElementById('msgInput').disabled = false;
+    async function uploadAttachment(event) {
+        const file = event.target.files[0];
+        if(!file || !chatId) return;
+        event.target.value = '';
+
+        const tempUrl = URL.createObjectURL(file);
+        const isImage = file.type.startsWith('image/');
+        
+        // Optimistic Render
+        allMessages.push({ id: 'temp_'+Date.now(), sender_id: currentUser.id, content: '', attachment_url: tempUrl, attachment_type: isImage ? 'image' : 'file', created_at: new Date().toISOString() });
+        renderAllMessages();
+
+        const path = `${currentUser.id}/attach_${Date.now()}.${file.name.split('.').pop()}`;
+        const { error } = await _supabase.storage.from('chat_attachments').upload(path, file);
+        if(!error) await _supabase.from('messages').insert([{ chat_id: chatId, sender_id: currentUser.id, content: '', attachment_url: path, attachment_type: isImage ? 'image' : 'file' }]);
+    }
+
+    // --- REAL AUDIO RECORDING (Slide to Cancel) ---
+    function setupAudioGestures() {
+        const micArea = document.getElementById('micTouchArea');
+        const micBtn = document.getElementById('micBtn');
+        let startX = 0; let isCancelled = false;
+
+        micArea.addEventListener('touchstart', async (e) => {
+            e.preventDefault();
+            startX = e.touches[0].clientX;
+            isCancelled = false;
+
+            // Start Audio
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                mediaRecorder.addEventListener("dataavailable", ev => audioChunks.push(ev.data));
+                mediaRecorder.start();
+
+                // UI Update
+                document.getElementById('msgInput').classList.add('hidden-view');
+                document.getElementById('recordUI').classList.remove('hidden-view');
+                micBtn.classList.add('mic-active');
+                
+                recordSeconds = 0;
+                document.getElementById('recordTimer').innerText = "00:00";
+                recordInterval = setInterval(() => {
+                    recordSeconds++;
+                    const m = Math.floor(recordSeconds / 60).toString().padStart(2, '0');
+                    const s = (recordSeconds % 60).toString().padStart(2, '0');
+                    document.getElementById('recordTimer').innerText = `${m}:${s}`;
+                }, 1000);
+            } catch(err) { alert("Microphone access denied."); }
+        });
+
+        micArea.addEventListener('touchmove', (e) => {
+            if(!mediaRecorder) return;
+            const currentX = e.touches[0].clientX;
+            // Slide Left to Cancel
+            if(startX - currentX > 60) {
+                isCancelled = true;
+                stopRecordingUI();
+                mediaRecorder.stop();
+                mediaRecorder = null;
+            }
+        });
+
+        micArea.addEventListener('touchend', (e) => {
+            if(!mediaRecorder || isCancelled) return;
+            stopRecordingUI();
             
-            alert("Voice Note simulated! (WebRTC MediaRecorder needed for real audio)");
-            // Simulated Audio Insert
-            _supabase.from('messages').insert([{ chat_id: chatId, sender_id: currentUser.id, content: '', audio_url: 'sample.mp3' }]);
-        }
-        lucide.createIcons();
+            mediaRecorder.addEventListener("stop", async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                const tempUrl = URL.createObjectURL(audioBlob);
+                
+                // Optimistic UI
+                allMessages.push({ id: 'temp_'+Date.now(), sender_id: currentUser.id, content: '', audio_url: tempUrl, created_at: new Date().toISOString() });
+                renderAllMessages();
+
+                // Upload to Supabase
+                const path = `${currentUser.id}/voice_${Date.now()}.webm`;
+                const { error } = await _supabase.storage.from('chat_audio').upload(path, audioBlob);
+                if(!error) await _supabase.from('messages').insert([{ chat_id: chatId, sender_id: currentUser.id, content: '', audio_url: path }]);
+            });
+            mediaRecorder.stop();
+            mediaRecorder = null;
+        });
+    }
+
+    function stopRecordingUI() {
+        clearInterval(recordInterval);
+        document.getElementById('recordUI').classList.add('hidden-view');
+        document.getElementById('msgInput').classList.remove('hidden-view');
+        document.getElementById('micBtn').classList.remove('mic-active');
     }
 
     window.onunload = () => clearInterval(presenceInterval);
