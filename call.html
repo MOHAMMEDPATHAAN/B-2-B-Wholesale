@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Call - Golden's</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { gold: { 400: '#FACC15', 500: '#EAB308', 600: '#CA8A04' } } } } }
+    </script>
+    <style>
+        html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background: #000; color: white; font-family: 'Plus Jakarta Sans', sans-serif; user-select: none; }
+        
+        .call-container { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle at top, #1a1400 0%, #000000 100%); }
+
+        /* Full Background Video (For Video Calls) */
+        .remote-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; opacity: 0.3; transition: opacity 1s; }
+        .remote-video.active { opacity: 1; }
+
+        /* Picture in Picture (Self Camera) */
+        .local-video { position: absolute; bottom: 120px; right: 20px; width: 100px; height: 150px; border-radius: 16px; object-fit: cover; z-index: 20; border: 2px solid rgba(234,179,8,0.5); box-shadow: 0 10px 30px rgba(0,0,0,0.5); background: #111; }
+
+        /* Contact Info Overlay */
+        .contact-info { position: absolute; top: 10%; z-index: 10; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .caller-dp { width: 120px; height: 120px; border-radius: 50%; border: 3px solid #EAB308; object-fit: cover; box-shadow: 0 0 40px rgba(234,179,8,0.4); margin-bottom: 20px; z-index: 10;}
+        
+        /* Ringing Animation */
+        .ring-waves { position: absolute; top: 60px; width: 120px; height: 120px; border-radius: 50%; border: 2px solid #EAB308; z-index: 5; animation: wave 2s infinite ease-out; }
+        .ring-waves:nth-child(2) { animation-delay: 0.5s; }
+        .ring-waves:nth-child(3) { animation-delay: 1s; }
+        @keyframes wave { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(2.5); opacity: 0; } }
+
+        /* Controls Bottom Bar */
+        .controls-bar { position: absolute; bottom: 0; left: 0; right: 0; padding: 30px 20px; padding-bottom: max(30px, env(safe-area-inset-bottom)); background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); display: flex; justify-content: space-evenly; align-items: center; z-index: 20; }
+        
+        .control-btn { width: 56px; height: 56px; border-radius: 50%; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; border: 1px solid rgba(255,255,255,0.1); }
+        .control-btn:active { transform: scale(0.9); }
+        .control-btn.active { background: white; color: black; }
+        
+        .end-call-btn { width: 64px; height: 64px; border-radius: 50%; background: #ef4444; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(239,68,68,0.5); transition: transform 0.2s; cursor: pointer;}
+        .end-call-btn:active { transform: scale(0.9); }
+
+    </style>
+</head>
+<body>
+
+<div class="call-container">
+    
+    <!-- Background Blur Video Simulation -->
+    <video id="remoteVideo" class="remote-video" loop muted playsinline></video>
+    
+    <!-- Picture in Picture (User Camera) -->
+    <video id="localVideo" class="local-video" autoplay muted playsinline></video>
+
+    <!-- Caller Info -->
+    <div class="contact-info" id="contactInfo">
+        <div class="relative">
+            <div class="ring-waves" id="wave1"></div>
+            <div class="ring-waves" id="wave2"></div>
+            <div class="ring-waves" id="wave3"></div>
+            <img id="callerDp" src="https://via.placeholder.com/150" class="caller-dp">
+        </div>
+        <h1 id="callerName" class="text-3xl font-extrabold tracking-wide drop-shadow-md">Connecting...</h1>
+        <p id="callStatus" class="text-gold-400 font-bold tracking-widest uppercase text-xs mt-2">Golden Encrypted Call</p>
+        <p id="callTimer" class="text-white font-mono text-xl mt-2 hidden">00:00</p>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls-bar">
+        <div class="control-btn" onclick="toggleAudio(this)"><i data-lucide="mic" class="w-6 h-6"></i></div>
+        <div class="control-btn" onclick="toggleVideo(this)" id="vidToggleBtn"><i data-lucide="video" class="w-6 h-6"></i></div>
+        <div class="end-call-btn" onclick="endCall()"><i data-lucide="phone-off" class="w-8 h-8 text-white"></i></div>
+        <div class="control-btn" onclick="toggleSpeaker(this)"><i data-lucide="volume-2" class="w-6 h-6"></i></div>
+    </div>
+</div>
+
+<script>
+    lucide.createIcons();
+    const SUPABASE_URL = 'https://puvdfqnjzliiuupchppj.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1dmRmcW5qemxpaXV1cGNocHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTExOTgsImV4cCI6MjA5MjU4NzE5OH0.hDK6fjZ2SesJ7qkeWVXxOoxW2Xmr7MDlKO-BFtJtDu0';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let localStream = null;
+    let callType = 'audio';
+    let supplierId = null;
+    let seconds = 0;
+    let timerInterval = null;
+
+    async function init() {
+        supplierId = localStorage.getItem('call_supplier_id');
+        callType = localStorage.getItem('call_type') || 'audio';
+        
+        if(!supplierId) return endCall();
+
+        // 1. Fetch Supplier Details
+        const { data } = await _supabase.from('profiles').select('company_name, dp_url').eq('id', supplierId).single();
+        if(data) {
+            document.getElementById('callerName').innerText = data.company_name;
+            if(data.dp_url) document.getElementById('callerDp').src = _supabase.storage.from('profile_pictures').getPublicUrl(data.dp_url).data.publicUrl;
+        }
+
+        // 2. Setup Camera if Video Call
+        if(callType === 'video') {
+            document.getElementById('vidToggleBtn').classList.add('active');
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('localVideo').srcObject = localStream;
+            } catch(e) {
+                console.warn("Camera access denied or unavailable.");
+            }
+        } else {
+            document.getElementById('localVideo').style.display = 'none';
+        }
+
+        // 3. Simulate Connection Process
+        setTimeout(() => {
+            document.getElementById('callStatus').innerText = "Ringing...";
+        }, 1500);
+
+        setTimeout(() => {
+            // "Answered" State
+            document.getElementById('callStatus').classList.add('hidden');
+            document.getElementById('wave1').style.display = 'none';
+            document.getElementById('wave2').style.display = 'none';
+            document.getElementById('wave3').style.display = 'none';
+            
+            document.getElementById('callTimer').classList.remove('hidden');
+            timerInterval = setInterval(updateTimer, 1000);
+
+            // Simulate remote video feed appearing
+            if(callType === 'video') {
+                document.getElementById('contactInfo').style.transform = "scale(0.5) translateY(-50%)";
+                document.getElementById('contactInfo').style.transition = "transform 0.5s";
+                document.getElementById('remoteVideo').src = "https://www.w3schools.com/html/mov_bbb.mp4"; // Sample
+                document.getElementById('remoteVideo').classList.add('active');
+                document.getElementById('remoteVideo').play();
+            }
+
+        }, 5000); // Connects after 5 seconds
+    }
+
+    function updateTimer() {
+        seconds++;
+        const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const s = (seconds % 60).toString().padStart(2, '0');
+        document.getElementById('callTimer').innerText = `${m}:${s}`;
+    }
+
+    function toggleAudio(btn) {
+        btn.classList.toggle('active');
+        if(localStream) {
+            const audioTrack = localStream.getAudioTracks()[0];
+            if(audioTrack) audioTrack.enabled = !audioTrack.enabled;
+        }
+    }
+
+    function toggleVideo(btn) {
+        btn.classList.toggle('active');
+        if(localStream) {
+            const videoTrack = localStream.getVideoTracks()[0];
+            if(videoTrack) videoTrack.enabled = !videoTrack.enabled;
+        }
+    }
+
+    function toggleSpeaker(btn) {
+        btn.classList.toggle('active');
+        // Simulated speaker toggle
+    }
+
+    function endCall() {
+        if(localStream) localStream.getTracks().forEach(track => track.stop());
+        clearInterval(timerInterval);
+        
+        document.getElementById('callStatus').innerText = "Call Ended";
+        document.getElementById('callStatus').classList.remove('hidden');
+        document.getElementById('callTimer').classList.add('hidden');
+        
+        setTimeout(() => {
+            window.parent.loadModule('chat.html', null);
+        }, 1000);
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
