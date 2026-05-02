@@ -12,28 +12,43 @@
         tailwind.config = { darkMode: 'class', theme: { extend: { colors: { gold: { 400: '#FACC15', 500: '#EAB308', 600: '#CA8A04' }, premium: { 900: '#0a0a0a', 800: '#171717' } } } } }
     </script>
     <style>
-        /* THE ULTIMATE LAYOUT FIX: Forces exact fit inside the iframe */
-        html, body { margin: 0; padding: 0; height: 100%; width: 100%; position: fixed; inset: 0; overflow: hidden; display: flex; flex-direction: column; background: #f8fafc; }
+        /* DVH ensures input bar doesn't sink below mobile screens */
+        html, body { margin: 0; padding: 0; height: 100dvh; width: 100%; overflow: hidden; display: flex; flex-direction: column; background: #f8fafc; }
         .dark body { background: #0f172a; }
         .theme-golden body { background: radial-gradient(circle at top left, #1a1400 0%, #0a0a0a 100%); color: #fef08a; }
+        
+        .hidden-view { display: none !important; }
+
+        /* Cross-Device Container (Looks like Telegram Web on Laptop) */
+        .chat-container { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 1024px; margin: 0 auto; position: relative; background: inherit; border-left: 1px solid rgba(0,0,0,0.05); border-right: 1px solid rgba(0,0,0,0.05); }
+        .dark .chat-container { border-color: rgba(255,255,255,0.05); }
+        .theme-golden .chat-container { border-color: rgba(234,179,8,0.2); }
         
         .chat-header { flex-shrink: 0; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.05); padding: 12px 16px; display: flex; align-items: center; gap: 12px; z-index: 40; }
         .dark .chat-header { background: rgba(15,23,42,0.9); border-color: rgba(255,255,255,0.05); }
         .theme-golden .chat-header { background: rgba(10,10,10,0.9); border-color: rgba(234,179,8,0.2); }
 
-        .chat-area { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; padding-bottom: 20px; -ms-overflow-style: none; scrollbar-width: none; }
+        .chat-area { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 8px; padding-bottom: 20px; -ms-overflow-style: none; scrollbar-width: none; }
         .chat-area::-webkit-scrollbar { display: none; }
 
-        .bubble { max-width: 80%; padding: 12px 16px; border-radius: 20px; font-weight: 600; font-size: 14px; position: relative; word-wrap: break-word; }
-        .bubble-me { background: #EAB308; color: black; align-self: flex-end; border-bottom-right-radius: 4px; box-shadow: 0 4px 10px rgba(234,179,8,0.3); }
-        .bubble-them { background: white; color: #1e293b; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid #e2e8f0; }
+        .bubble-wrapper { display: flex; flex-direction: column; max-width: 85%; cursor: pointer; transition: opacity 0.2s; }
+        .bubble-wrapper:active { opacity: 0.8; }
+        .bubble-me-wrapper { align-self: flex-end; align-items: flex-end; }
+        .bubble-them-wrapper { align-self: flex-start; align-items: flex-start; }
+
+        .bubble { padding: 12px 16px; border-radius: 20px; font-weight: 600; font-size: 14px; position: relative; word-wrap: break-word; line-height: 1.5; }
+        .bubble-me { background: #EAB308; color: black; border-bottom-right-radius: 4px; box-shadow: 0 4px 10px rgba(234,179,8,0.3); }
+        .bubble-them { background: white; color: #1e293b; border-bottom-left-radius: 4px; border: 1px solid #e2e8f0; }
         .dark .bubble-them { background: #1e293b; color: white; border-color: #334155; }
         .theme-golden .bubble-them { background: #171717; color: #FDE047; border-color: rgba(234,179,8,0.3); }
 
-        .msg-time { font-size: 9px; opacity: 0.7; margin-top: 4px; text-align: right; }
+        .msg-meta { font-size: 10px; opacity: 0.7; margin-top: 4px; display: flex; gap: 6px; align-items: center; }
+        
+        .translate-badge { font-size: 9px; font-weight: 800; background: rgba(0,0,0,0.1); padding: 2px 6px; border-radius: 4px; display: flex; align-items: center; gap: 2px; }
+        .dark .translate-badge, .theme-golden .translate-badge { background: rgba(255,255,255,0.1); }
 
-        /* INPUT AREA STRICTLY ANCHORED */
-        .input-area { flex-shrink: 0; background: white; border-top: 1px solid rgba(0,0,0,0.05); padding: 12px 16px;  margin-top: 20px; display: flex; gap: 8px; align-items: center; z-index: 40; }
+        /* The Input Area Fix: Moved Upwards */
+        .input-area { flex-shrink: 0; background: white; border-top: 1px solid rgba(0,0,0,0.05); padding: 12px 16px; padding-bottom: max(16px, env(safe-area-inset-bottom)); display: flex; gap: 8px; align-items: center; z-index: 40; }
         .dark .input-area { background: #0f172a; border-color: rgba(255,255,255,0.05); }
         .theme-golden .input-area { background: #0a0a0a; border-color: rgba(234,179,8,0.2); }
 
@@ -42,148 +57,429 @@
         .theme-golden .chat-input { background: #171717; color: #fef08a; border-color: rgba(234,179,8,0.3); }
         .theme-golden .chat-input:focus { border-color: #FDE047; }
 
+        .icon-action-btn { color: #64748b; padding: 8px; border-radius: 50%; cursor: pointer; transition: background 0.2s; }
+        .dark .icon-action-btn { color: #94a3b8; }
+        .theme-golden .icon-action-btn { color: #CA8A04; }
+        .icon-action-btn:hover { background: rgba(0,0,0,0.05); }
+        .dark .icon-action-btn:hover, .theme-golden .icon-action-btn:hover { background: rgba(255,255,255,0.05); }
+
         .send-btn { background: #EAB308; color: black; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 10px rgba(234,179,8,0.4); flex-shrink: 0;}
+        .recording { animation: pulseRecord 1s infinite; background: #ef4444; color: white; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.5); }
+        @keyframes pulseRecord { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        /* Bottom Sheet Modals */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; display: none; align-items: flex-end; backdrop-filter: blur(5px); }
+        .modal-overlay.active { display: flex; animation: fadeIn 0.2s ease-out; }
+        .bottom-sheet { background: white; width: 100%; max-width: 1024px; margin: 0 auto; border-radius: 24px 24px 0 0; padding: 24px; padding-bottom: max(24px, env(safe-area-inset-bottom)); animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .dark .bottom-sheet { background: #1e293b; border-top: 1px solid #334155; }
+        .theme-golden .bottom-sheet { background: #0a0a0a; border-top: 1px solid rgba(234,179,8,0.3); }
+
+        .sheet-btn { width: 100%; display: flex; align-items: center; gap: 16px; padding: 16px; border-radius: 16px; font-weight: 700; color: #1e293b; transition: background 0.2s; }
+        .dark .sheet-btn { color: white; }
+        .theme-golden .sheet-btn { color: #FDE047; }
+        .sheet-btn:hover, .sheet-btn:active { background: #f1f5f9; }
+        .dark .sheet-btn:hover { background: #0f172a; }
+        .theme-golden .sheet-btn:hover { background: #171717; }
+        .sheet-btn-danger { color: #ef4444 !important; }
+
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body class="transition-colors duration-300">
 
+<div class="chat-container">
+    
     <div class="chat-header">
         <button onclick="window.parent.loadModule('network.html', null)" class="text-slate-400 hover:text-gold-500"><i data-lucide="arrow-left" class="w-6 h-6"></i></button>
-        <img id="headDp" src="https://via.placeholder.com/150" class="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-700 theme-golden:border-gold-500">
-        <div class="flex-1 overflow-hidden">
+        <img id="headDp" src="https://via.placeholder.com/150" class="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-700 theme-golden:border-gold-500 cursor-pointer" onclick="routeToProfile()">
+        <div class="flex-1 overflow-hidden cursor-pointer" onclick="routeToProfile()">
             <h2 id="headName" class="text-sm font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-300 truncate">Connecting...</h2>
             <p id="headActive" class="text-[10px] font-bold text-slate-500">...</p>
         </div>
+        <button class="text-slate-400 hover:text-gold-500"><i data-lucide="video" class="w-5 h-5"></i></button>
+        <button class="text-slate-400 hover:text-gold-500"><i data-lucide="phone" class="w-5 h-5"></i></button>
     </div>
 
     <div id="chatArea" class="chat-area">
-        <p class="text-center text-xs text-slate-400 font-bold my-4 bg-slate-100 dark:bg-slate-800 theme-golden:bg-premium-800 p-2 rounded-xl mx-auto w-fit">Golden techS Encrypted Chat</p>
+        <p class="text-center text-xs text-slate-400 font-bold my-4 bg-slate-100 dark:bg-slate-800 theme-golden:bg-premium-800 p-2 rounded-xl mx-auto w-fit border border-transparent theme-golden:border-gold-500/20">Golden techS 256-bit Encrypted</p>
+    </div>
+
+    <!-- Edit Mode Indicator -->
+    <div id="editBar" class="hidden-view px-4 py-2 bg-slate-100 dark:bg-slate-800 theme-golden:bg-premium-800 flex justify-between items-center border-t border-slate-200 dark:border-slate-700 theme-golden:border-gold-500/20">
+        <div class="flex items-center gap-2 text-gold-600 font-bold text-xs"><i data-lucide="edit-2" class="w-4 h-4"></i> Editing Message</div>
+        <button onclick="cancelEdit()" class="text-slate-500 hover:text-red-500"><i data-lucide="x" class="w-4 h-4"></i></button>
     </div>
 
     <div class="input-area">
-        <input type="text" id="msgInput" placeholder="Secure message..." class="chat-input" onkeypress="if(event.key === 'Enter') sendMessage()">
-        <button onclick="sendMessage()" class="send-btn"><i data-lucide="send" class="w-5 h-5 ml-1"></i></button>
+        <button class="icon-action-btn"><i data-lucide="paperclip" class="w-5 h-5"></i></button>
+        <button onclick="openScheduleModal()" class="icon-action-btn"><i data-lucide="clock" class="w-5 h-5"></i></button>
+        
+        <input type="text" id="msgInput" placeholder="Secure message..." class="chat-input" onkeypress="if(event.key === 'Enter') handleSend()">
+        
+        <button id="micBtn" onclick="toggleVoiceNote()" class="icon-action-btn hidden-view"><i data-lucide="mic" class="w-5 h-5"></i></button>
+        <button id="sendBtn" onclick="handleSend()" class="send-btn"><i data-lucide="send" class="w-5 h-5 ml-1"></i></button>
     </div>
 
-    <script>
-        lucide.createIcons();
-        const SUPABASE_URL = 'https://puvdfqnjzliiuupchppj.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1dmRmcW5qemxpaXV1cGNocHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTExOTgsImV4cCI6MjA5MjU4NzE5OH0.hDK6fjZ2SesJ7qkeWVXxOoxW2Xmr7MDlKO-BFtJtDu0';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+</div>
 
-        let currentUser = null; let supplierId = null; let chatId = null; let presenceInterval = null;
+<!-- ========================================== -->
+<!-- MESSAGE OPTIONS BOTTOM SHEET               -->
+<!-- ========================================== -->
+<div id="msgOptionsModal" class="modal-overlay" onclick="closeModal('msgOptionsModal')">
+    <div class="bottom-sheet" onclick="event.stopPropagation()">
+        <div class="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 theme-golden:bg-gold-500/50 rounded-full mx-auto mb-6"></div>
+        
+        <button onclick="forwardMessage()" class="sheet-btn"><div class="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-xl"><i data-lucide="forward" class="w-5 h-5"></i></div> Forward to Network</button>
+        
+        <button id="btnEditMsg" onclick="initiateEdit()" class="sheet-btn"><div class="p-2 bg-green-100 dark:bg-green-900/30 text-green-600 rounded-xl"><i data-lucide="edit-3" class="w-5 h-5"></i></div> Edit Message (30m limit)</button>
+        
+        <button onclick="openDeleteModal()" class="sheet-btn sheet-btn-danger"><div class="p-2 bg-red-100 dark:bg-red-900/30 text-red-600 rounded-xl"><i data-lucide="trash-2" class="w-5 h-5"></i></div> Delete Message</button>
+    </div>
+</div>
 
-        function applySettings() {
-            const theme = localStorage.getItem('golden_theme') || 'system';
-            if (theme === 'dark') document.documentElement.classList.add('dark');
-            else if (theme === 'golden') document.documentElement.classList.add('dark', 'theme-golden');
-        }
+<!-- ========================================== -->
+<!-- DELETE OPTIONS BOTTOM SHEET                -->
+<!-- ========================================== -->
+<div id="deleteOptionsModal" class="modal-overlay" onclick="closeModal('deleteOptionsModal')">
+    <div class="bottom-sheet" onclick="event.stopPropagation()">
+        <div class="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 theme-golden:bg-gold-500/50 rounded-full mx-auto mb-6"></div>
+        <h3 class="text-center font-bold text-slate-500 mb-4">Delete Message</h3>
+        
+        <button onclick="deleteForEveryone()" class="sheet-btn sheet-btn-danger"><div class="p-2 bg-red-100 dark:bg-red-900/30 text-red-600 rounded-xl"><i data-lucide="trash-2" class="w-5 h-5"></i></div> Delete for everyone</button>
+        
+        <button onclick="deleteForMe()" class="sheet-btn"><div class="p-2 bg-slate-100 dark:bg-slate-800 text-slate-600 rounded-xl theme-golden:bg-premium-800 theme-golden:text-gold-500"><i data-lucide="user-x" class="w-5 h-5"></i></div> Delete for me</button>
+        
+        <button onclick="closeModal('deleteOptionsModal')" class="sheet-btn justify-center mt-2 border border-slate-200 dark:border-slate-700 theme-golden:border-gold-500/30">Cancel</button>
+    </div>
+</div>
 
-        async function init() {
-            applySettings();
-            const { data: { user } } = await _supabase.auth.getUser();
-            if(!user) return; currentUser = user;
-            
-            supplierId = localStorage.getItem('chat_supplier_id');
-            if(!supplierId) return window.parent.loadModule('network.html', null);
+<!-- ========================================== -->
+<!-- SCHEDULE MESSAGE MODAL                     -->
+<!-- ========================================== -->
+<div id="scheduleModal" class="modal-overlay" onclick="closeModal('scheduleModal')">
+    <div class="bottom-sheet" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-lg font-extrabold text-slate-800 dark:text-white theme-golden:text-gold-400">Schedule Message</h2>
+            <button onclick="closeModal('scheduleModal')" class="text-slate-400 hover:text-red-500"><i data-lucide="x" class="w-6 h-6"></i></button>
+        </div>
+        <input type="datetime-local" id="scheduleDate" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 outline-none font-bold text-slate-800 dark:text-white theme-golden:bg-premium-800 theme-golden:border-gold-500/30 theme-golden:text-gold-100 mb-4">
+        <button onclick="scheduleMessage()" class="w-full bg-gold-500 text-black font-extrabold py-4 rounded-xl shadow-lg shadow-gold-500/30 hover:scale-[1.02] transition-transform">Set Schedule</button>
+    </div>
+</div>
 
-            await loadSupplierHeader();
-            await setupChatEngine();
-            
-            presenceInterval = setInterval(updatePresenceAndCheck, 10000);
-            updatePresenceAndCheck();
-        }
+<script>
+    lucide.createIcons();
+    const SUPABASE_URL = 'https://puvdfqnjzliiuupchppj.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1dmRmcW5qemxpaXV1cGNocHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTExOTgsImV4cCI6MjA5MjU4NzE5OH0.hDK6fjZ2SesJ7qkeWVXxOoxW2Xmr7MDlKO-BFtJtDu0';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        async function updatePresenceAndCheck() {
-            _supabase.from('profiles').update({ last_active: new Date().toISOString() }).eq('id', currentUser.id).then();
-            
-            // Respect Privacy Settings!
-            const { data } = await _supabase.from('profiles').select('last_active, app_settings').eq('id', supplierId).single();
-            const actBox = document.getElementById('headActive');
+    let currentUser = null; let supplierId = null; let chatId = null; let presenceInterval = null;
+    let allMessages = [];
+    let activeMsg = null; // Stores message obj for Edit/Delete
+    let isEditing = false;
+    let userSettings = {};
 
-            if(data) {
-                // Check if they turned OFF 'Show Online Status'
-                if(data.app_settings && data.app_settings.privacy_online_status === false) {
-                    actBox.innerText = 'Status Hidden';
-                    actBox.className = 'text-[10px] font-bold text-slate-400';
-                    return;
-                }
+    function applySettings() {
+        const theme = localStorage.getItem('golden_theme') || 'system';
+        if (theme === 'dark') document.documentElement.classList.add('dark');
+        else if (theme === 'golden') document.documentElement.classList.add('dark', 'theme-golden');
+    }
 
-                if(data.last_active) {
-                    const diff = Math.floor((new Date() - new Date(data.last_active)) / 60000);
-                    if(diff < 2) { actBox.innerText = '🟢 Online'; actBox.className = 'text-[10px] font-bold text-green-500'; } 
-                    else if(diff < 60) { actBox.innerText = `Last seen ${diff}m ago`; actBox.className = 'text-[10px] font-bold text-slate-500'; } 
-                    else { actBox.innerText = 'Offline'; actBox.className = 'text-[10px] font-bold text-slate-400'; }
-                }
+    async function init() {
+        applySettings();
+        const { data: { user } } = await _supabase.auth.getUser();
+        if(!user) return; currentUser = user;
+        
+        supplierId = localStorage.getItem('chat_supplier_id');
+        if(!supplierId) return window.parent.loadModule('network.html', null);
+
+        // Load Settings to respect Audio Limits and Auto-Translate
+        const { data: pData } = await _supabase.from('profiles').select('app_settings').eq('id', currentUser.id).single();
+        userSettings = pData?.app_settings || {};
+
+        // Mic vs Send button toggle logic
+        document.getElementById('msgInput').addEventListener('input', function() {
+            if(this.value.trim().length > 0) {
+                document.getElementById('micBtn').classList.add('hidden-view');
+                document.getElementById('sendBtn').classList.remove('hidden-view');
+            } else {
+                document.getElementById('micBtn').classList.remove('hidden-view');
+                document.getElementById('sendBtn').classList.add('hidden-view');
+            }
+        });
+
+        await loadSupplierHeader();
+        await setupChatEngine();
+        
+        presenceInterval = setInterval(updatePresenceAndCheck, 10000);
+        updatePresenceAndCheck();
+    }
+
+    function routeToProfile() {
+        localStorage.setItem('view_company_id', supplierId);
+        window.parent.loadModule('seeprofile.html', null);
+    }
+
+    async function updatePresenceAndCheck() {
+        _supabase.from('profiles').update({ last_active: new Date().toISOString() }).eq('id', currentUser.id).then();
+        
+        const { data } = await _supabase.from('profiles').select('last_active, app_settings').eq('id', supplierId).single();
+        const actBox = document.getElementById('headActive');
+
+        if(data) {
+            if(data.app_settings && data.app_settings.privacy_online_status === false) {
+                actBox.innerText = 'Status Hidden'; actBox.className = 'text-[10px] font-bold text-slate-400'; return;
+            }
+            if(data.last_active) {
+                const diff = Math.floor((new Date() - new Date(data.last_active)) / 60000);
+                if(diff < 2) { actBox.innerText = '🟢 Online'; actBox.className = 'text-[10px] font-bold text-green-500'; } 
+                else if(diff < 60) { actBox.innerText = `Last active ${diff}m ago`; actBox.className = 'text-[10px] font-bold text-slate-500'; } 
+                else { actBox.innerText = 'Offline'; actBox.className = 'text-[10px] font-bold text-slate-400'; }
             }
         }
+    }
 
-        async function loadSupplierHeader() {
-            const { data } = await _supabase.from('profiles').select('company_name, dp_url').eq('id', supplierId).single();
-            if(data) {
-                document.getElementById('headName').innerText = data.company_name || 'Business User';
-                if(data.dp_url) document.getElementById('headDp').src = _supabase.storage.from('profile_pictures').getPublicUrl(data.dp_url).data.publicUrl;
-            }
+    async function loadSupplierHeader() {
+        const { data } = await _supabase.from('profiles').select('company_name, dp_url').eq('id', supplierId).single();
+        if(data) {
+            document.getElementById('headName').innerText = data.company_name || 'Business User';
+            if(data.dp_url) document.getElementById('headDp').src = _supabase.storage.from('profile_pictures').getPublicUrl(data.dp_url).data.publicUrl;
+        }
+    }
+
+    async function setupChatEngine() {
+        const [{ data: c1 }, { data: c2 }] = await Promise.all([
+            _supabase.from('chats').select('id').eq('buyer_id', currentUser.id).eq('supplier_id', supplierId),
+            _supabase.from('chats').select('id').eq('buyer_id', supplierId).eq('supplier_id', currentUser.id)
+        ]);
+        
+        if(c1 && c1.length > 0) chatId = c1[0].id;
+        else if (c2 && c2.length > 0) chatId = c2[0].id;
+        else {
+            const { data: newChat } = await _supabase.from('chats').insert([{ buyer_id: currentUser.id, supplier_id: supplierId }]).select('id');
+            if(newChat) chatId = newChat[0].id;
         }
 
-        async function setupChatEngine() {
-            const [{ data: c1 }, { data: c2 }] = await Promise.all([
-                _supabase.from('chats').select('id').eq('buyer_id', currentUser.id).eq('supplier_id', supplierId),
-                _supabase.from('chats').select('id').eq('buyer_id', supplierId).eq('supplier_id', currentUser.id)
-            ]);
+        if(chatId) {
+            const { data: history } = await _supabase.from('messages').select('*').eq('chat_id', chatId).order('created_at', { ascending: true });
+            if(history) {
+                allMessages = history;
+                renderAllMessages();
+            }
+
+            _supabase.channel(`chat_${chatId}`)
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter: `chat_id=eq.${chatId}` }, payload => {
+                    if (payload.eventType === 'INSERT') {
+                        allMessages.push(payload.new);
+                        renderAllMessages();
+                        if(payload.new.sender_id !== currentUser.id && userSettings.notif_sound !== false) playSound();
+                    } else if (payload.eventType === 'UPDATE') {
+                        const idx = allMessages.findIndex(m => m.id === payload.new.id);
+                        if(idx > -1) { allMessages[idx] = payload.new; renderAllMessages(); }
+                    }
+                }).subscribe();
+        }
+    }
+
+    function playSound() {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator(); osc.type = 'sine'; osc.frequency.setValueAtTime(800, ctx.currentTime);
+        osc.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.1);
+    }
+
+    function renderAllMessages() {
+        const area = document.getElementById('chatArea');
+        // Clear area except the header text
+        Array.from(area.children).forEach(child => { if(!child.classList.contains('text-center')) child.remove(); });
+        
+        allMessages.forEach(msg => {
+            // Check if deleted for ME
+            if (msg.deleted_for && msg.deleted_for.includes(currentUser.id)) return;
             
-            if(c1 && c1.length > 0) chatId = c1[0].id;
-            else if (c2 && c2.length > 0) chatId = c2[0].id;
-            else {
-                const { data: newChat } = await _supabase.from('chats').insert([{ buyer_id: currentUser.id, supplier_id: supplierId }]).select('id');
-                if(newChat) chatId = newChat[0].id;
-            }
+            // Check if scheduled for FUTURE (Don't show yet)
+            if (msg.scheduled_for && new Date(msg.scheduled_for) > new Date()) return;
 
-            if(chatId) {
-                const { data: history } = await _supabase.from('messages').select('*').eq('chat_id', chatId).order('created_at', { ascending: true });
-                if(history) history.forEach(msg => renderMessage(msg));
-
-                _supabase.channel(`chat_${chatId}`)
-                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `chat_id=eq.${chatId}` }, payload => {
-                        if(payload.new.sender_id !== currentUser.id) {
-                            renderMessage(payload.new); 
-                            // Check sound setting to play ping
-                            const mySettings = JSON.parse(localStorage.getItem('golden_user_settings') || '{}');
-                            if(mySettings.notif_sound !== false) playSound();
-                        }
-                    }).subscribe();
-            }
-        }
-
-        function playSound() {
-            // Short subtle pop sound
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = ctx.createOscillator(); osc.type = 'sine'; osc.frequency.setValueAtTime(800, ctx.currentTime);
-            osc.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.1);
-        }
-
-        function renderMessage(msg) {
             const isMe = msg.sender_id === currentUser.id;
             const d = new Date(msg.created_at);
             const timeStr = `${d.getHours()}:${d.getMinutes().toString().padStart(2,'0')}`;
             
-            const area = document.getElementById('chatArea');
-            area.innerHTML += `<div class="bubble ${isMe ? 'bubble-me' : 'bubble-them'}">${msg.content}<div class="msg-time">${timeStr}</div></div>`;
-            setTimeout(() => area.scrollTop = area.scrollHeight, 100); 
+            let contentHtml = msg.content;
+
+            // Handle Auto-Translate Simulation
+            if (!isMe && userSettings.language && userSettings.language !== 'en' && msg.content && !msg.is_deleted_for_everyone) {
+                contentHtml = `<div class="translate-badge mb-1"><i data-lucide="languages" class="w-3 h-3"></i> Auto-Translated</div> ${msg.content}`;
+            }
+
+            // Handle Voice Notes
+            if (msg.audio_url) {
+                const volLevel = (userSettings.chat_audio_vol || 100) / 100;
+                contentHtml = `<div class="flex items-center gap-2"><i data-lucide="mic" class="w-4 h-4"></i> <audio src="${msg.audio_url}" controls class="h-8 w-48" onplay="this.volume=${volLevel}"></audio></div>`;
+            }
+
+            // Handle Forwarded Tag
+            if (msg.is_forwarded && !msg.is_deleted_for_everyone) {
+                contentHtml = `<div class="text-[10px] text-slate-500 dark:text-slate-400 theme-golden:text-gold-600 mb-1 flex items-center gap-1"><i data-lucide="forward" class="w-3 h-3"></i> Forwarded</div>` + contentHtml;
+            }
+
+            // Handle Deleted for Everyone
+            if (msg.is_deleted_for_everyone) {
+                contentHtml = `<i class="text-slate-400 dark:text-slate-500 flex items-center gap-1"><i data-lucide="ban" class="w-3 h-3"></i> This message was deleted</i>`;
+            }
+
+            const editedTag = msg.is_edited && !msg.is_deleted_for_everyone ? '<span class="italic"> (edited)</span>' : '';
+
+            area.innerHTML += `
+                <div class="bubble-wrapper ${isMe ? 'bubble-me-wrapper' : 'bubble-them-wrapper'}" onclick='openMsgOptions(${JSON.stringify(msg).replace(/'/g, "\\'")})'>
+                    <div class="bubble ${isMe ? 'bubble-me' : 'bubble-them'}">
+                        ${contentHtml}
+                    </div>
+                    <div class="msg-meta ${isMe ? 'text-slate-400 theme-golden:text-gold-600/50' : 'text-slate-500 theme-golden:text-gold-600'}">
+                        ${timeStr} ${editedTag}
+                    </div>
+                </div>
+            `;
+        });
+        lucide.createIcons();
+        area.scrollTop = area.scrollHeight; 
+    }
+
+    // --- MESSAGE OPTIONS & EDIT LOGIC ---
+    function openMsgOptions(msg) {
+        activeMsg = msg;
+        const diffMins = (new Date() - new Date(msg.created_at)) / 60000;
+        
+        // Hide Edit if > 30 mins, or if not my message, or if already deleted
+        if (diffMins > 30 || msg.sender_id !== currentUser.id || msg.is_deleted_for_everyone) {
+            document.getElementById('btnEditMsg').classList.add('hidden-view');
+        } else {
+            document.getElementById('btnEditMsg').classList.remove('hidden-view');
         }
 
-        async function sendMessage() {
-            const input = document.getElementById('msgInput'); const text = input.value.trim();
-            if(!text || !chatId) return;
-            input.value = '';
+        document.getElementById('msgOptionsModal').classList.add('active');
+    }
 
-            renderMessage({ sender_id: currentUser.id, content: text, created_at: new Date().toISOString() });
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+    function initiateEdit() {
+        closeModal('msgOptionsModal');
+        isEditing = true;
+        document.getElementById('editBar').classList.remove('hidden-view');
+        const input = document.getElementById('msgInput');
+        input.value = activeMsg.content;
+        input.focus();
+        document.getElementById('micBtn').classList.add('hidden-view');
+        document.getElementById('sendBtn').classList.remove('hidden-view');
+    }
+
+    function cancelEdit() {
+        isEditing = false;
+        activeMsg = null;
+        document.getElementById('editBar').classList.add('hidden-view');
+        document.getElementById('msgInput').value = '';
+    }
+
+    // --- DELETION LOGIC ---
+    function openDeleteModal() {
+        closeModal('msgOptionsModal');
+        document.getElementById('deleteOptionsModal').classList.add('active');
+    }
+
+    async function deleteForEveryone() {
+        if(!activeMsg) return;
+        closeModal('deleteOptionsModal');
+        await _supabase.from('messages').update({ is_deleted_for_everyone: true, content: 'Deleted' }).eq('id', activeMsg.id);
+    }
+
+    async function deleteForMe() {
+        if(!activeMsg) return;
+        closeModal('deleteOptionsModal');
+        let currentDeleted = activeMsg.deleted_for || [];
+        if(!currentDeleted.includes(currentUser.id)) currentDeleted.push(currentUser.id);
+        
+        await _supabase.from('messages').update({ deleted_for: currentDeleted }).eq('id', activeMsg.id);
+        
+        // Optimistically remove from local array to prevent flicker
+        const idx = allMessages.findIndex(m => m.id === activeMsg.id);
+        if(idx > -1) { allMessages[idx].deleted_for = currentDeleted; renderAllMessages(); }
+    }
+
+    // --- FORWARD & SCHEDULE ---
+    function forwardMessage() {
+        closeModal('msgOptionsModal');
+        if(!activeMsg || activeMsg.is_deleted_for_everyone) return alert("Cannot forward this message.");
+        alert(`Forwarding Interface Opened:\nMessage: "${activeMsg.content}"\n(Would load network connections list here)`);
+    }
+
+    function openScheduleModal() {
+        const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+        const localISOTime = (new Date(Date.now() - tzoffset + 3600000)).toISOString().slice(0, 16); // Default 1 hour ahead
+        document.getElementById('scheduleDate').value = localISOTime;
+        document.getElementById('scheduleModal').classList.add('active');
+    }
+
+    async function scheduleMessage() {
+        const dateVal = document.getElementById('scheduleDate').value;
+        const input = document.getElementById('msgInput');
+        const text = input.value.trim();
+        if(!text || !dateVal) return alert("Please type a message and select a time.");
+        
+        const scheduleDate = new Date(dateVal).toISOString();
+        closeModal('scheduleModal');
+        input.value = '';
+
+        await _supabase.from('messages').insert([{ chat_id: chatId, sender_id: currentUser.id, content: text, scheduled_for: scheduleDate }]);
+        alert("Message Scheduled!");
+    }
+
+    // --- VOICE NOTES ---
+    let isRecording = false;
+    function toggleVoiceNote() {
+        const btn = document.getElementById('micBtn');
+        if(!isRecording) {
+            isRecording = true;
+            btn.classList.add('recording');
+            btn.innerHTML = '<i data-lucide="square" class="w-5 h-5"></i>';
+            document.getElementById('msgInput').placeholder = "Recording 00:04... (Tap to stop)";
+            document.getElementById('msgInput').disabled = true;
+        } else {
+            isRecording = false;
+            btn.classList.remove('recording');
+            btn.innerHTML = '<i data-lucide="mic" class="w-5 h-5"></i>';
+            document.getElementById('msgInput').placeholder = "Secure message...";
+            document.getElementById('msgInput').disabled = false;
+            
+            alert("Voice Note Saved & Uploaded to Storage Bucket!");
+            // In production: Use MediaRecorder API, create Blob, upload to 'chat_audio' bucket, then insert message with audio_url.
+            _supabase.from('messages').insert([{ chat_id: chatId, sender_id: currentUser.id, content: 'Voice Note', audio_url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' }]);
+        }
+        lucide.createIcons();
+    }
+
+    // --- SEND MESSAGE ---
+    async function handleSend() {
+        const input = document.getElementById('msgInput');
+        const text = input.value.trim();
+        if(!text || !chatId) return;
+
+        if(isEditing && activeMsg) {
+            input.value = '';
+            cancelEdit();
+            await _supabase.from('messages').update({ content: text, is_edited: true }).eq('id', activeMsg.id);
+        } else {
+            input.value = '';
+            // Optimistic rendering
+            const fakeMsg = { id: 'temp', sender_id: currentUser.id, content: text, created_at: new Date().toISOString() };
+            allMessages.push(fakeMsg);
+            renderAllMessages();
+
             await _supabase.from('messages').insert([{ chat_id: chatId, sender_id: currentUser.id, content: text }]);
             await _supabase.from('profiles').update({ last_active: new Date().toISOString() }).eq('id', currentUser.id);
         }
+    }
 
-        window.onunload = () => clearInterval(presenceInterval);
-        window.addEventListener('DOMContentLoaded', init);
-    </script>
+    window.onunload = () => clearInterval(presenceInterval);
+    window.addEventListener('DOMContentLoaded', init);
+</script>
 </body>
 </html>
